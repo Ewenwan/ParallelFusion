@@ -3,12 +3,13 @@
 
 #include <vector>
 
+#include "LabelSpace.h"
 
 class ProposalGenerator
 {
  public:
   virtual void setCurrentSolution(const std::vector<int> &current_solution) { current_solution_ = current_solution; };
-  virtual std::vector<std::vector<int> > getProposal() const = 0;
+  virtual LabelSpace getProposal() const = 0;
   
  protected:
   std::vector<int> current_solution_;

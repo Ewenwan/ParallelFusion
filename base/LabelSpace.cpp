@@ -1,13 +1,15 @@
+#include "LabelSpace.h"
+
 #include <vector>
 
 using namespace std;
 
-LabelSpace(const int NUM_NODES, const std::vector<int> &single_labels) : NUM_NODES_(NUM_NODES)
+LabelSpace::LabelSpace(const int NUM_NODES, const std::vector<int> &single_labels) : NUM_NODES_(NUM_NODES)
 {
   setSingleLabels(single_labels);
 }
 
-LabelSpace(const int NUM_NODES, const std::vector<std::vector<int> > &label_space) : NUM_NODES_(NUM_NODES), label_space_(label_space)
+LabelSpace::LabelSpace(const int NUM_NODES, const std::vector<std::vector<int> > &label_space) : NUM_NODES_(NUM_NODES), label_space_(label_space)
 {
 }
 
@@ -24,7 +26,7 @@ void LabelSpace::setSingleLabels(const vector<int> &single_labels)
     label_space_[node_index] = vector<int>(1, single_labels[node_index]);
 }
 
-LabelSpace &operator += (const LabelSpace &rhs)
+LabelSpace &LabelSpace::operator += (const LabelSpace &rhs)
 {
   vector<vector<int> > rhs_label_space = rhs.getLabelSpace();
   CHECK(label_space_.size() == rhs_label_space.size()) << "The number of nodes is inconsistent.";

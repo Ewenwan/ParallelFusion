@@ -3,6 +3,7 @@
 
 #include <vector>
 
+//Label space management
 class LabelSpace
 {
  public:
