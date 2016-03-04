@@ -7,8 +7,8 @@
 
 #include "colourtransform.h"
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -299,7 +299,7 @@ int *GenerateDSI_HMI (IplImage *left, IplImage *right, IplImage *&occ_left, IplI
 	int radio = NO_TRANSFORM;			// radiometric method
 
 	// having left disparity map and left occlusion map compute MI scores
-	// I follow Hirschmüllers Semi-global PAMI paper to do this
+	// I follow Hirschmï¿½llers Semi-global PAMI paper to do this
 	CHmiDsi dsiobj (imgW, imgH, maxdisp, num_threads);
 	dsiobj.Generate_DSI (left, right, left, right, disp_left, occ_left, 1, colSp, border_costs, dsi_left);
 

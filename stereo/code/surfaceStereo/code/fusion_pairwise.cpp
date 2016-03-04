@@ -2,7 +2,9 @@
 
 #define EIGHT_CONNECTIVITY
 
-inline int same_surface_label (SurfaceModel *s1, SurfaceModel *s2)
+using namespace kolmogorov::qpbo;
+
+int same_surface_label (SurfaceModel *s1, SurfaceModel *s2)
 {
 	if (s1->proposalid == s2->proposalid && s1->segid == s2->segid)
 		return 1;

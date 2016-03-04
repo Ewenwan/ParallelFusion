@@ -1,11 +1,11 @@
 #ifndef __PIXELDIS_H__
 #define __PIXELDIS_H__
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 #include <stdio.h>
-#include <windows.h>
 #include <time.h>
+#include <algorithm>
 
 #include <emmintrin.h>
 #include <xmmintrin.h>

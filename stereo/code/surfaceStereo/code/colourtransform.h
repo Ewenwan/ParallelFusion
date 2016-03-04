@@ -2,9 +2,9 @@
 #define __COLOURTRANSFORM_H__
 
 #include <stdio.h>
-
-#include "cv.h"
-#include "highgui.h"
+#include <algorithm>
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 
 #define GREY 0
 #define RGB 1
@@ -22,6 +22,6 @@
 #define LUV_SCALED10 13
 #define CMY 14
 
-float *colour_transform (IplImage *input, int color_model);
+float *colour_transform(IplImage *input, int color_model);
 
 #endif

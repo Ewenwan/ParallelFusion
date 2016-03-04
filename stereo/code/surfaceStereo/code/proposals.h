@@ -12,7 +12,7 @@
 #include <map>
 using namespace std;
 
-typedef class Proposal
+class Proposal
 {
 public:
 	vector<SurfaceModel*> surfacemodels;
@@ -100,7 +100,7 @@ typedef struct {
 	int processed;
 } RefitParam;
 
-typedef class ProposalGenerator
+class ProposalGenerator
 {
 public:
 	ProposalGenerator (char *_testsetname, IplImage *_left, IplImage *_right, int _maxdisp, float _scale, int _iterations);

@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 
 #define L1 0
 #define L2 1

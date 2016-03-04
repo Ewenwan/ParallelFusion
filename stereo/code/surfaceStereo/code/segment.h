@@ -1,8 +1,8 @@
 #ifndef _SEGMENT_H_
 #define _SEGMENT_H_
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 #include "surfacemodels.h"
 
 #include <vector>

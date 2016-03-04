@@ -60,7 +60,7 @@ void CDsi::match_scanlines (float *left_data, float *right_data, int *dsi_data)
 	float *right_upscaled = scale_up (right_data);
 	int *dsi = dsi_data;
 
-	if (leftisReference == FALSE)
+	if (!leftisReference)
 	{
 		float *dummy = left_upscaled;
 		left_upscaled = right_upscaled;
@@ -72,7 +72,7 @@ void CDsi::match_scanlines (float *left_data, float *right_data, int *dsi_data)
 		ref = left_upscaled + 6 * x + 3;
 		match = right_upscaled + 6 * x + 3;
 
-		if (leftisReference == TRUE) border = MIN2 ((maxdisp + 1), (x + 1));
+		if (leftisReference) border = MIN2 ((maxdisp + 1), (x + 1));
 		else border = MIN2 ((maxdisp + 1), (imgW - x));
 
 		for (d = 0; d < border; d++)
@@ -103,7 +103,7 @@ void CDsi::match_scanlines (float *left_data, float *right_data, int *dsi_data)
 
 			*dsi++ = (int) (minAD + 0.5);
 			
-			if (leftisReference == TRUE) match -= 6;
+			if (leftisReference) match -= 6;
 			else match += 6;
 		}
 
@@ -855,7 +855,7 @@ void comp_dsi (IplImage *left_img, IplImage *right_img, int maxdisp, int winSize
 
 		cvWaitKey(0);*/
 
-		dsiobj.Generate_DSI (left_img, right_img, left_img, right_img, disp, occmask, TRUE, RGB, bordercosts, dsi_int);
+		dsiobj.Generate_DSI (left_img, right_img, left_img, right_img, disp, occmask, true, RGB, bordercosts, dsi_int);
 	#endif
 
 	
@@ -878,7 +878,7 @@ void comp_dsi (IplImage *left_img, IplImage *right_img, int maxdisp, int winSize
 			for (int d = 0; d <= maxdisp; d++)
 			{
 				uchar *write = get_padded_dsi_ptr_at (dsi_uchar, x, y, d, dsi_width, dsi_height, maxdisp, paddingpix);		
-				*write = (uchar) min (*read, min (pixdisthresh, 255));
+				*write = (uchar) std::min (*read, std::min (pixdisthresh, 255));
 				//*write = (uchar) min (x, 255);
 				read++;
 			}

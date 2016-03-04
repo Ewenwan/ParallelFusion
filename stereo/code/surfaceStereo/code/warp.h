@@ -1,8 +1,8 @@
 #ifndef WARP_H
 #define WARP_H
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 
 IplImage *Occ_Mask_Via_Disp_Map (IplImage *scaled_disp, float scale);
 

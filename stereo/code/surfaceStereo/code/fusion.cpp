@@ -1,5 +1,6 @@
 #include "fusion.h"
 
+using namespace kolmogorov::qpbo;
 void LoadSegmentationImages (char *name, vector<IplImage*> *segmentations, vector<int> segindices)
 // load precompute meanshift segmentations
 // if you want to use different images use edison and call the segmented color image ms3_segm.png

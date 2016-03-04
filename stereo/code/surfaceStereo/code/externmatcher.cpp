@@ -74,14 +74,14 @@ IplImage *ExternDisparityMap (char *imgname, IplImage *left, IplImage *right, in
 	IplImage *disp = cvLoadImage (fn, 0);
 	if (!disp)
 	{
-		char dummy[512];
+		char dummy[512] = {};
 
-		sprintf_s (dummy, sizeof (dummy), "%s\\left.png", SIMPLETREE_PATH); 
+		sprintf(dummy, "%s/left.png", SIMPLETREE_PATH);
 		cvSaveImage (dummy, left);
-		sprintf_s (dummy, sizeof (dummy), "%s\\right.png", SIMPLETREE_PATH); 
+		sprintf(dummy, "%s/right.png", SIMPLETREE_PATH);
 		cvSaveImage (dummy, right);
 
-		sprintf_s (dummy, sizeof (dummy), "%s -calib %s\\calib.txt -d %d -s %.3f -P1 %d -P2 %d -ms 20 %s\\left.png %s\\right.png %s", SIMPLETREE_EXE, SIMPLETREE_PATH, maxdisp, scale, ST_P1, ST_P2, SIMPLETREE_PATH, SIMPLETREE_PATH, fn); 
+		sprintf(dummy,"%s -calib %s/calib.txt -d %d -s %.3f -P1 %d -P2 %d -ms 20 %s\\left.png %s\\right.png %s", SIMPLETREE_EXE, SIMPLETREE_PATH, maxdisp, scale, ST_P1, ST_P2, SIMPLETREE_PATH, SIMPLETREE_PATH, fn);
 		system(dummy);
 
 		disp = cvLoadImage (fn, 0);

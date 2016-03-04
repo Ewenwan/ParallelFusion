@@ -263,8 +263,8 @@ float min3(float R, float G, float B )
 {
 	float temp1, temp2;
 	
-	temp1 = min(R , G);
-	temp2 = min(temp1 , B);
+	temp1 = std::min(R , G);
+	temp2 = std::min(temp1 , B);
 
 	return temp2;	
 }

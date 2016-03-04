@@ -140,11 +140,11 @@ void Segments::Plot (IplImage *dst)
 
 void UpdateConfigFile (char *path, float SpatialBandwidth, float RangeBandwidth, float MinimumRegionsArea)
 {
-	char fn[512];
-	sprintf_s (fn, sizeof (fn), "%s\\source.txt", path); 
+	char fn[512] = {};
+	sprintf (fn, "%s/source.txt", path);
 	FILE * fp_in = fopen (fn,"r");
 
-	sprintf_s (fn, sizeof (fn), "%s\\config.txt", path); 
+	sprintf (fn, "%s/config.txt", path);
 	FILE * fp_out = fopen (fn,"w");
 
 	int i = 1;
@@ -183,9 +183,9 @@ IplImage *Segments::InitFromMeanShift (char *imgname, IplImage *img, float Spati
 	{
 		UpdateConfigFile (EDISON_PATH, SpatialBandwidth, RangeBandwidth, MinimumRegionsArea);
 
-		char dummy[512];
+		char dummy[512] = {};
 
-		sprintf_s (dummy, sizeof (dummy), "%s\\in.ppm", EDISON_PATH); 
+		sprintf (dummy, "%s/in.ppm", EDISON_PATH);
 
 
 		IplImage *temp = cvCloneImage (img);
@@ -195,7 +195,7 @@ IplImage *Segments::InitFromMeanShift (char *imgname, IplImage *img, float Spati
 		system(EDISON_EXE);
 		printf ("mean shift segmentation finished\n");
 
-		sprintf_s (dummy, sizeof (dummy), "%s\\out.ppm", EDISON_PATH); 
+		sprintf (dummy, "%s/out.ppm", EDISON_PATH);
 
 		labelled_char = cvLoadImage (dummy);
 

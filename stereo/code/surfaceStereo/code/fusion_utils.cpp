@@ -1,7 +1,6 @@
 #include "fusion.h"
 
-#define SAVEIMAGES
-
+using namespace kolmogorov::qpbo;
 void get_prefix (char *disp_fn, char *prefix)
 {
 	// search the .
