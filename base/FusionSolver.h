@@ -8,6 +8,6 @@
 class FusionSolver
 {
   virtual std::vector<int> solve(const LabelSpace &label_space);
-}
+};
   
 #endif

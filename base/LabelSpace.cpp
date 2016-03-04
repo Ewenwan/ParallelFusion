@@ -4,12 +4,12 @@
 
 using namespace std;
 
-LabelSpace::LabelSpace(const int NUM_NODES, const std::vector<int> &single_labels) : NUM_NODES_(NUM_NODES)
+LabelSpace::LabelSpace(const std::vector<int> &single_labels) : NUM_NODES_(single_labels.size())
 {
   setSingleLabels(single_labels);
 }
 
-LabelSpace::LabelSpace(const int NUM_NODES, const std::vector<std::vector<int> > &label_space) : NUM_NODES_(NUM_NODES), label_space_(label_space)
+LabelSpace::LabelSpace(const std::vector<std::vector<int> > &label_space) : NUM_NODES_(label_space.size()), label_space_(label_space)
 {
 }
 
