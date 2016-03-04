@@ -26,7 +26,7 @@ void get_fn (char *caption, char *disp_fn, char *fn)
 
 void SaveImage (char *caption, char *disp_fn, IplImage *img)
 {
-	char fn[2048];
+	char fn[2048] = {};
 
 	get_fn (caption, disp_fn, fn);
 	cvSaveImage (fn, img);
@@ -190,7 +190,7 @@ int numUnlabeled (QPBO<REAL>* q, int imgW, int imgH)
 		}
 	}
 
-	printf ("%d / %d overall unlabeled nodes (%.1f\%)\n", 
+	printf ("%d / %d overall unlabeled nodes (%.1f%%)\n",
 			sumUnlabeled, q->GetNodeNum(), (float) sumUnlabeled / (float) q->GetNodeNum() * 100.f);
 
 	// disparity nodes
@@ -204,7 +204,7 @@ int numUnlabeled (QPBO<REAL>* q, int imgW, int imgH)
 		}
 	}
 
-	printf ("%d / %d unlabeled disparity nodes (%.1f\%)\n", 
+	printf ("%d / %d unlabeled disparity nodes (%.1f%%)\n",
 			sumUnlabeled, imgW * imgH, (float) sumUnlabeled / (float) (imgW * imgH) * 100.f);
 
 	return sumUnlabeled;

@@ -5,11 +5,8 @@
 #include "fusion.h"
 #include "warp.h"
 
+#include <string>
 #include "colourtransform.h"
-
-#include "opencv/cv.h"
-#include "opencv/highgui.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <xmmintrin.h> //_mm_malloc and _mm_free
@@ -200,8 +197,6 @@ void load_images(char *leftfn, char *rightfn, IplImage *&leftim, IplImage *&righ
 {
 	leftim = cvLoadImage (leftfn);
 	rightim = cvLoadImage (rightfn);
-	
-	printf ("%s", leftfn);
 
 	// check if images exist
 	if (!leftim)  { fprintf(stderr, "%s could not be found\n", leftfn); exit(1); }
@@ -342,9 +337,9 @@ int main(int argc, char **argv)
 	#define TSUKUBA
 	#ifdef TSUKUBA
 		name = "tsukuba";
-		leftfn = "..\\data\\tsukuba_left.ppm";
-		rightfn = "..\\data\\tsukuba_right.ppm";
-		dispfn = "..\\results\\disp.png";
+		leftfn = "data/tsukuba_left.ppm";
+		rightfn = "data/tsukuba_right.ppm";
+		dispfn = "results/disp.png";
 		maxdisp = 15;
 		scale = 16;
 	#endif
@@ -433,7 +428,6 @@ int main(int argc, char **argv)
 	process_commandline (argc, argv);
 	printparms ();
 	///////////////////////////
-
 	IplImage *left = 0;
 	IplImage *right = 0;
 
@@ -447,18 +441,14 @@ int main(int argc, char **argv)
 	// robust function of eq. (3)
 	WoodfordDataCosts (dsi_left, left->width, left->height);
 
-
 	// init the proposal generator
 	ProposalGenerator generator (name, left, right, maxdisp, scale, gc_iterations);
-
 	// main logic
 	Proposal bestsolution = fuse(generator,
 							OccPen, SmoothPen, HOPen, segimages,
 							SparsePen, SurfComplexityPen, winsize,
 							dsi_left, maxdisp, scale,
 							name, left, occ_left, dispfn);
-
-
 	// display and store images
 	IplImage *proposalimg = bestsolution.plot_proposal(scale);
 

@@ -68,8 +68,8 @@ IplImage *ExternDisparityMap (char *imgname, IplImage *left, IplImage *right, in
 {
 	////////////////////////////////////////////////
 	// check if we have a precomputed disparity map
-	char fn[2048];
-	sprintf (fn, "%s\\%s_P1_%d_P2_%d.png", SIMPLETREE_PATH, imgname, ST_P1, ST_P2);
+	char fn[2048] = {};
+	sprintf (fn, "%s/%s_P1_%d_P2_%d.png", SIMPLETREE_PATH, imgname, ST_P1, ST_P2);
 
 	IplImage *disp = cvLoadImage (fn, 0);
 	if (!disp)
