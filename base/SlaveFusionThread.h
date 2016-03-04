@@ -1,7 +1,7 @@
 #ifndef SLAVE_FUSION_THREAD_H__
 #define SLAVE_FUSION_THREAD_H__
 
-#include <vector>
+#include <memory>
 
 #include "ProposalGenerator.h"
 #include "FusionSolver.h"
