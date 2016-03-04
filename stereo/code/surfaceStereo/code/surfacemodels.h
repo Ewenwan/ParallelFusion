@@ -1,8 +1,8 @@
 #ifndef SURFACE_MODELS_H
 #define SURFACE_MODELS_H
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 
 #include <vector>
 #include <algorithm>
@@ -14,7 +14,7 @@ using namespace std;
 #define IS_PLANE 2
 #define IS_SPLINE 3
 
-typedef class SurfaceModel
+class SurfaceModel
 {
 public:
 	virtual float PointDisp (CvPoint point, float scale) = 0;
@@ -35,7 +35,7 @@ public:
 	int proposalid;
 };
 
-typedef class Plane : public SurfaceModel
+class Plane : public SurfaceModel
 {
 public:
 	float A;
@@ -57,7 +57,7 @@ public:
 	int splineorder () {return 0;}
 };
 
-typedef class BSpline : public SurfaceModel
+class BSpline : public SurfaceModel
 {
 public:
 	CvPoint LU;

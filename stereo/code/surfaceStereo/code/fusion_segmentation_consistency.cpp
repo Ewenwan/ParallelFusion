@@ -1,5 +1,6 @@
 #include "fusion.h"
 
+using namespace kolmogorov::qpbo;
 // this is the sparse higher order construction as described in Carsten's paper
 // this here is the type 1 construction
 void AddType1Construction(QPBO<REAL>* q, vector<CvPoint> points, vector<int> state, int PH, int imgW)

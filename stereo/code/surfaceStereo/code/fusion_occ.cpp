@@ -1,9 +1,8 @@
 #include "fusion.h"
 
-
 ///////////////////////////////////////////////////////
 //			Occlusion Term
-#define INFINITY 1000
+#define MYINFINITY 1000
 //#define INFINITY 0
 
 int _imgW, _imgH;
@@ -201,7 +200,7 @@ int hasSwappedMeaning (int idx)
 	return _oldlabels->at(idx);
 }
 
-void AddDataTermWithOcc (QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2, int *dsi, int OccPen, vector<int> *oldlabels)
+void AddDataTermWithOcc (kolmogorov::qpbo::QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2, int *dsi, int OccPen, vector<int> *oldlabels)
 {
 	_imgW = proposal1->imgW;
 	_imgH = proposal1->imgH;
@@ -288,12 +287,12 @@ void AddDataTermWithOcc (QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2
 			if (!swapped)
 			{
 				q->AddPairwiseTerm (occluder_idx, occlusion_idx,
-					INFINITY, 0, 0, 0);
+					MYINFINITY, 0, 0, 0);
 			}
 			else
 			{
 				q->AddPairwiseTerm (occluder_idx, occlusion_idx,
-					0, INFINITY, 0, 0);
+					0, MYINFINITY, 0, 0);
 			}
 
 		}
@@ -308,19 +307,19 @@ void AddDataTermWithOcc (QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2
 			if (!swapped)
 			{
 				q->AddPairwiseTerm (occluder_idx, occlusion_idx,
-					0, 0, INFINITY, 0);
+					0, 0, MYINFINITY, 0);
 			}
 			else
 			{
 				q->AddPairwiseTerm (occluder_idx, occlusion_idx,
-					0, 0, 0, INFINITY);
+					0, 0, 0, MYINFINITY);
 			}
 		}
 	}
 }
 
 // manually compute data costs (used for double checking)
-int Evaluate_DataWithOcc (QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2)
+int Evaluate_DataWithOcc (kolmogorov::qpbo::QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2)
 {
 	int e = 0;
 
@@ -358,7 +357,7 @@ int Evaluate_DataWithOcc (QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal
 	return e;
 }
 
-void Getoldlabels (QPBO<REAL> *q, vector<int> *&oldlabels)
+void Getoldlabels (kolmogorov::qpbo::QPBO<REAL> *q, vector<int> *&oldlabels)
 {
 	vector <int> *newlabels = new vector<int>;
 
@@ -390,7 +389,7 @@ void Getoldlabels (QPBO<REAL> *q, vector<int> *&oldlabels)
 }
 
 // plots disparity map with occlusions in red
-void ShowOcclusionGraph (QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2, float scale, char *fn)
+void ShowOcclusionGraph (kolmogorov::qpbo::QPBO<REAL> *q, Proposal *proposal1, Proposal *proposal2, float scale, char *fn)
 {
 	int imgW = proposal1->imgW;
 	int imgH = proposal1->imgH;

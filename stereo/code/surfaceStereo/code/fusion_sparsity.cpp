@@ -1,9 +1,12 @@
 #include <map>
-using namespace std;
+
 
 #include "fusion.h"
 
-#define INFINTIY 100000
+using namespace std;
+using namespace kolmogorov::qpbo;
+
+#define MYINFINTIY 100000
 
 struct MapEntry
 {
@@ -17,7 +20,7 @@ map<SurfaceModel*, vector<MapEntry>, lessthanSurfaceModel> surfmap;
 
 int GetSparsenessCosts (SurfaceModel *sm, int Psparse, float SurfComplexityPen, float scale)
 {
-	#define LARGEVAL 500000
+	const int LARGEVAL = 500000;
 
 	if (!sm->is_valid())
 		return LARGEVAL;
@@ -149,13 +152,13 @@ void AddSparsityPrior(QPBO<REAL>* q, Proposal &proposal1, Proposal &proposal2, i
 					q->AddPairwiseTerm(idx, instance_node,
 										0,			// E00
 										0,			// E01
-										INFINTIY,	// E10
+										MYINFINTIY,	// E10
 										0);			// E11
 				}
 				if (state == 0)
 				{
 					q->AddPairwiseTerm(idx, instance_node,
-										INFINTIY,	// E00
+										MYINFINTIY,	// E00
 										0,			// E01
 										0,			// E10
 										0);			// E11
@@ -169,13 +172,13 @@ void AddSparsityPrior(QPBO<REAL>* q, Proposal &proposal1, Proposal &proposal2, i
 										0,			// E00
 										0,			// E01
 										0,			// E10
-										INFINTIY);	// E11
+										MYINFINTIY);	// E11
 				}
 				if (state == 0)
 				{
 					q->AddPairwiseTerm(idx, instance_node,
 										0,			// E00
-										INFINTIY,	// E01
+										MYINFINTIY,	// E01
 										0,			// E10
 										0);			// E11
 				}

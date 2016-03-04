@@ -2,7 +2,7 @@
 #define __RADIOTRANSFORM_H__
 
 #include <stdio.h>
-#include "cv.h"
+#include "opencv/cv.h"
 
 #define NO_TRANSFORM 0
 

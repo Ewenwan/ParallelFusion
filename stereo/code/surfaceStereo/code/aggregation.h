@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cv.h"
-#include "highgui.h"
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
 
-int *aggregate (int *dsi, int imgW, int imgH, int maxdisp, int winsize);
+int *aggregate(int *dsi, int imgW, int imgH, int maxdisp, int winsize);

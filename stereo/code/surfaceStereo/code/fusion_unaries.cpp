@@ -2,6 +2,7 @@
 
 #define LARGEVAL 99999
 
+using namespace kolmogorov::qpbo;
 ////////////////////////////////////
 //	data term without occlusion handling (not used in paper)
 void AddUnaries (QPBO<REAL>* q, Proposal &proposal1, Proposal &proposal2, int *dsi)

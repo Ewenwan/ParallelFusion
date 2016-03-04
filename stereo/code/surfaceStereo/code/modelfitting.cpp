@@ -1,5 +1,6 @@
 #include "modelfitting.h"
 
+#include <opencv2/opencv.hpp>
 /////////////////////////////////////////////////////////////
 //						Planes
 /////////////////////////////////////////////////////////////
@@ -42,8 +43,14 @@ Plane FitPlane(vector<CvPoint3D32f> Points, FILE *fp = 0)
 		CvMat Inv;
 		double Inv_Data[9];
 		cvInitMatHeader (&Inv, 3, 3, CV_64FC1, Inv_Data);
-		
-		cvPseudoInverse(&A, &Inv);
+
+		cv::Mat A2(3,3,CV_64FC1);
+		double* pA2 = (double*)A2.data;
+		for(int i=0; i<9; ++i)
+			pA2[i] = A_Data[i];
+		A2.inv();
+		for(int i=0; i<9; ++i)
+			Inv_Data[i] = pA2[i];
 
 		CvMat t;
 		double t_Data[9];
