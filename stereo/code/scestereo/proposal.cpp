@@ -24,7 +24,7 @@ namespace sce_stereo{
         const int h = noisyDisp.getHeight();
         const int nPixels = w * h;
         const double epsilon = (double)1e-05;
-        const double dis_thres = 0.3;
+        const double dis_thres = 0.2;
 
         const double max_depth = 255.0;
 
@@ -52,11 +52,8 @@ namespace sce_stereo{
         }
 
         planarDisp = noisyDisp;
-	    Depth planarDepth;
-	    planarDepth.initialize(w, h, 0.0);
         for(auto i=0; i<planarDisp.getRawData().size(); ++i) {
 	        planarDisp.getRawData()[i] = noisyDisp.getRawData()[i];
-	        planarDepth.getRawData()[i] = dispToDepth(noisyDisp.getRawData()[i]);
             //printf("disp: %.5f, depth:%.5f\n", noisyDisp.getRawData()[i], planarDepth.getRawData()[i]);
         }
 
@@ -125,28 +122,15 @@ namespace sce_stereo{
                 int y = idx / w;
                 double newdepth = (-1 * offset - n[0]*x - n[1] * y) / n[2];
                 double d = std::max(std::min(newdepth, max_depth), 0.0);
-	            if(verbose) {
-		            double oridepth = dispToDepth(noisyDisp.getDepthAtInd(idx));
-		            printf("inter: (%d,%d,%.5f), ori disp: %.5f, new disp: %.5f\n", x, y, oridepth, oridepth, newdepth);
-	            }
                 planarDisp.setDepthAtInd(idx, std::max(std::min(depthToDisp(d), (double)dispResolution-1), 0.0));
-	            planarDepth.setDepthAtInd(idx, d);
             }
         }
 
-	    Depth tempd;
-	    tempd.initialize(w, h, 0.0);
-	    for(auto i=0; i<nPixels; ++i)
-		    tempd.getRawData()[i] = dispToDepth(noisyDisp.getRawData()[i]);
 	    char buffer[1024] = {};
 	    sprintf(buffer, "%s/temp/tdisp_%s_%03d_1.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    noisyDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution);
+	    noisyDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution * 4);
 	    sprintf(buffer, "%s/temp/tdisp_%s_%03d_2.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    planarDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution);
-	    sprintf(buffer, "%s/temp/tdepth_%s_%03d_1.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    tempd.saveImage(std::string(buffer));
-	    sprintf(buffer, "%s/temp/tdepth_%s_%03d_2.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    planarDepth.saveImage(std::string(buffer));
+	    planarDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution * 4);
     }
 
     void ProposalSegPln::genProposal(std::vector<Depth> &proposals) {

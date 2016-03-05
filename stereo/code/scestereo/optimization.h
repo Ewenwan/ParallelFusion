@@ -77,7 +77,9 @@ namespace sce_stereo {
         void genProposal(std::vector<Depth> &proposals) const;
 
         void fusionMove(Depth &p1, const Depth &p2) const;
-
+        inline double lapE(const double x0, const double x1, const double x2) const{
+            return std::min(std::abs(x0 + x2 - 2 * x1), trun);
+        }
         const Depth &noisyDisp;;
         const double trun;
 

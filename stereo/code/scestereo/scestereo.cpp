@@ -4,7 +4,7 @@
 
 #include "scestereo.h"
 #include "local_matcher.h"
-#include "proposal.h"
+#include "optimization.h"
 
 using namespace std;
 using namespace cv;
@@ -106,8 +106,13 @@ namespace sce_stereo{
         initMRF();
 
         sprintf(buffer, "%s/temp/unaryDisp%05d.jpg", file_io.getDirectory().c_str(), anchor);
-        unaryDisp.saveImage(string(buffer), 255.0 / (dispResolution) * 4);
+        unaryDisp.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
 
-        //ProposalSegPlnMeanshift proposalSegPlnMeanshift(file_io, images, unaryDisp, 0, );
+        SecondOrderOptimizeFusionMove fusionmove(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, unaryDisp);
+        Depth result_fusionmove;
+        fusionmove.optimize(result_fusionmove, 20);
+
+        sprintf(buffer, "%s/temp/result_fusionmove%05d.jpg", file_io.getDirectory().c_str(), anchor);
+        result_fusionmove.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
     }
 }//namespace sce_stereo

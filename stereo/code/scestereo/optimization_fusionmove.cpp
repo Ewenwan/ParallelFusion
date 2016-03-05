@@ -51,8 +51,10 @@ namespace sce_stereo {
 
         std::default_random_engine generator;
         std::uniform_int_distribution<int> distribution(0, nLabel-1);
-        for(auto i=0; i<width*height; ++i)
-            result.setDepthAtInd(i, (double)distribution(generator));
+        for(auto i=0; i<width*height; ++i) {
+            //result.setDepthAtInd(i, (double) distribution(generator));
+            result.setDepthAtInd(i, noisyDisp[i]);
+        }
 
         list<double> diffE;
         double lastEnergy = evaluateEnergy(result);
@@ -64,12 +66,14 @@ namespace sce_stereo {
         while (true) {
             if(iter == max_iter)
                 break;
+            cout << "======================" << endl;
             cout << "Iteration " << iter << " using proposal " << iter % (proposals.size()) << endl;
             const Depth& proposal = proposals[iter % (proposals.size())];
             cout << "Fusing..." << endl;
+            cout << "Initial energy: " << evaluateEnergy(result) << endl;
             fusionMove(result, proposal);
             double e = evaluateEnergy(result);
-            cout << "Done, energy: " << e << endl;
+            cout << "Done, final energy: " << e << endl;
             double energyDiff = lastEnergy - e;
 
             if(diffE.size() >= average_over)
@@ -79,7 +83,7 @@ namespace sce_stereo {
             lastEnergy = e;
 
            sprintf(buffer, "%s/temp/fusionmove_iter%05d.jpg", file_io.getDirectory().c_str(), iter);
-           result.saveImage(buffer, 255.0 / (double)nLabel);
+           result.saveImage(buffer, 255.0 / (double)nLabel * 4);
 
             if(average_diffe < termination) {
                 cout << "Converge!" << endl;
@@ -90,15 +94,13 @@ namespace sce_stereo {
         }
         timming = ((float)getTickCount() - timming) / (float)getTickFrequency();
         printf("All done. Initial energy: %.3f, final energy: %.3f, time usage: %.2fs\n", initialEnergy, lastEnergy, timming);
-
-
     }
 
     double SecondOrderOptimizeFusionMove::evaluateEnergy(const Depth &disp) const {
         CHECK_EQ(disp.getWidth(), width);
         CHECK_EQ(disp.getHeight(), height);
         double e = 0.0;
-        for (auto i = 0; i < disp.getWidth() * disp.getHeight(); ++i) {
+        for (auto i = 0; i < width * height; ++i) {
             int l = (int) disp[i];
             e += (double)(MRF_data[nLabel * i + l]) / (double)(MRFRatio);
         }
@@ -118,7 +120,7 @@ namespace sce_stereo {
                 d1 = disp(x - 1, y);
                 d2 = disp(x, y);
                 d3 = disp(x + 1, y);
-                e += std::min(std::abs(d1 + d3 - 2 * d2), trun) * lam;
+                e += lapE(d1,d2,d3) * lam;
 
                 id1 = (y - 1) * width + x;
                 id2 = y * width + x;
@@ -130,7 +132,7 @@ namespace sce_stereo {
                 d1 = disp(x, y - 1);
                 d2 = disp(x, y);
                 d3 = disp(x, y + 1);
-                e += std::min(std::abs(d1 + d3 - 2 * d2), trun) * lam;
+                e += lapE(d1,d2,d3) * lam;
             }
         }
         return e;
@@ -142,12 +144,12 @@ namespace sce_stereo {
         ProposalSegPlnMeanshift proposalFactoryMeanshift(file_io, image, noisyDisp, nLabel);
         proposalFactoryMeanshift.genProposal(proposals);
         vector<Depth> proposalsGb;
-        ProposalSegPlnGbSegment proposalFactoryGbSegment(file_io, image, noisyDisp, nLabel);
-        proposalFactoryGbSegment.genProposal(proposalsGb);
-        proposals.insert(proposals.end(), proposalsGb.begin(), proposalsGb.end());
+//        ProposalSegPlnGbSegment proposalFactoryGbSegment(file_io, image, noisyDisp, nLabel);
+//        proposalFactoryGbSegment.genProposal(proposalsGb);
+//        proposals.insert(proposals.end(), proposalsGb.begin(), proposalsGb.end());
         for (auto i = 0; i < proposals.size(); ++i) {
             sprintf(buffer, "%s/temp/proposalPln%03d.jpg", file_io.getDirectory().c_str(), i);
-            proposals[i].saveImage(buffer, 255.0 / (double) nLabel);
+            proposals[i].saveImage(buffer, 255.0 / (double) nLabel * 4);
         }
     }
 
@@ -179,38 +181,22 @@ namespace sce_stereo {
                 int p = y * width + x - 1;
                 int q = y * width + x;
                 int r = y * width + x + 1;
-                EnergyType lam;
+                double lam;
                 if (refSeg[p] == refSeg[q] && refSeg[p] == refSeg[r])
                     lam = lamh;
                 else
                     lam = laml;
+//                printf("==============================\n(%d,%d)\n", x, y);
+//                printf("(%d,%d,%d), %.2f\n", p, q, r, lam);
 
-                SE[0] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[1] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[2] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[3] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[4] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[5] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[6] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[7] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                for (auto &S: SE)
-                    S = (EnergyType)((double)S * lam);
+                SE[0] = (EnergyType)(lapE(p1.getDepthAtInd(p),p1.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[1] = (EnergyType)(lapE(p1.getDepthAtInd(p),p1.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[2] = (EnergyType)(lapE(p1.getDepthAtInd(p),p2.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[3] = (EnergyType)(lapE(p1.getDepthAtInd(p),p2.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[4] = (EnergyType)(lapE(p2.getDepthAtInd(p),p1.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[5] = (EnergyType)(lapE(p2.getDepthAtInd(p),p1.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[6] = (EnergyType)(lapE(p2.getDepthAtInd(p),p2.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[7] = (EnergyType)(lapE(p2.getDepthAtInd(p),p2.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
 
                 indices[0] = p;
                 indices[1] = q;
@@ -224,33 +210,17 @@ namespace sce_stereo {
                     lam = lamh;
                 else
                     lam = laml;
-                SE[0] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[1] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[2] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[3] = (EnergyType)(
-                        std::min(std::abs(p1.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[4] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[5] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p1.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[6] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p1.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                SE[7] = (EnergyType)(
-                        std::min(std::abs(p2.getDepthAtInd(p) + p2.getDepthAtInd(r) - 2 * p2.getDepthAtInd(q)), trun) *
-                        MRFRatio);
-                for (auto &S: SE)
-                    S = (EnergyType)((double)S * lam);
 
+                SE[0] = (EnergyType)(lapE(p1.getDepthAtInd(p),p1.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[1] = (EnergyType)(lapE(p1.getDepthAtInd(p),p1.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[2] = (EnergyType)(lapE(p1.getDepthAtInd(p),p2.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[3] = (EnergyType)(lapE(p1.getDepthAtInd(p),p2.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[4] = (EnergyType)(lapE(p2.getDepthAtInd(p),p1.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[5] = (EnergyType)(lapE(p2.getDepthAtInd(p),p1.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[6] = (EnergyType)(lapE(p2.getDepthAtInd(p),p2.getDepthAtInd(r),p1.getDepthAtInd(q)) * lam * MRFRatio);
+                SE[7] = (EnergyType)(lapE(p2.getDepthAtInd(p),p2.getDepthAtInd(r),p2.getDepthAtInd(q)) * lam * MRFRatio);
+
+                //printf("(%d,%d,%d), %.2f\n", p, q, r, lam);
                 indices[0] = p;
                 indices[1] = q;
                 indices[2] = r;
@@ -273,11 +243,13 @@ namespace sce_stereo {
         qpbo.MergeParallelEdges();
         qpbo.Solve();
         qpbo.ComputeWeakPersistencies();
+        //qpbo.Improve();
         t = ((float) getTickCount() - t) / (float) getTickFrequency();
         printf("Done. Time usage:%.3f\n", t);
 
         //fusion
         float unlabeled = 0.0;
+        float changed = 0.0;
         for (auto i = 0; i < width * height; ++i) {
             int l = qpbo.GetLabel(i);
             int disp1 = (int) p1.getDepthAtInd(i);
@@ -288,11 +260,15 @@ namespace sce_stereo {
                 p1.setDepthAtInd(i, disp1);
                 unlabeled += 1.0;
             }
-            else
+            else {
                 p1.setDepthAtInd(i, disp2);
+                changed += 1.0;
+            }
         }
 
-        printf("Unlabeled pixels: %.2f, Ratio: %.2f\n", unlabeled, unlabeled / (float) (width * height));
+        printf("Unlabeled pixels: %.2f, ratio: %.2f; label changed: %.2f, ratio: %.2f\n", unlabeled,
+               unlabeled / (float) (width * height),
+               changed, changed / (float) (width * height));
     }
 
 }//namespace dynamic_stereo
