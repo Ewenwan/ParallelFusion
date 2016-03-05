@@ -10,12 +10,39 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include "stereo/code/stereo_base/file_io.h"
-#include "stereo/code/stereo_base/utility.h"
+#include <opencv2/opencv.hpp>
+
+#include "../stereo_base/file_io.h"
+#include "../stereo_base/utility.h"
+#include "../stereo_base/depth.h"
 
 namespace sce_stereo {
     class SceStereo {
-        
+    public:
+        SceStereo(const FileIO& file_io_, const int anchor_, const int tWindow_, const int resolution_);
+
+        void runStereo();
+    private:
+        typedef int EnergyType;
+        void initMRF();
+
+        void computeMatchingCost();
+
+        const FileIO& file_io;
+        const int anchor;
+        const int tWindow;
+        const int dispResolution;
+        const double MRFRatio;
+        const int pR;
+
+        Depth unaryDisp;
+
+        int offset;
+        int width;
+        int height;
+        std::vector<cv::Mat> images;
+
+        std::vector<EnergyType> MRF_data;
     };
 }
 

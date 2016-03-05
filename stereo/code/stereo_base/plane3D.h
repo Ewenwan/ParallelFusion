@@ -5,7 +5,7 @@
 #include <Eigen/Eigen>
 #include <glog/logging.h>
 
-namespace dynamic_stereo {
+namespace sce_stereo {
 	class Plane3D {
 
 	public:

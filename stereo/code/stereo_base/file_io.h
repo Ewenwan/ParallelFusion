@@ -7,7 +7,7 @@
 #include <glog/logging.h>
 #include <assert.h>
 
-namespace dynamic_stereo{
+namespace sce_stereo{
     class FileIO {
     public:
         void init() {
