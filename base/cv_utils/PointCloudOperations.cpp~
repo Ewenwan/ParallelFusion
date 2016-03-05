@@ -1,0 +1,9 @@
+// #include "cv_utils.h"
+
+// void segmentPointCloudRansac(const vector<double> &point_cloud, const vector<vector<int> > &neighbors, vector<vector<double> > &planes, vector<int> &assignment, const double DENOTED_FITTING_ERROR_THRESHOLD, const int DENOTED_NUM_PLANES_THRESHOLD, const double DENOTED_FITTING_RATIO_THRESHOLD)
+// {
+//   const double FITTING_ERROR_THRESHOLD = DENOTED_FITTING_ERROR_THRESHOLD;
+//   const int NUM_PLANES_THRESHOLD = DENOTED_NUM_PLANES_THRESHOLD > 0 ? DENOTED_NUM_PLANES_THRESHOLD : point_cloud.size() / 3;
+//   for (int plane_index = 0; plane_index < NUM_PLANES_THRESHOLD; plane_index++) {
+//   }
+// }

@@ -1,0 +1,14 @@
+#include <vector>
+
+template<typename T> class Histogram
+{
+ public:
+  Histogram(const int NUM_HISTOS, const T MIN_VALUE, const T MAX_VALUE, const vector<T> &values = vector<T>());
+  double getEntropy();
+  double getProbability(const T &value);
+  
+ private:
+  const int NUM_HISTOS_, MIN_VALUE_, MAX_VALUE_;
+  int num_values_;
+  std::vector<int> histos_;
+}
