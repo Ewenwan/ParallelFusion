@@ -3,3 +3,7 @@
 //
 
 #include "scestereo.h"
+
+namespace sce_stereo{
+
+}//namespace sce_stereo
