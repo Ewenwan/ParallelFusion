@@ -6,7 +6,7 @@
 
 #include "../base/FusionSolver.h"
 
-class SegmentationFusionSolver : FusionSolver
+class SegmentationFusionSolver : public FusionSolver
 {
  public:
  SegmentationFusionSolver(const cv::Mat &image) : image_(image.clone()), IMAGE_WIDTH_(image.cols), IMAGE_HEIGHT_(image.rows) {};

@@ -7,33 +7,35 @@
 
 using namespace std;
 
-LabelSpace::LabelSpace(const std::vector<int> &single_labels) : NUM_NODES_(single_labels.size())
+LabelSpace::LabelSpace(const std::vector<int> &single_labels) : num_nodes_(single_labels.size())
 {
+  label_space_.assign(num_nodes_, vector<int>());
   setSingleLabels(single_labels);
 }
 
-LabelSpace::LabelSpace(const std::vector<std::vector<int> > &label_space) : NUM_NODES_(label_space.size()), label_space_(label_space)
+LabelSpace::LabelSpace(const std::vector<std::vector<int> > &label_space) : num_nodes_(label_space.size()), label_space_(label_space)
 {
 }
 
 void LabelSpace::clear()
 {
-  for (int node_index = 0; node_index < NUM_NODES_; node_index++)
+  for (int node_index = 0; node_index < num_nodes_; node_index++)
     label_space_[node_index].clear();
 }
 
 void LabelSpace::setSingleLabels(const vector<int> &single_labels)
 {
-  CHECK(single_labels.size() == NUM_NODES_) << "The number of nodes is inconsistent.";
-  for (int node_index = 0; node_index < NUM_NODES_; node_index++)
+  //CHECK(single_labels.size() == num_nodes_) << "The number of nodes is inconsistent.";
+  num_nodes_ = single_labels.size(); 
+  for (int node_index = 0; node_index < num_nodes_; node_index++)
     label_space_[node_index] = vector<int>(1, single_labels[node_index]);
 }
 
 LabelSpace &LabelSpace::operator += (const LabelSpace &rhs)
 {
   vector<vector<int> > rhs_label_space = rhs.getLabelSpace();
-  CHECK(label_space_.size() == rhs_label_space.size()) << "The number of nodes is inconsistent.";
-  for (int node_index = 0; node_index < NUM_NODES_; node_index++) {
+  //CHECK(label_space_.size() == rhs_label_space.size()) << "The number of nodes is inconsistent.";
+  for (int node_index = 0; node_index < num_nodes_; node_index++) {
     vector<int> node_labels = label_space_[node_index];
     vector<int> rhs_node_labels = rhs_label_space[node_index];
     //sort(node_labels.begin(), node_labels.end());    Maybe we assume?

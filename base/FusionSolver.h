@@ -7,7 +7,9 @@
 
 class FusionSolver
 {
-  virtual std::vector<int> solve(const LabelSpace &label_space);
+ public:
+  virtual std::vector<int> solve(const LabelSpace &label_space, double &energy) const = 0;
+  
 };
   
 #endif

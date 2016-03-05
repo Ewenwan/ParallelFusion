@@ -44,7 +44,15 @@ vector<int> SegmentationFusionSolver::solve(const LabelSpace &label_space, doubl
     const size_t shape[] = {label_space_vec[pixel].size()};
     ExplicitFunction f(shape, shape + 1);
     for (int proposal_index = 0; proposal_index < label_space_vec[pixel].size(); proposal_index++) {
+      if (label_space_vec[pixel].size() == 0) {
+	cout << "empty proposal: " << pixel << endl;
+	exit(1);
+      }
       int label = label_space_vec[pixel][proposal_index];
+      if (label < 0 || label > 5) {
+	cout << pixel << '\t' << label << endl;
+	exit(1);
+      }
       double color_diff = 0;
       for (int c = 0; c < 3; c++)
 	color_diff += pow(1.0 / 255 * (color[c] - color_table[label][c]), 2);
@@ -88,6 +96,7 @@ vector<int> SegmentationFusionSolver::solve(const LabelSpace &label_space, doubl
   opengm::TRWSi<Model, opengm::Minimizer> solver(gm, parameter);
   opengm::TRWSi<Model, opengm::Minimizer>::VerboseVisitorType verbose_visitor;
   solver.infer(verbose_visitor);
+  
   solver.arg(labels);
   cout << "energy: "<< solver.value() << " lower bound: " << solver.bound() << endl;
 
@@ -96,15 +105,6 @@ vector<int> SegmentationFusionSolver::solve(const LabelSpace &label_space, doubl
   vector<int> fused_solution(NUM_PIXELS);
   for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
     fused_solution[pixel] = label_space_vec[pixel][labels[pixel]];
-
-
-  static int index = 0;
-  Mat solution_image(IMAGE_HEIGHT_, IMAGE_WIDTH_, CV_8UC3);
-  for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
-    solution_image.at<Vec3b>(pixel / IMAGE_WIDTH_, pixel % IMAGE_WIDTH_) = color_table[fused_solution[pixel]];
-  }
-  imwrite("Test/solution_image_" + to_string(index) + ".png", solution_image);
-  index++;
   
   return fused_solution;
 }

@@ -14,7 +14,12 @@ LabelSpace SegmentationProposalGenerator::getProposal() const
   // return LabelSpace(vector<vector<int> >(IMAGE_WIDTH_ * IMAGE_HEIGHT_, node_labels));
 
   static int index = 0;
-  LabelSpace proposal_label_space(vector<int>(IMAGE_WIDTH_ * IMAGE_HEIGHT_, index));
+  cout << "index: " << index << endl;
+  vector<int> proposal_solution = vector<int>(IMAGE_WIDTH_ * IMAGE_HEIGHT_, index);
+  for (int pixel = 0; pixel < IMAGE_WIDTH_ * IMAGE_HEIGHT_; pixel++)
+    proposal_solution[pixel] = rand() % 5;
+  
+  LabelSpace proposal_label_space(proposal_solution);
   proposal_label_space += LabelSpace(current_solution_);
   index = (index + 1) % 5;
   return proposal_label_space;

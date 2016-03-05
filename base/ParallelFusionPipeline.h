@@ -1,12 +1,13 @@
-#ifndef FUSION_THREAD_H__
-#define FUSION_THREAD_H__
+#ifndef PARALLEL_FUSION_PIPELINE_H__
+#define PARALLEL_FUSION_PIPELINE_H__
 
 #include <memory>
 
-#include "BaseDataStructure.h"
+#include "BaseDataStructures.h"
 #include "ProposalGenerator.h"
 #include "FusionSolver.h"
+#include "FusionThread.h"
 
-void parallelFuse(const shared_ptr<ProposalGenerator> &proposal_generator, const shared_ptr<FusionSolver> &fusion_solver, const PipelineParams &pipeline_params);
+std::vector<int> parallelFuse(std::vector<std::unique_ptr<FusionThread> > &fusion_threads, const PipelineParams &pipeline_params, const std::vector<int> &initial_solution);
 
 #endif
