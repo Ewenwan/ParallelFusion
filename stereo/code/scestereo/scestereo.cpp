@@ -4,7 +4,7 @@
 
 #include "scestereo.h"
 #include "local_matcher.h"
-#include "proposal.h"
+#include "optimization.h"
 
 using namespace std;
 using namespace cv;
@@ -68,7 +68,7 @@ namespace sce_stereo{
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            double distance = (double) (v - (anchor - offset)) * (double)d;
+                            double distance = (double) (v - (anchor - offset)) * (double)d / dispResolution * 64;
                             Vector2d imgpt(x - distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
@@ -106,8 +106,13 @@ namespace sce_stereo{
         initMRF();
 
         sprintf(buffer, "%s/temp/unaryDisp%05d.jpg", file_io.getDirectory().c_str(), anchor);
-        unaryDisp.saveImage(string(buffer), 255.0 / (dispResolution) * 4);
+        unaryDisp.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
 
-        //ProposalSegPlnMeanshift proposalSegPlnMeanshift(file_io, images, unaryDisp, 0, );
+        SecondOrderOptimizeFusionMove fusionmove(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, unaryDisp);
+        Depth result_fusionmove;
+        fusionmove.optimize(result_fusionmove, 20);
+
+        sprintf(buffer, "%s/temp/result_fusionmove%05d.jpg", file_io.getDirectory().c_str(), anchor);
+        result_fusionmove.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
     }
 }//namespace sce_stereo

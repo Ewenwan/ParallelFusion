@@ -9,8 +9,8 @@
 
 namespace sce_stereo{
     ProposalSegPln::ProposalSegPln(const FileIO& file_io_, const cv::Mat &image_, const Depth &noisyDisp_, const int dispResolution_,
-                                   const double min_disp_, const double max_disp_, const std::string& method_, const int num_proposal_):file_io(file_io_), noisyDisp(noisyDisp_), image(image_),
-                                                            dispResolution(dispResolution_), min_disp(min_disp_), max_disp(max_disp_), method(method_), num_proposal(num_proposal_),
+                                   const std::string& method_, const int num_proposal_):file_io(file_io_), noisyDisp(noisyDisp_), image(image_),
+                                                            dispResolution(dispResolution_), method(method_), num_proposal(num_proposal_),
                                                             w(image.cols), h(image.rows){
         CHECK_EQ(num_proposal, 7) << "num_proposal should be 7";
         params.resize(4);
@@ -24,24 +24,24 @@ namespace sce_stereo{
         const int h = noisyDisp.getHeight();
         const int nPixels = w * h;
         const double epsilon = (double)1e-05;
-        const double dis_thres = 0.3;
+        const double dis_thres = 0.2;
 
         const double max_depth = 255.0;
 
         //lambda functions to map between disparity and depth. Depth are rescaled to 0~max_dim for numerical stability
         auto dispToDepth = [=](const double dispv){
-            double d2 = (dispv * (max_disp - min_disp) / dispResolution + min_disp);
-            CHECK_NE(d2, 0);
-            double d = 1.0 / d2;
-            return (d - 1.0/max_disp) / (1.0/min_disp - 1.0/max_disp) * max_depth;
-            //return dispv;
+//            double d2 = (dispv * (max_disp - min_disp) / dispResolution + min_disp);
+//            CHECK_NE(d2, 0);
+//            double d = 1.0 / d2;
+//            return (d - 1.0/max_disp) / (1.0/min_disp - 1.0/max_disp) * max_depth;
+            return dispv;
         };
 
         auto depthToDisp = [=](const double depthv){
-            double d = depthv * (1.0/min_disp - 1.0/max_disp) / max_depth + 1.0 / max_disp;
-            CHECK_NE(d, 0);
-            return (1.0 / d - min_disp) * dispResolution / (max_disp - min_disp);
-            //return depthv;
+//            double d = depthv * (1.0/min_disp - 1.0/max_disp) / max_depth + 1.0 / max_disp;
+//            CHECK_NE(d, 0);
+//            return (1.0 / d - min_disp) * dispResolution / (max_disp - min_disp);
+            return depthv;
         };
 
         //unit testing for lambda function
@@ -52,11 +52,8 @@ namespace sce_stereo{
         }
 
         planarDisp = noisyDisp;
-	    Depth planarDepth;
-	    planarDepth.initialize(w, h, 0.0);
         for(auto i=0; i<planarDisp.getRawData().size(); ++i) {
 	        planarDisp.getRawData()[i] = noisyDisp.getRawData()[i];
-	        planarDepth.getRawData()[i] = dispToDepth(noisyDisp.getRawData()[i]);
             //printf("disp: %.5f, depth:%.5f\n", noisyDisp.getRawData()[i], planarDepth.getRawData()[i]);
         }
 
@@ -125,28 +122,15 @@ namespace sce_stereo{
                 int y = idx / w;
                 double newdepth = (-1 * offset - n[0]*x - n[1] * y) / n[2];
                 double d = std::max(std::min(newdepth, max_depth), 0.0);
-	            if(verbose) {
-		            double oridepth = dispToDepth(noisyDisp.getDepthAtInd(idx));
-		            printf("inter: (%d,%d,%.5f), ori disp: %.5f, new disp: %.5f\n", x, y, oridepth, oridepth, newdepth);
-	            }
                 planarDisp.setDepthAtInd(idx, std::max(std::min(depthToDisp(d), (double)dispResolution-1), 0.0));
-	            planarDepth.setDepthAtInd(idx, d);
             }
         }
 
-	    Depth tempd;
-	    tempd.initialize(w, h, 0.0);
-	    for(auto i=0; i<nPixels; ++i)
-		    tempd.getRawData()[i] = dispToDepth(noisyDisp.getRawData()[i]);
 	    char buffer[1024] = {};
 	    sprintf(buffer, "%s/temp/tdisp_%s_%03d_1.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    noisyDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution);
+	    noisyDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution * 4);
 	    sprintf(buffer, "%s/temp/tdisp_%s_%03d_2.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    planarDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution);
-	    sprintf(buffer, "%s/temp/tdepth_%s_%03d_1.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    tempd.saveImage(std::string(buffer));
-	    sprintf(buffer, "%s/temp/tdepth_%s_%03d_2.jpg", file_io.getDirectory().c_str(), method.c_str(), id);
-	    planarDepth.saveImage(std::string(buffer));
+	    planarDisp.saveImage(std::string(buffer), 255.0 / (double)dispResolution * 4);
     }
 
     void ProposalSegPln::genProposal(std::vector<Depth> &proposals) {
@@ -162,16 +146,16 @@ namespace sce_stereo{
     }
 
     ProposalSegPlnMeanshift::ProposalSegPlnMeanshift(const FileIO& file_io_, const cv::Mat &image_, const Depth& noisyDisp_,
-                                                     const int dispResolution_, const double min_disp_, const double max_disp_,const int num_proposal_):
-            ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, min_disp_, max_disp_, "meanshift", num_proposal_){
+                                                     const int dispResolution_, const int num_proposal_):
+            ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, "meanshift", num_proposal_){
         mults.resize((size_t)num_proposal);
         for(auto i=0; i<mults.size(); ++i)
             mults[i] = (double)i+1;
     }
 
 	ProposalSegPlnGbSegment::ProposalSegPlnGbSegment(const FileIO& file_io_, const cv::Mat &image_, const Depth& noisyDisp_,
-	                                                 const int dispResolution_, const double min_disp_, const double max_disp_,const int num_proposal_):
-			ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, min_disp_, max_disp_, "GbSegment", num_proposal_){
+	                                                 const int dispResolution_,const int num_proposal_):
+			ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, "GbSegment", num_proposal_){
 		mults.resize((size_t)num_proposal);
         for(auto i=0; i<mults.size(); ++i)
             mults[i] = (double)i+1;
