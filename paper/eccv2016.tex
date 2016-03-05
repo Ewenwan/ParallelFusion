@@ -1,0 +1,54 @@
+% last updated in April 2002 by Antje Endemann
+% Based on CVPR 07 and LNCS, with modifications by DAF, AZ and elle, 2008 and AA, 2010, and CC, 2011; TT, 2014; AAS, 2016
+
+\documentclass[runningheads]{llncs}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb} % define this before the line numbering.
+\usepackage{ruler}
+\usepackage{color}
+% \usepackage{tensor}
+\usepackage{ulem}
+\usepackage{url}
+\usepackage[width=122mm,left=12mm,paperwidth=146mm,height=193mm,top=12mm,paperheight=217mm]{geometry}
+
+\newcommand{\mysubsubsection}[1]{\vspace{0.1cm} \noindent \underline{{\bf #1}}:}
+\newcommand{\mysubsubsubsection}[1]{\vspace{0.1cm} \noindent {\bf #1}:}
+
+\newcommand{\pushmeet}[1]{\textcolor{blue}{pushmeet:{#1}}}
+\newcommand{\yasu}[1]{\textcolor{magenta}{[yasu: {#1}]}}
+\newcommand{\chen}[1]{\textcolor{cyan}{[chen: {#1}]}}
+\newcommand{\hang}[1]{\textcolor{green}{[hang: {#1}]}}
+%\newcommand{\ikehata}[1]{}
+%\newcommand{\yasu}[1]{}
+%\newcommand{\hang}[1]{}
+
+\ifx\pdfoptionalwaysusepdfpagebox\relax\else
+\pdfoptionalwaysusepdfpagebox5
+\fi
+
+\begin{document}
+% \renewcommand\thelinenumber{\color[rgb]{0.2,0.5,0.8}\normalfont\sffamily\scriptsize\arabic{linenumber}\color[rgb]{0,0,0}}
+% \renewcommand\makeLineNumber {\hss\thelinenumber\ \hspace{6mm} \rlap{\hskip\textwidth\ \hspace{6.5mm}\thelinenumber}}
+% \linenumbers
+\pagestyle{headings}
+\mainmatter
+\def\ECCV16SubNumber{***}  % Insert your submission number here
+
+\title{Parallel Fusion Move Method}
+
+\titlerunning{ECCV-16 submission ID \ECCV16SubNumber}
+
+\authorrunning{ECCV-16 submission ID \ECCV16SubNumber}
+
+\author{Anonymous ECCV submission}
+\institute{Paper ID \ECCV16SubNumber}
+
+
+\maketitle
+
+\input{abstract}
+\input{introduction}
+
+\bibliographystyle{splncs}
+\bibliography{eccv16bib}
+\end{document}

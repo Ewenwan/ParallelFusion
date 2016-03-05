@@ -1,0 +1,63 @@
+\section{Introduction}
+Parallel computation has changed the field of Computing.  In the 90s,
+most processors had single cores. In 2016, most processors have multiple
+cores, often 4 or even 8. Cluster computing further expands the
+potential of parallel computation, where one can easily launch a
+processing job using hundreds or even thousands of computers in a
+cloud. Computer Vision is not an exception in exploiting the powerful
+parallel computation. However, in many Computer Vision problems,
+state-of-the-art algorithms are still inherently sequential. Take a
+Fusion-Move algorithm (FM)~\cite{viktor,second_order_stereo,else} for
+example. FM was first introduced by Lempitsky et al. in solving an
+optical flow problem. FM allows one to customize domain-specific
+proposal generation schemes to achieve efficient convergence. FM has
+been a very successful optimization framework in solving many
+challenging problems in Computer Vision such as optical
+flow~\cite{viktor}, stereo~\cite{second_order_stereo}, or image
+segmentation~\cite{some}. The main limitation of FM is its running time,
+where Computer Vision researchers and engineers generally consider FM to
+be a slow algorithm, as hundreds or sometimes thousands of proposals
+need to be fused sequentially. This paper will propose a {\it Parallel
+Fusion Move} (PFM) method that introduces the concept of parallel fusion
+into the computational framework.
+
+FM suffers from a few fundamental limitations due to its sequential
+nature. First, standard FM offers only two options in each fusion,
+either the current solution or a single proposal. Recently, an extension
+of FM was proposed for layered depthmap estimation~\cite{chen_2016},
+where a solution subspace, instead of a single solution, is proposed
+from each proposal generation scheme. However, a solution is
+sequentially updated by a single generation scheme one by one. In our
+framework, multiple threads (or computing nodes) simultaneously keep and
+improve solutions. Furthermore, in each fusion step in each thread, our
+approach can take any number of proposals from any number of proposal
+generation schemes, and even concurrent solutions in the other threads
+to fuse them into a new solution.
+%
+Note that one can seek to parallelize the core optimization libraries
+such as Graph-cuts~\cite{}, TRW~\cite{kolmogorov}, or QPBO~\cite{} to
+achieve similar speed-up. However, these core optimization libraries are
+often very complicated and used as a complete black box. Some libraries
+are provided only in a binary form, especially commercial
+packages. Furthermore, this library modification cannot benefit from
+higher level parallelism through distributed computer nodes.
+\yasu{Mention that existing fm only does binary solution fusion. We does
+multi-solution fusion. This overlaps withour cvpr16, but is probably ok
+by citing the paepr.}
+%
+The idea in this paper is extremely simple and easily reproducible. This
+paper can instantly benefit every Computer Vision researcher or
+engineer, who currently uses fusion move algorithm to solve challenging
+problems. We will share our implementation of the algorithm. The rest of
+the paper is organized as follows. Section~\ref{section:related_work}....
+%This paper will propose a novel Parallel Fusion
+%Move method, which fuses solution proposals in parallel. Our framework
+%can exploit parallelism from the levels of threading to the levels of
+%computer nodes.
+%
+ \yasu{Hopefully, more interesting things will come up through
+experiments and we have more to say. For example, it would be cool if
+uniform model is better than pure master-slave. Then we can write that
+ours is not just parallel. But keeping multiple solutions somehow
+benefit (GA/GP algorithm's ideas).}
+
