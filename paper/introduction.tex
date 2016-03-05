@@ -1,0 +1,49 @@
+\section{Introduction}
+Parallel computation has changed the field of Computing.  In the 90s,
+most processors had single cores. In 2016, most processors have
+multiple cores, often 4 or even 8. Cluster computing further expands
+the potential of parallel computation, where one can easily launch a
+processing job using hundreds or even thousands of computers in a
+cloud. Computer Vision is not an exception in exploiting the powerful
+parallel computation. However, in many Computer Vision problems,
+state-of-the-art algorithms are still inherently sequential. Take a
+Fusion-Move algorithm (FM)~\cite{viktor,second_order_stereo,else} for
+example. FM was first introduced by Lempitsky et al. in solving an
+optical flow problem. FM allows one to customize domain-specific
+proposal generation schemes to boost convergence. FM has been a very
+successful optimization framework in solving many challenging problems
+in Computer Vision such as optical flow~\cite{viktor},
+stereo~\cite{second_order_stereo}, or image segmentation~\cite{some}.
+In general, Computer Vision researchers and engineers consider FM to
+be a very slow algorithm due to its sequential nature, that is, often
+required to fuse hundreds or sometimes thousands of proposals one by
+one. This paper will propose a {\it Parallel Fusion Move} (PFM) method
+that can instantly speed-up any optimization problem based on FM via
+parallel fusion of proposals and solutions.
+
+Our idea is extremely simple. Instead of keeping and refining one
+solution via fusion, we keep and refine solutions in multiple threads
+(or computational nodes) independently, while sharing their best
+solutions for mutual benefits. Note that one can seek to parallelize
+the core optimization libraries such as Graph-cuts~\cite{},
+TRW~\cite{kolmogorov}, or QPBO~\cite{} to achieve similar
+speed-up. However, these core optimization libraries are often very
+complicated and used as a complete black box. Some libraries are
+provided only in a binary form, especially commercial
+packages. Furthermore, this library modification cannot benefit from
+higher level parallelism through distributed computer nodes.
+\yasu{Mention that existing fm only does binary solution fusion. We
+  does multi-solution fusion. This overlaps withour cvpr16, but is
+  probably ok by citing the paepr.} This paper will propose a novel
+Parallel Fusion Move method, which fuses solution proposals in
+parallel. Our framework can exploit parallelism from the levels of
+threading to the levels of computer nodes. The idea is very simple and
+can immediately benefit every Computer Vision researcher or engineer,
+who currently uses fusion move algorithm to solve challenging
+problems. \yasu{So far, we only say parallel. Hopefully, more
+  interesting things will come up through experiments and we have more
+  to say. For example, it would be cool if uniform model is better
+  than pure master-slave. Then we can write that ours is not just
+  parallel. But keeping multiple solutions somehow benefit (GA/GP
+  algorithm's ideas).}
+
