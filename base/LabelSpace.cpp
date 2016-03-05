@@ -1,6 +1,9 @@
 #include "LabelSpace.h"
 
 #include <vector>
+#include <glog/logging.h>
+#include <algorithm>
+
 
 using namespace std;
 
@@ -36,16 +39,14 @@ LabelSpace &LabelSpace::operator += (const LabelSpace &rhs)
     //sort(node_labels.begin(), node_labels.end());    Maybe we assume?
     //sort(rhs_node_labels.begin(), rhs_node_labels.end());
     vector<int> union_node_labels(node_labels.size() + rhs_node_labels.size());
-    vector<int> union_node_labels_it = set_union(node_labels.begin(), node_labels.end(), rhs_node_labels.begin(), rhs_node_labels.end(), union_node_labels.begin());
+    vector<int>::const_iterator union_node_labels_it = set_union(node_labels.begin(), node_labels.end(), rhs_node_labels.begin(), rhs_node_labels.end(), union_node_labels.begin());
     union_node_labels.resize(union_node_labels_it - union_node_labels.begin());
     label_space_[node_index] = union_node_labels;
   }
   return *this;
 }
 
-
-
-friend LabelSpace oeprator + (const LabelSpace &lhs, const LabelSpace &rhs)
+LabelSpace operator + (const LabelSpace &lhs, const LabelSpace &rhs)
 {
   LabelSpace union_label_space = lhs;
   union_label_space += rhs;

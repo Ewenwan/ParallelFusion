@@ -1,0 +1,31 @@
+#ifndef FUSION_SPACE_H__
+#define FUSION_SPACE_H__
+
+#include <vector>
+
+#include "TRW_S/MRFEnergy.h"
+#include "CostFunctor.h"
+#include "ProposalGenerator.h"
+
+
+class FusionSpace
+{
+ public:
+  
+  FusionSpace(const int NUM_NODES, const std::vector<std::vector<int> > &node_neighbors, const CostFunctor &cost_functor, const ProposalGenerator &proposal_generator, const bool CONSIDER_LABEL_COST = true);
+  
+  //  void setNeighbors();
+  //void setNeighbors(const int width, const int height, const int neighbor_system = 8);
+  
+  std::vector<int> fuse(const std::vector<std::vector<int> > &proposal_labels, std::vector<double> &energy_info);
+  
+ private:
+  const int NUM_NODES_;
+  const bool CONSIDER_LABEL_COST_;
+  
+  const std::vector<std::vector> node_neighbors_;
+  const CostFunctor &cost_functor_;
+  const ProposalGenerator &proposal_generator_;
+};
+
+#endif /* defined(FUSION_SPACE_H__) */
