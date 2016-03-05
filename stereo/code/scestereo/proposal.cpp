@@ -9,8 +9,8 @@
 
 namespace sce_stereo{
     ProposalSegPln::ProposalSegPln(const FileIO& file_io_, const cv::Mat &image_, const Depth &noisyDisp_, const int dispResolution_,
-                                   const double min_disp_, const double max_disp_, const std::string& method_, const int num_proposal_):file_io(file_io_), noisyDisp(noisyDisp_), image(image_),
-                                                            dispResolution(dispResolution_), min_disp(min_disp_), max_disp(max_disp_), method(method_), num_proposal(num_proposal_),
+                                   const std::string& method_, const int num_proposal_):file_io(file_io_), noisyDisp(noisyDisp_), image(image_),
+                                                            dispResolution(dispResolution_), method(method_), num_proposal(num_proposal_),
                                                             w(image.cols), h(image.rows){
         CHECK_EQ(num_proposal, 7) << "num_proposal should be 7";
         params.resize(4);
@@ -30,18 +30,18 @@ namespace sce_stereo{
 
         //lambda functions to map between disparity and depth. Depth are rescaled to 0~max_dim for numerical stability
         auto dispToDepth = [=](const double dispv){
-            double d2 = (dispv * (max_disp - min_disp) / dispResolution + min_disp);
-            CHECK_NE(d2, 0);
-            double d = 1.0 / d2;
-            return (d - 1.0/max_disp) / (1.0/min_disp - 1.0/max_disp) * max_depth;
-            //return dispv;
+//            double d2 = (dispv * (max_disp - min_disp) / dispResolution + min_disp);
+//            CHECK_NE(d2, 0);
+//            double d = 1.0 / d2;
+//            return (d - 1.0/max_disp) / (1.0/min_disp - 1.0/max_disp) * max_depth;
+            return dispv;
         };
 
         auto depthToDisp = [=](const double depthv){
-            double d = depthv * (1.0/min_disp - 1.0/max_disp) / max_depth + 1.0 / max_disp;
-            CHECK_NE(d, 0);
-            return (1.0 / d - min_disp) * dispResolution / (max_disp - min_disp);
-            //return depthv;
+//            double d = depthv * (1.0/min_disp - 1.0/max_disp) / max_depth + 1.0 / max_disp;
+//            CHECK_NE(d, 0);
+//            return (1.0 / d - min_disp) * dispResolution / (max_disp - min_disp);
+            return depthv;
         };
 
         //unit testing for lambda function
@@ -162,16 +162,16 @@ namespace sce_stereo{
     }
 
     ProposalSegPlnMeanshift::ProposalSegPlnMeanshift(const FileIO& file_io_, const cv::Mat &image_, const Depth& noisyDisp_,
-                                                     const int dispResolution_, const double min_disp_, const double max_disp_,const int num_proposal_):
-            ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, min_disp_, max_disp_, "meanshift", num_proposal_){
+                                                     const int dispResolution_, const int num_proposal_):
+            ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, "meanshift", num_proposal_){
         mults.resize((size_t)num_proposal);
         for(auto i=0; i<mults.size(); ++i)
             mults[i] = (double)i+1;
     }
 
 	ProposalSegPlnGbSegment::ProposalSegPlnGbSegment(const FileIO& file_io_, const cv::Mat &image_, const Depth& noisyDisp_,
-	                                                 const int dispResolution_, const double min_disp_, const double max_disp_,const int num_proposal_):
-			ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, min_disp_, max_disp_, "GbSegment", num_proposal_){
+	                                                 const int dispResolution_,const int num_proposal_):
+			ProposalSegPln(file_io_, image_, noisyDisp_, dispResolution_, "GbSegment", num_proposal_){
 		mults.resize((size_t)num_proposal);
         for(auto i=0; i<mults.size(); ++i)
             mults[i] = (double)i+1;

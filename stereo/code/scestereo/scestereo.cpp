@@ -68,7 +68,7 @@ namespace sce_stereo{
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            double distance = (double) (v - (anchor - offset)) * (double)d;
+                            double distance = (double) (v - (anchor - offset)) * (double)d / dispResolution * 64;
                             Vector2d imgpt(x - distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
