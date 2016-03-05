@@ -9,4 +9,4 @@ include_directories(/usr/local/include/eigen3)
 
 find_package(OpenCV REQUIRED)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/surfaceStereo)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/surfaceStereo)
