@@ -32,12 +32,29 @@ vector<int> parallelFuse(vector<unique_ptr<FusionThread> > &fusion_threads, cons
       (*fusion_thread_it)->setCurrentSolution(current_solution);
       (*fusion_thread_it)->runFusion();
       solution_pool[fusion_thread_it - fusion_threads.begin()] = (*fusion_thread_it)->getFusedSolution();
-
-      //TODO: Better grabbing strategy
       energy_vec[fusion_thread_it - fusion_threads.begin()] = (*fusion_thread_it)->getFusedSolutionEnergy();
       vector<double>::const_iterator min_it = min_element(energy_vec.begin(), energy_vec.end());
       solution_confidence_vec.assign(pipeline_params.NUM_THREADS, 0);
       solution_confidence_vec[min_it - energy_vec.begin()] = 1;
+
+      {
+	map<int, Vec3b> color_table;
+        color_table[0] = Vec3b(255, 255, 255);
+        color_table[1] = Vec3b(0, 0, 0);
+        color_table[2] = Vec3b(0, 0, 255);
+        color_table[3] = Vec3b(0, 255, 0);
+        color_table[4] = Vec3b(255, 0, 0);
+
+        vector<int> fused_solution = solution_pool[fusion_thread_it - fusion_threads.begin()];
+	const int IMAGE_WIDTH = 300;
+	const int IMAGE_HEIGHT = 300;
+	const int NUM_PIXELS = IMAGE_WIDTH * IMAGE_HEIGHT;
+	Mat solution_image(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
+	for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
+	  solution_image.at<Vec3b>(pixel / IMAGE_WIDTH, pixel % IMAGE_WIDTH) = color_table[fused_solution[pixel]];
+	}
+	imwrite("Test/solution_image_" + to_string(iteration) + "_" + to_string(fusion_thread_it - fusion_threads.begin()) + ".png", solution_image);
+      }
     }
   }
 

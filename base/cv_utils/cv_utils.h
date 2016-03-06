@@ -137,6 +137,23 @@ namespace cv_utils
     std::uniform_real_distribution<> dis(0, 1);
     return dis(gen);
   }
+
+  inline int drawFromArray(const std::vector<double> &likelihood_values)
+  {
+    double sum = 0;
+    for (std::vector<double>::const_iterator value_it = likelihood_values.begin(); value_it != likelihood_values.end(); value_it++)
+      sum += *value_it;
+    double random_sum_value = randomProbability() * sum;
+    int selected_index = 0;
+    sum = 0;
+    for (std::vector<double>::const_iterator value_it = likelihood_values.begin(); value_it != likelihood_values.end(); value_it++) {
+      selected_index = value_it - likelihood_values.begin();
+      sum += *value_it;
+      if (sum >= random_sum_value)
+	break;
+    }
+    return selected_index;
+  }
   
   //calculate the number of bits with specified bit value
   inline int calcNumBits(const int value, const int denoted_bit_value)
