@@ -5,15 +5,15 @@
 
 #include "LabelSpace.h"
 
-class ProposalGenerator
+template<class LabelType> class ProposalGenerator
 {
  public:
-  virtual void setCurrentSolution(const std::vector<int> &current_solution) { current_solution_ = current_solution; };
-  virtual LabelSpace getProposal() const = 0;
-  virtual std::vector<int> getInitialSolution() const = 0;
+  virtual void setCurrentSolution(const std::vector<LabelType> &current_solution) { current_solution_ = current_solution; };
+  virtual LabelSpace<LabelType> getProposal() const = 0;
+  virtual std::vector<LabelType> getInitialSolution() const = 0;
   
  protected:
-  std::vector<int> current_solution_;
+  std::vector<LabelType> current_solution_;
 };
 
 #endif

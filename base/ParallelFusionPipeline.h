@@ -8,6 +8,6 @@
 #include "FusionSolver.h"
 #include "FusionThread.h"
 
-std::vector<int> parallelFuse(std::vector<std::unique_ptr<FusionThread> > &fusion_threads, const PipelineParams &pipeline_params, const std::vector<int> &initial_solution);
+template<class LabelType> std::vector<LabelType> parallelFuse(std::vector<std::unique_ptr<FusionThread<LabelType> > > &fusion_threads, const PipelineParams &pipeline_params, const std::vector<LabelType> &initial_solution);
 
 #endif

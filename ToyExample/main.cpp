@@ -18,6 +18,7 @@ int main()
   Mat image = imread("Inputs/toy_example.png");
    
   //parallel fusion move
+  typename LabelType int;
   if (true) {
     PipelineParams pipeline_params(4, 5);
     vector<double> fusion_thread_master_likelihood_vec(pipeline_params.NUM_THREADS, 0);
