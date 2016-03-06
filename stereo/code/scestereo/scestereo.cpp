@@ -108,9 +108,15 @@ namespace sce_stereo{
         sprintf(buffer, "%s/temp/unaryDisp%05d.jpg", file_io.getDirectory().c_str(), anchor);
         unaryDisp.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
 
+        FirstOrderOptimize firstOrderOptimize(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, (EnergyType)(0.01 * MRFRatio));
+        Depth result_firstorder;
+        firstOrderOptimize.optimize(result_firstorder, 10);
+        sprintf(buffer, "%s/temp/result_firstorder%05d.jpg", file_io.getDirectory().c_str(), anchor);
+        result_firstorder.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
+
         SecondOrderOptimizeFusionMove fusionmove(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, unaryDisp);
         Depth result_fusionmove;
-        fusionmove.optimize(result_fusionmove, 20);
+        fusionmove.optimize(result_fusionmove, 500);
 
         sprintf(buffer, "%s/temp/result_fusionmove%05d.jpg", file_io.getDirectory().c_str(), anchor);
         result_fusionmove.saveImage(string(buffer), 256.0 / (dispResolution) * 4);

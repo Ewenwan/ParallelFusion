@@ -24,7 +24,7 @@ namespace sce_stereo{
         const int h = noisyDisp.getHeight();
         const int nPixels = w * h;
         const double epsilon = (double)1e-05;
-        const double dis_thres = 0.2;
+        const double dis_thres = 0.5;
 
         const double max_depth = 255.0;
 

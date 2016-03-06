@@ -25,7 +25,6 @@ namespace sce_stereo {
     private:
         typedef int EnergyType;
         void initMRF();
-
         void computeMatchingCost();
 
         const FileIO& file_io;

@@ -69,8 +69,8 @@ namespace sce_stereo {
             if (mCost.size() == 2)
                 return std::min(phid(mCost[0]), phid(mCost[1]));
             //sum of best half
-            sort(mCost.begin(), mCost.end());
-            const size_t kth = mCost.size() / 2;
+            //sort(mCost.begin(), mCost.end());
+            const size_t kth = mCost.size();
             double res = 0.0;
 
             for (auto i = 0; i < kth; ++i) {

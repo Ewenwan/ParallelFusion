@@ -44,7 +44,7 @@ namespace sce_stereo{
             CHECK_LT(x, getWidth());
             CHECK_LT(y, getHeight());
             int idx = y * getWidth() + x;
-            return this->operator[](idx);
+            return data[idx];
         }
 
         inline void setDepthAtInd(const int ind, const double v){
