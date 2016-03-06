@@ -12,14 +12,28 @@ example. FM was first introduced by Lempitsky et al. in solving an
 optical flow problem. FM allows one to customize domain-specific
 proposal generation schemes to achieve efficient convergence. FM has
 been a very successful optimization framework in solving many
-challenging problems in Computer Vision such as optical
-flow~\cite{viktor}, stereo~\cite{second_order_stereo}, or image
-segmentation~\cite{some}. The main limitation of FM is its running time,
-where Computer Vision researchers and engineers generally consider FM to
-be a slow algorithm, as hundreds or sometimes thousands of proposals
-need to be fused sequentially. This paper will propose a {\it Parallel
-Fusion Move} (PFM) method that introduces the concept of parallel fusion
-into the computational framework.
+challenging problems in Computer Vision such as optical flow, stereo,
+image denoising, image inpainting, or image
+segmentation~\cite{fusion_moves_for_markov_random_field_optimization}. The
+main limitation of FM is its running time, where Computer Vision
+researchers and engineers generally consider FM to be a slow algorithm
+that can solve challenging problems by fusing hundreds or sometimes
+thousands of proposals sequentially.
+%
+The running time becomes particularly an issue for large
+
+image denoising for high resolution images (24mb), high resolution
+map-tile image stitching (satellite), voxel CRF~\cite{pollefeys}
+
+\yasu{Are there any concrete examples where MRF is used to solve a very
+large problem where parallel fusion is really helpful. Like denoising
+high resolution 24M pixel images. Stitching a high resolution map tiles
+(satellite image tiles) via image stitching.}
+
+%
+This paper will propose a {\it Parallel Fusion Move} (PFM) method that
+introduces the concept of parallel fusion into the computational
+framework.
 
 FM suffers from a few fundamental limitations due to its sequential
 nature. First, standard FM offers only two options in each fusion,
