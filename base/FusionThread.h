@@ -15,7 +15,7 @@ template<class LabelType> class FusionThread
  public:
  FusionThread(const std::shared_ptr<ProposalGenerator<LabelType> > &proposal_generator, const std::shared_ptr<FusionSolver<LabelType> > &fusion_solver, const double MASTER_LIKELIHOOD) : proposal_generator_(proposal_generator), fusion_solver_(fusion_solver), MASTER_LIKELIHOOD_(MASTER_LIKELIHOOD) { updateStatus(); };
   
-  void runFusion(const int thread_index, const int iteration) //two parameters are just for debugging purpose
+  void runFusion(const int thread_index = 0, const int iteration = 0) //two parameters are just for debugging purpose
   {
     if (is_master_) {
       if (fused_solution_.size() > 0)

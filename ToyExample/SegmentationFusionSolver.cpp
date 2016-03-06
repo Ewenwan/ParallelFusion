@@ -41,10 +41,10 @@ vector<int> SegmentationFusionSolver::solve(const LabelSpace<int> &label_space, 
   
   for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
     Vec3b color = image_.at<Vec3b>(pixel / IMAGE_WIDTH_, pixel % IMAGE_WIDTH_);
-    const size_t shape[] = {label_space_vec[pixel].size()};
+    const size_t shape[] = {pixel_num_labels[pixel]};
     ExplicitFunction f(shape, shape + 1);
-    for (int proposal_index = 0; proposal_index < label_space_vec[pixel].size(); proposal_index++) {
-      if (label_space_vec[pixel].size() == 0) {
+    for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
+      if (pixel_num_labels[pixel] == 0) {
 	cout << "empty proposal: " << pixel << endl;
 	exit(1);
       }
@@ -71,12 +71,12 @@ vector<int> SegmentationFusionSolver::solve(const LabelSpace<int> &label_space, 
 	continue;
       
       const size_t shape[] = {
-	label_space_vec[pixel].size(), 
-	label_space_vec[*neighbor_pixel_it].size()
+	pixel_num_labels[pixel], 
+	pixel_num_labels[*neighbor_pixel_it]
       };
       ExplicitFunction f(shape, shape + 2);
-      for (int proposal_index = 0; proposal_index < label_space_vec[pixel].size(); proposal_index++) {
-	for (int neighbor_proposal_index = 0; neighbor_proposal_index < label_space_vec[*neighbor_pixel_it].size(); neighbor_proposal_index++) {
+      for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
+	for (int neighbor_proposal_index = 0; neighbor_proposal_index < pixel_num_labels[*neighbor_pixel_it]; neighbor_proposal_index++) {
 	  int label = label_space_vec[pixel][proposal_index];
 	  int neighbor_label = label_space_vec[*neighbor_pixel_it][neighbor_proposal_index];
 	  if (label == neighbor_label)
