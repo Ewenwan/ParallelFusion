@@ -18,20 +18,21 @@ int main()
   Mat image = imread("Inputs/toy_example.png");
    
   //parallel fusion move
-  typename LabelType int;
+  //typedef LabelType int;
+  
   if (true) {
     PipelineParams pipeline_params(4, 5);
     vector<double> fusion_thread_master_likelihood_vec(pipeline_params.NUM_THREADS, 0);
     fusion_thread_master_likelihood_vec[pipeline_params.NUM_THREADS - 1] = 1;
-    vector<unique_ptr<FusionThread> > fusion_threads;
-    vector<shared_ptr<ProposalGenerator> > proposal_generators;
+    vector<unique_ptr<FusionThread<int> > > fusion_threads;
+    vector<shared_ptr<ProposalGenerator<int> > > proposal_generators;
     for (int fusion_thread_index = 0; fusion_thread_index < pipeline_params.NUM_THREADS; fusion_thread_index++)
-      proposal_generators.push_back(dynamic_pointer_cast<ProposalGenerator>(shared_ptr<SegmentationProposalGenerator>(new SegmentationProposalGenerator(image))));
-    vector<shared_ptr<FusionSolver> > fusion_solvers;
+      proposal_generators.push_back(dynamic_pointer_cast<ProposalGenerator<int> >(shared_ptr<SegmentationProposalGenerator>(new SegmentationProposalGenerator(image))));
+    vector<shared_ptr<FusionSolver<int> > > fusion_solvers;
     for (int fusion_thread_index = 0; fusion_thread_index < pipeline_params.NUM_THREADS; fusion_thread_index++)
-      fusion_solvers.push_back(dynamic_pointer_cast<FusionSolver>(shared_ptr<SegmentationFusionSolver>(new SegmentationFusionSolver(image))));
+      fusion_solvers.push_back(dynamic_pointer_cast<FusionSolver<int> >(shared_ptr<SegmentationFusionSolver>(new SegmentationFusionSolver(image))));
     for (int fusion_thread_index = 0; fusion_thread_index < pipeline_params.NUM_THREADS; fusion_thread_index++)			  
-      fusion_threads.push_back(move(unique_ptr<FusionThread>(new FusionThread(proposal_generators[fusion_thread_index], fusion_solvers[fusion_thread_index], fusion_thread_master_likelihood_vec[fusion_thread_index]))));
+      fusion_threads.push_back(move(unique_ptr<FusionThread<int> >(new FusionThread<int>(proposal_generators[fusion_thread_index], fusion_solvers[fusion_thread_index], fusion_thread_master_likelihood_vec[fusion_thread_index]))));
     
     vector<int> fused_solution = parallelFuse(fusion_threads, pipeline_params, vector<int>(image.cols * image.rows, 0));
 
@@ -61,7 +62,7 @@ int main()
     vector<int> current_solution = vector<int>(image.cols * image.rows, 0);
     for (int iteration = 0; iteration < 10; iteration++) {
       proposal_generator->setCurrentSolution(current_solution);
-      LabelSpace label_space = proposal_generator->getProposal();
+      LabelSpace<int> label_space = proposal_generator->getProposal();
       double dummy;
       current_solution = fusion_solver->solve(label_space, dummy);
 

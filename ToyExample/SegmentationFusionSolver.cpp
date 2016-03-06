@@ -15,7 +15,7 @@ using namespace cv;
 using namespace cv_utils;
 
 
-vector<int> SegmentationFusionSolver::solve(const LabelSpace &label_space, double &energy) const
+vector<int> SegmentationFusionSolver::solve(const LabelSpace<int> &label_space, double &energy) const
 {
   const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
   const double SMOOTHNESS_TERM_WEIGHT = 0.2;
