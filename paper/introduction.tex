@@ -5,26 +5,39 @@ cores, often 4 or even 8. Cluster computing further expands the
 potential of parallel computation, where one can easily launch a
 processing job using hundreds or even thousands of computers in a
 cloud. Computer Vision is not an exception in exploiting the powerful
-parallel computation. However, in many Computer Vision problems,
+parallel computation.
+
+
+As image sensor technologies improve, Computer Vision need to deal with
+large-scale inference problems more than ever.
+
+However, in many Computer Vision problems,
 state-of-the-art algorithms are still inherently sequential. Take a
 Fusion-Move algorithm (FM)~\cite{viktor,second_order_stereo,else} for
 example. FM was first introduced by Lempitsky et al. in solving an
 optical flow problem. FM allows one to customize domain-specific
-proposal generation schemes to achieve efficient convergence. FM has
-been a very successful optimization framework in solving many
-challenging problems in Computer Vision such as optical flow, stereo,
-image denoising, image inpainting, or image
+proposal generation schemes, a main advantage over general solvers such
+as message passing algorithms. FM has been a very successful
+optimization framework in solving many challenging problems in Computer
+Vision such as optical flow, stereo, image denoising, image inpainting,
+or image
 segmentation~\cite{fusion_moves_for_markov_random_field_optimization}. The
 main limitation of FM is its running time, where Computer Vision
 researchers and engineers generally consider FM to be a slow algorithm
-that can solve challenging problems by fusing hundreds or sometimes
-thousands of proposals sequentially.
+that can solve challenging problems, as hundreds or sometimes thousands
+of proposals need to be fused sequentially.
 %
-The running time becomes particularly an issue for large
+The running time becomes particularly an issue for large data, for
+instnance, image denoising of professional-grade high resolution (50
+Mpixels) images, image stitching for the
 
-image denoising for high resolution images (24mb), high resolution
-map-tile image stitching (satellite), voxel CRF~\cite{pollefeys}
+generating a high resolution map-tiles (e.g., satellite) by stitching
+hundreds of photographs
 
+generation of high resolution
+map-tiles (e.g., satellite), or volumetric joint reconstruction and
+segmentation potentiallly a trillion ($=1024^3$) voxels~\cite{Joint 3D
+Scene Reconstruction and Class Segmentation}.
 \yasu{Are there any concrete examples where MRF is used to solve a very
 large problem where parallel fusion is really helpful. Like denoising
 high resolution 24M pixel images. Stitching a high resolution map tiles
