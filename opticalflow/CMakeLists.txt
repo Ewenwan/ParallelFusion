@@ -1,0 +1,6 @@
+unset(CUDA_FOUND)
+find_package(CUDA QUIET)
+if(CUDA_FOUND)
+    message(" --Found Cuda")
+    add_definitions("-DUSE_CUDA")
+endif()

@@ -24,4 +24,14 @@ namespace math_util{
             CHECK_GE(ncc, -1.001);
             return ncc;
     }
+
+    double SSDScore(const std::vector<double>& a1, const std::vector<double>& a2){
+        CHECK_EQ(a1.size(), a2.size());
+        if(a1.empty())
+            return 0.0;
+        double ssd = 0.0;
+        for(size_t i=0; i<a1.size(); ++i)
+            ssd += (a1[i] - a2[i]) * (a1[i] - a2[i]);
+        return ssd /(double)a1.size();
+    }
 }

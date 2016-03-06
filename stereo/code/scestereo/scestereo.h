@@ -29,7 +29,7 @@ namespace sce_stereo {
 
         const FileIO& file_io;
         const int anchor;
-        const int tWindow;
+        //const int tWindow;
         const int dispResolution;
         const double MRFRatio;
         const int pR;

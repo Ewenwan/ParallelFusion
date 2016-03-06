@@ -19,7 +19,6 @@ namespace sce_stereo {
 
         void getSSDArray(const std::vector<std::vector<double> > &patches, const int refId,
                          std::vector<double> &mCost);
-
         double sumMatchingCostHalf(const std::vector<std::vector<double> > &patches, const int refId);
     }
 }

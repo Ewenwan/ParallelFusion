@@ -110,6 +110,8 @@ namespace math_util {
 
 	double normalizedCrossCorrelation(const std::vector<double> &a1, const std::vector<double> &a2);
 
+	double SSDScore(const std::vector<double>& a1, const std::vector<double>& a2);
+
 	inline double gaussian(const double m, const double sigma, const double v){
 		CHECK_GT(sigma, 0);
 		return std::exp(-1 * (v-m)*(v-m) / (2 * sigma * sigma));

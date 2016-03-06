@@ -13,13 +13,12 @@ using namespace Eigen;
 namespace sce_stereo{
 
     SceStereo::SceStereo(const FileIO &file_io_, const int anchor_, const int tWindow_, const int resolution_):
-            file_io(file_io_), anchor(anchor_), tWindow(tWindow_), dispResolution(resolution_), MRFRatio(1000), pR(3){
+            file_io(file_io_), anchor(anchor_), dispResolution(resolution_), MRFRatio(1000), pR(3){
         CHECK_GE(file_io.getTotalNum(), 2) << "Too few images";
-        int tR = tWindow / 2;
-        offset = std::max(anchor-tR, 0);
-        CHECK_LE(offset + tWindow, file_io.getTotalNum());
-
-        images.resize((size_t)tWindow);
+        //int tR = tWindow / 2;
+        //offset = std::max(anchor-tR, 0);
+        offset = 0;
+        images.resize((size_t)file_io.getTotalNum());
         for(auto i=0; i<images.size(); ++i)
             images[i] = imread(file_io.getImage(i));
         width = images[0].cols;
@@ -47,7 +46,7 @@ namespace sce_stereo{
             fin.read((char *) &type, sizeof(int));
             printf("Cached data: anchor:%d, resolution:%d, twindow:%d, Energytype:%d\n",
                    frame, resolution, tw, type);
-            if (frame == anchor && resolution == dispResolution && tw == tWindow &&
+            if (frame == anchor && resolution == dispResolution  &&
                 type == sizeof(EnergyType)) {
                 printf("Reading unary term from cache...\n");
                 fin.read((char *) MRF_data.data(), MRF_data.size() * sizeof(EnergyType));
@@ -71,6 +70,9 @@ namespace sce_stereo{
                             double distance = (double) (v - (anchor - offset)) * (double)d / dispResolution * 64;
                             Vector2d imgpt(x - distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
+
+                            //shifting window
+                            for(double dx=-1*[R])
                         }
                         double mCost = local_matcher::sumMatchingCostHalf(patches, anchor - offset);
                         MRF_data[dispResolution * (y * width + x) + d] = (EnergyType) ((mCost + 1) * MRFRatio);
@@ -108,11 +110,11 @@ namespace sce_stereo{
         sprintf(buffer, "%s/temp/unaryDisp%05d.jpg", file_io.getDirectory().c_str(), anchor);
         unaryDisp.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
 
-        FirstOrderOptimize firstOrderOptimize(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, (EnergyType)(0.01 * MRFRatio));
-        Depth result_firstorder;
-        firstOrderOptimize.optimize(result_firstorder, 10);
-        sprintf(buffer, "%s/temp/result_firstorder%05d.jpg", file_io.getDirectory().c_str(), anchor);
-        result_firstorder.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
+//        FirstOrderOptimize firstOrderOptimize(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, (EnergyType)(0.01 * MRFRatio));
+//        Depth result_firstorder;
+//        firstOrderOptimize.optimize(result_firstorder, 10);
+//        sprintf(buffer, "%s/temp/result_firstorder%05d.jpg", file_io.getDirectory().c_str(), anchor);
+//        result_firstorder.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
 
         SecondOrderOptimizeFusionMove fusionmove(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, unaryDisp);
         Depth result_fusionmove;

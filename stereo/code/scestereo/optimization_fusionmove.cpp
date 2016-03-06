@@ -118,7 +118,7 @@ namespace sce_stereo {
            sprintf(buffer, "%s/temp/fusionmove_iter%05d.jpg", file_io.getDirectory().c_str(), iter);
            result.saveImage(buffer, 256.0 / (double)nLabel * 4);
 
-            if(average_diffe < termination) {
+            if(iter > proposals.size() * 2 && average_diffe < termination) {
                 cout << "Converge!" << endl;
                 break;
             }
@@ -182,64 +182,118 @@ namespace sce_stereo {
     void SecondOrderOptimizeFusionMove::fusionMove(Depth &p1, const Depth &p2) const {
         //create problem
         int nPix = width * height;
-        ELCReduce::PBF<EnergyType> pbf(nPix * 10);
-        //formulate
-        //unary term
-        for (auto i = 0; i < width * height; ++i) {
-            EnergyType ue1 = MRF_data[nLabel * i + (int)p1[i]];
-            EnergyType ue2 = MRF_data[nLabel * i + (int)p2[i]];
-            pbf.AddUnaryTerm(i, ue1, ue2);
-        }
+//        ELCReduce::PBF<EnergyType> pbf(nPix * 10);
+//        //formulate
+//        //unary term
+//        for (auto i = 0; i < width * height; ++i) {
+//            EnergyType ue1 = MRF_data[nLabel * i + (int)p1[i]];
+//            EnergyType ue2 = MRF_data[nLabel * i + (int)p2[i]];
+//            pbf.AddUnaryTerm(i, ue1, ue2);
+//        }
+//
+//        vector<ELCReduce::VID> indices(3);
+//        vector<EnergyType> SE(8);
+//        auto addTriple = [&](int p, int q, int r){
+//            double lam;
+//            if (refSeg[p] == refSeg[q] && refSeg[p] == refSeg[r])
+//                lam = lamh;
+//            else
+//                lam = laml;
+//            //printf("==============================\n(%d,%d)\n", x, y);
+//            double vp1 = p1[p], vp2 = p2[p], vq1 = p1[q], vq2 = p2[q], vr1 = p1[r], vr2 = p2[r];
+//            SE[0] = (EnergyType)(lapE(vp1, vq1, vr1) * lam * MRFRatio);
+//            SE[1] = (EnergyType)(lapE(vp1, vq1, vr2) * lam * MRFRatio);
+//            SE[2] = (EnergyType)(lapE(vp1, vq2, vr1) * lam * MRFRatio);
+//            SE[3] = (EnergyType)(lapE(vp1, vq2, vr2) * lam * MRFRatio);
+//            SE[4] = (EnergyType)(lapE(vp2, vq1, vr1) * lam * MRFRatio);
+//            SE[5] = (EnergyType)(lapE(vp2, vq1, vr2) * lam * MRFRatio);
+//            SE[6] = (EnergyType)(lapE(vp2, vq2, vr1) * lam * MRFRatio);
+//            SE[7] = (EnergyType)(lapE(vp2, vq2, vr2) * lam * MRFRatio);
+//
+//            indices[0] = p;
+//            indices[1] = q;
+//            indices[2] = r;
+//
+////                printf("(%d,%d,%d), %.2f\n", indices[0], indices[1], indices[2], lam);
+////                for (auto i = 0; i < SE.size(); ++i)
+////                    cout << SE[i] << ' ';
+////                cout << endl;
+//
+//            pbf.AddHigherTerm(3, indices.data(), SE.data());
+//        };
+//
+//        for (auto x = 1; x < width - 1; ++x) {
+//            for (auto y = 1; y < height - 1; ++y) {
+//                //horizontal
+//                addTriple(y * width + x - 1, y * width + x, y * width + x + 1);
+//                addTriple((y - 1) * width + x, y * width + x, (y + 1) * width + x);
+//            }
+//        }
+//
+//        //reduce
+//        cout << "Reducing with ELC..." << endl;
+//
+//        ELCReduce::PBF<EnergyType> qpbf(nPix * 10);
+//        pbf.reduceHigher();
+//        pbf.toQuadratic(qpbf, nPix);
+//        pbf.clear();
 
-        vector<ELCReduce::VID> indices(3);
-        vector<EnergyType> SE(8);
-        auto addTriple = [&](int p, int q, int r){
+        kolmogorov::qpbo::QPBO<EnergyType> qpbo(nPix*10, nPix*20);
+
+        //construct graph
+        auto addTripleToGraph = [&](int p, int q, int r) {
+            double vp1 = p1[p], vp2 = p2[p], vq1 = p1[q], vq2 = p2[q], vr1 = p1[r], vr2 = p2[r];
             double lam;
             if (refSeg[p] == refSeg[q] && refSeg[p] == refSeg[r])
                 lam = lamh;
             else
                 lam = laml;
-            //printf("==============================\n(%d,%d)\n", x, y);
-            double vp1 = p1[p], vp2 = p2[p], vq1 = p1[q], vq2 = p2[q], vr1 = p1[r], vr2 = p2[r];
-            SE[0] = (EnergyType)(lapE(vp1, vq1, vr1) * lam * MRFRatio);
-            SE[1] = (EnergyType)(lapE(vp1, vq1, vr2) * lam * MRFRatio);
-            SE[2] = (EnergyType)(lapE(vp1, vq2, vr1) * lam * MRFRatio);
-            SE[3] = (EnergyType)(lapE(vp1, vq2, vr2) * lam * MRFRatio);
-            SE[4] = (EnergyType)(lapE(vp2, vq1, vr1) * lam * MRFRatio);
-            SE[5] = (EnergyType)(lapE(vp2, vq1, vr2) * lam * MRFRatio);
-            SE[6] = (EnergyType)(lapE(vp2, vq2, vr1) * lam * MRFRatio);
-            SE[7] = (EnergyType)(lapE(vp2, vq2, vr2) * lam * MRFRatio);
+            EnergyType A = (EnergyType)(lapE(vp1, vq1, vr1) * lam * MRFRatio);
+            EnergyType B = (EnergyType)(lapE(vp1, vq1, vr2) * lam * MRFRatio);
+            EnergyType C = (EnergyType)(lapE(vp1, vq2, vr1) * lam * MRFRatio);
+            EnergyType D = (EnergyType)(lapE(vp1, vq2, vr2) * lam * MRFRatio);
+            EnergyType E = (EnergyType)(lapE(vp2, vq1, vr1) * lam * MRFRatio);
+            EnergyType F = (EnergyType)(lapE(vp2, vq1, vr2) * lam * MRFRatio);
+            EnergyType G = (EnergyType)(lapE(vp2, vq2, vr1) * lam * MRFRatio);
+            EnergyType H = (EnergyType)(lapE(vp2, vq2, vr2) * lam * MRFRatio);
 
-            indices[0] = p;
-            indices[1] = q;
-            indices[2] = r;
-
-//                printf("(%d,%d,%d), %.2f\n", indices[0], indices[1], indices[2], lam);
-//                for (auto i = 0; i < SE.size(); ++i)
-//                    cout << SE[i] << ' ';
-//                cout << endl;
-
-            pbf.AddHigherTerm(3, indices.data(), SE.data());
+            EnergyType pi = (A + D + F + G) - (B + C + E + H);
+            if(pi >= 0){
+                qpbo.AddPairwiseTerm(p,q,0,C-A,0,G-E);
+                qpbo.AddPairwiseTerm(p,r,0,0,E-A,F-B);
+                qpbo.AddPairwiseTerm(q,r,0,B-A,0,D-C);
+                if(pi > 0) {
+                    int w = qpbo.AddNode();
+                    qpbo.AddUnaryTerm(w, A, A - pi);
+                    qpbo.AddPairwiseTerm(p, w, 0, pi, 0, 0);
+                    qpbo.AddPairwiseTerm(q, w, 0, pi, 0, 0);
+                    qpbo.AddPairwiseTerm(r, w, 0, pi, 0, 0);
+                }
+            }else{
+                qpbo.AddPairwiseTerm(p,q,B-D,0,F-H,0);
+                qpbo.AddPairwiseTerm(p,r,C-G,D-H,0,0);
+                qpbo.AddPairwiseTerm(q,r,E-F,0,G-H,0);
+                int w = qpbo.AddNode();
+                qpbo.AddUnaryTerm(w,H+pi,H);
+                qpbo.AddPairwiseTerm(p, w, 0, 0, -pi, 0);
+                qpbo.AddPairwiseTerm(q, w, 0, 0, -pi, 0);
+                qpbo.AddPairwiseTerm(r, w, 0, 0, -pi, 0);
+            }
         };
 
-        for (auto x = 1; x < width - 1; ++x) {
-            for (auto y = 1; y < height - 1; ++y) {
-                //horizontal
-                addTriple(y * width + x - 1, y * width + x, y * width + x + 1);
-                addTriple((y - 1) * width + x, y * width + x, (y + 1) * width + x);
-            }
+        //qpbf.convert(qpbo, nPix);
+        printf("Construcint graph...\n");
+        qpbo.AddNode(nPix);
+        for(auto i=0; i<nPix; ++i) {
+            qpbo.AddUnaryTerm(i, MRF_data[nLabel * i + (int) p1[i]], MRF_data[nLabel * i + (int) p2[i]]);
         }
 
-        //reduce
-        cout << "Reducing with ELC..." << endl;
-
-        ELCReduce::PBF<EnergyType> qpbf(nPix * 10);
-        pbf.reduceHigher();
-        pbf.toQuadratic(qpbf, nPix);
-        pbf.clear();
-
-        kolmogorov::qpbo::QPBO<EnergyType> qpbo(nPix*10, nPix*20);
-        qpbf.convert(qpbo, nPix);
+        for(auto y=1; y<height-1; ++y){
+            for(auto x=1; x<width-1; ++x) {
+                addTripleToGraph(y * width + x - 1, y * width + x, y * width + x + 1);
+                addTripleToGraph((y - 1) * width + x, y * width + x, (y + 1) * width + x);
+            }
+        }
 
         //solve
         cout << "Solving..." << endl << flush;
