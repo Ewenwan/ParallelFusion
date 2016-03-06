@@ -39,13 +39,12 @@ namespace sce_stereo{
 
         bool recompute = true;
         if (fin.is_open()) {
-            int frame, resolution, tw, type;
+            int frame, resolution, type;
             fin.read((char *) &frame, sizeof(int));
             fin.read((char *) &resolution, sizeof(int));
-            fin.read((char *) &tw, sizeof(int));
             fin.read((char *) &type, sizeof(int));
-            printf("Cached data: anchor:%d, resolution:%d, twindow:%d, Energytype:%d\n",
-                   frame, resolution, tw, type);
+            printf("Cached data: anchor:%d, resolution:%d, Energytype:%d\n",
+                   frame, resolution, type);
             if (frame == anchor && resolution == dispResolution  &&
                 type == sizeof(EnergyType)) {
                 printf("Reading unary term from cache...\n");
@@ -62,17 +61,28 @@ namespace sce_stereo{
                 for (int x = 0; x < width; ++x, ++index) {
                     if (index % unit == 0)
                         cout << '.' << flush;
+                    vector<double> basePatch;
+                    local_matcher::samplePatch(images[anchor-offset], Vector2d(x,y), pR, basePatch);
 #pragma omp parallel for
                     for (int d = 0; d < dispResolution; ++d) {
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            double distance = (double) (v - (anchor - offset)) * (double)d / dispResolution * 64;
-                            Vector2d imgpt(x - distance, y);
-                            local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
-
+                            double distance = (double) (v - (anchor - offset)) * (double) d / dispResolution * 64;
                             //shifting window
-                            for(double dx=-1*[R])
+                            double min_ssd = std::numeric_limits<double>::max();
+                            for (double dx = -1 * pR; dx <= pR; dx += 1.0) {
+                                for (double dy = -1 * pR; dy <= pR; dy += 1.0) {
+                                    Vector2d imgpt(x - distance + dx, y + dy);
+                                    vector<double> curp;
+                                    local_matcher::samplePatch(images[v], imgpt, pR, curp);
+                                    double ssd = math_util::SSDScore(basePatch, curp);
+                                    if(ssd < min_ssd){
+                                        min_ssd = ssd;
+                                        patches[v].swap(curp);
+                                    }
+                                }
+                            }
                         }
                         double mCost = local_matcher::sumMatchingCostHalf(patches, anchor - offset);
                         MRF_data[dispResolution * (y * width + x) + d] = (EnergyType) ((mCost + 1) * MRFRatio);
@@ -84,7 +94,6 @@ namespace sce_stereo{
             ofstream cacheOut(buffer, ios::binary);
             cacheOut.write((char *) &anchor, sizeof(int));
             cacheOut.write((char *) &dispResolution, sizeof(int));
-            cacheOut.write((char *) &tWindow, sizeof(int));
             cacheOut.write((char *) &energyTypeSize, sizeof(int));
             cacheOut.write((char *) MRF_data.data(), sizeof(EnergyType) * MRF_data.size());
             cacheOut.close();
