@@ -20,9 +20,10 @@ if(OPENMP_FOUND)
     message("-- Compiler flags: ${CMAKE_CXX_FLAGS}")
 endif()
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/surfaceStereo)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/scestereo)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/stereo_base)
-
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/simplestereo)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/segment_ms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/segment_gb)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/QPBO1.4)
