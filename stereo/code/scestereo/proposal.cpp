@@ -12,10 +12,10 @@ namespace sce_stereo{
                                    const std::string& method_, const int num_proposal_):file_io(file_io_), noisyDisp(noisyDisp_), image(image_),
                                                             dispResolution(dispResolution_), method(method_), num_proposal(num_proposal_),
                                                             w(image.cols), h(image.rows){
-        CHECK_EQ(num_proposal, 7) << "num_proposal should be 7";
+        CHECK_EQ(num_proposal, 10) << "num_proposal should be 7";
         params.resize(4);
         params[0] = 1; params[1] = 1.5; params[2] = 10; params[3] = 100;
-        //current fix num_proposal to 7
+        //current fix num_proposal to 10
 
     }
 
