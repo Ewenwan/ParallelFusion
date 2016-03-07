@@ -5,15 +5,16 @@
 
 #include "LabelSpace.h"
 
-class ProposalGenerator
+template<class LabelType> class ProposalGenerator
 {
  public:
-  virtual void setCurrentSolution(const std::vector<int> &current_solution) { current_solution_ = current_solution; };
-  virtual LabelSpace getProposal() const = 0;
-  virtual std::vector<int> getInitialSolution() const = 0;
+  virtual void setCurrentSolution(const std::vector<LabelType> &current_solution) { current_solution_ = current_solution; };
+  virtual LabelSpace<LabelType> getProposal() const = 0;
+  virtual std::vector<LabelType> getInitialSolution() const = 0;
+  virtual void writeSolution(const std::vector<LabelType> &solution, const int thread_index, const int iteration) const {}; //write temporary solution for visualization purpose
   
  protected:
-  std::vector<int> current_solution_;
+  std::vector<LabelType> current_solution_;
 };
 
 #endif
