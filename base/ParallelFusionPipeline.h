@@ -36,8 +36,11 @@ template<class LabelType> std::vector<LabelType> parallelFuse(std::vector<std::u
       std::vector<LabelType> fused_solution = (*fusion_thread_it)->getFusedSolution();
       solution_pool[thread_index] = fused_solution;
       
+      double energy = (*fusion_thread_it)->getFusedSolutionEnergy();
+      std::cout << "energy: " << energy << std::endl;
       //TODO: Better grabbing strategy
-      energy_vec[thread_index] = (*fusion_thread_it)->getFusedSolutionEnergy();
+      
+      energy_vec[thread_index] = energy;
       std::vector<double>::const_iterator min_it = min_element(energy_vec.begin(), energy_vec.end());
       solution_confidence_vec.assign(pipeline_params.NUM_THREADS, 0);
       solution_confidence_vec[min_it - energy_vec.begin()] = 1;

@@ -8,7 +8,7 @@
 using namespace std;
 using namespace cv;
 
-LabelSpace<int> SegmentationProposalGenerator::getProposal() const
+LabelSpace<int> SegmentationProposalGenerator::getProposal()
 {
   // const int NUM_LABELS = 5;
   // vector<int> node_labels(NUM_LABELS);
