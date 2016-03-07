@@ -54,14 +54,14 @@ namespace sce_stereo {
 
     class ProposalSegPlnMeanshift: public ProposalSegPln{
     public:
-	    ProposalSegPlnMeanshift(const FileIO& file_io_, const cv::Mat& image_, const Depth& noisyDisp_, const int dispResolution_, const int num_proposal_ = 7);
+	    ProposalSegPlnMeanshift(const FileIO& file_io_, const cv::Mat& image_, const Depth& noisyDisp_, const int dispResolution_, const int num_proposal_ = 10);
     protected:
         virtual void segment(const int pid, std::vector<std::vector<int> >& seg);
     };
 
 	class ProposalSegPlnGbSegment: public ProposalSegPln{
 	public:
-		ProposalSegPlnGbSegment(const FileIO& file_io_, const cv::Mat& image_, const Depth& noisyDisp_, const int dispResolution_, const int num_proposal_ = 7);
+		ProposalSegPlnGbSegment(const FileIO& file_io_, const cv::Mat& image_, const Depth& noisyDisp_, const int dispResolution_, const int num_proposal_ = 10);
 	protected:
 		virtual void segment(const int pid, std::vector<std::vector<int> >& seg);
 	};

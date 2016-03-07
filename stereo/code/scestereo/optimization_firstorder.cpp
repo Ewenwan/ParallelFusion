@@ -13,8 +13,8 @@ using namespace Eigen;
 namespace sce_stereo{
 
     FirstOrderOptimize::FirstOrderOptimize(const FileIO& file_io_, const int kFrames_,const cv::Mat& image_, const std::vector<EnergyType> &MRF_data_,
-                                           const float MRFRatio_, const int nLabel_, const EnergyType &weight_smooth_):
-            StereoOptimization(file_io_, kFrames_, image_, MRF_data_, MRFRatio_, nLabel_), weight_smooth(weight_smooth_){
+                                           const float MRFRatio_, const int nLabel_, const int refId_, const EnergyType &weight_smooth_):
+            StereoOptimization(file_io_, kFrames_, image_, MRF_data_, MRFRatio_, nLabel_, refId_), weight_smooth(weight_smooth_){
         assignSmoothWeight();
     }
 

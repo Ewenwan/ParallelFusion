@@ -39,7 +39,7 @@ namespace sce_stereo{
 
         bool recompute = true;
         if (fin.is_open()) {
-            int frame, resolution, type;
+            int frame, resolution, tw, type;
             fin.read((char *) &frame, sizeof(int));
             fin.read((char *) &resolution, sizeof(int));
             fin.read((char *) &type, sizeof(int));
@@ -61,28 +61,14 @@ namespace sce_stereo{
                 for (int x = 0; x < width; ++x, ++index) {
                     if (index % unit == 0)
                         cout << '.' << flush;
-                    vector<double> basePatch;
-                    local_matcher::samplePatch(images[anchor-offset], Vector2d(x,y), pR, basePatch);
 #pragma omp parallel for
                     for (int d = 0; d < dispResolution; ++d) {
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            double distance = (double) (v - (anchor - offset)) * (double) d / dispResolution * 64;
-                            //shifting window
-                            double min_ssd = std::numeric_limits<double>::max();
-                            for (double dx = -1 * pR; dx <= pR; dx += 1.0) {
-                                for (double dy = -1 * pR; dy <= pR; dy += 1.0) {
-                                    Vector2d imgpt(x - distance + dx, y + dy);
-                                    vector<double> curp;
-                                    local_matcher::samplePatch(images[v], imgpt, pR, curp);
-                                    double ssd = math_util::SSDScore(basePatch, curp);
-                                    if(ssd < min_ssd){
-                                        min_ssd = ssd;
-                                        patches[v].swap(curp);
-                                    }
-                                }
-                            }
+                            double distance = (double) (v - (anchor - offset)) * (double)d / dispResolution * 64;
+                            Vector2d imgpt(x - distance, y);
+                            local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
                         double mCost = local_matcher::sumMatchingCostHalf(patches, anchor - offset);
                         MRF_data[dispResolution * (y * width + x) + d] = (EnergyType) ((mCost + 1) * MRFRatio);
@@ -125,7 +111,7 @@ namespace sce_stereo{
 //        sprintf(buffer, "%s/temp/result_firstorder%05d.jpg", file_io.getDirectory().c_str(), anchor);
 //        result_firstorder.saveImage(string(buffer), 256.0 / (dispResolution) * 4);
 
-        SecondOrderOptimizeFusionMove fusionmove(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, unaryDisp);
+        SecondOrderOptimizeFusionMove fusionmove(file_io, (int)images.size(), images[anchor-offset], MRF_data, (float)MRFRatio, dispResolution, anchor-offset, unaryDisp);
         Depth result_fusionmove;
         fusionmove.optimize(result_fusionmove, 500);
 
