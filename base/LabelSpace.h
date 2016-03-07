@@ -60,17 +60,22 @@ template<class LabelType> void LabelSpace<LabelType>::setSingleLabels(const std:
 
 template<class LabelType> LabelSpace<LabelType> &LabelSpace<LabelType>::operator += (const LabelSpace<LabelType> &rhs)
 {
-  std::vector<std::vector<LabelType> > rhs_label_space = rhs.getLabelSpace();
   //CHECK(label_space_.size() == rhs_label_space.size()) << "The number of nodes is inconsistent.";
-  for (int node_index = 0; node_index < num_nodes_; node_index++) {
-    std::vector<LabelType> node_labels = label_space_[node_index];
-    std::vector<LabelType> rhs_node_labels = rhs_label_space[node_index];
-    //sort(node_labels.begin(), node_labels.end());    Maybe we assume?
-    //sort(rhs_node_labels.begin(), rhs_node_labels.end());
-    std::vector<LabelType> union_node_labels(node_labels.size() + rhs_node_labels.size());
-    typename std::vector<LabelType>::const_iterator union_node_labels_it = set_union(node_labels.begin(), node_labels.end(), rhs_node_labels.begin(), rhs_node_labels.end(), union_node_labels.begin());
-    union_node_labels.resize(union_node_labels_it - union_node_labels.begin());
-    label_space_[node_index] = union_node_labels;
+  std::vector<std::vector<LabelType> > rhs_label_space = rhs.getLabelSpace();
+  if (num_nodes_ == 0) {
+    num_nodes_ = rhs_label_space.size();
+    label_space_ = rhs_label_space;
+  } else {
+    for (int node_index = 0; node_index < num_nodes_; node_index++) {
+      std::vector<LabelType> node_labels = label_space_[node_index];
+      std::vector<LabelType> rhs_node_labels = rhs_label_space[node_index];
+      //sort(node_labels.begin(), node_labels.end());    Maybe we assume?
+      //sort(rhs_node_labels.begin(), rhs_node_labels.end());
+      std::vector<LabelType> union_node_labels(node_labels.size() + rhs_node_labels.size());
+      typename std::vector<LabelType>::const_iterator union_node_labels_it = set_union(node_labels.begin(), node_labels.end(), rhs_node_labels.begin(), rhs_node_labels.end(), union_node_labels.begin());
+      union_node_labels.resize(union_node_labels_it - union_node_labels.begin());
+      label_space_[node_index] = union_node_labels;
+    }
   }
   return *this;
 }

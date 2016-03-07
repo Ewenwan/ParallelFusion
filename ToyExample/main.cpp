@@ -21,7 +21,7 @@ int main()
   //typedef LabelType int;
   
   if (true) {
-    PipelineParams pipeline_params(4, 5);
+    PipelineParams pipeline_params(4, 5, 2);
     vector<double> fusion_thread_master_likelihood_vec(pipeline_params.NUM_THREADS, 0);
     fusion_thread_master_likelihood_vec[pipeline_params.NUM_THREADS - 1] = 1;
     vector<unique_ptr<FusionThread<int> > > fusion_threads;

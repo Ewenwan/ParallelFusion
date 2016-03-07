@@ -134,8 +134,16 @@ namespace cv_utils
   {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0, 1);
-    return dis(gen);
+    std::uniform_real_distribution<> distribution(0, 1);
+    return distribution(gen);
+  }
+
+  inline double drawFromNormalDistribution(const double mean = 0, const double stddev = 1)
+  {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<double> distribution(mean, stddev);
+    return distribution(gen);
   }
 
   inline int drawFromArray(const std::vector<double> &likelihood_values)
