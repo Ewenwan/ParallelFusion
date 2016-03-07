@@ -21,18 +21,17 @@ public:
     void clear();
     void assign(const int NUM_NODES, const std::vector<LabelType> &node_labels = std::vector<LabelType>()) { num_nodes_ = NUM_NODES; label_space_.assign(NUM_NODES, node_labels); };
     void setSingleLabels(const std::vector<LabelType> &single_labels);
-    void setLabelSpace(const std::vector<std::vector<LabelType> > label_space) { num_nodes_ = label_space.size(); label_space_ = label_space; };
+    void setLabelSpace(const std::vector<std::vector<LabelType> >& label_space) { num_nodes_ = label_space.size(); label_space_ = label_space; };
 
     LabelSpace &operator += (const LabelSpace &rhs);
-
-    friend LabelSpace operator + (const LabelSpace &lhs, const LabelSpace &rhs);
-
 
 private:
     int num_nodes_;
     std::vector<std::vector<LabelType> > label_space_;
 };
 
+template <typename LabelType>
+LabelSpace<LabelType> operator + (const LabelSpace<LabelType> &lhs, const LabelSpace<LabelType> &rhs);
 
 template<class LabelType> LabelSpace<LabelType>::LabelSpace(const std::vector<LabelType> &single_labels) : num_nodes_(single_labels.size())
 {
@@ -80,7 +79,8 @@ template<class LabelType> LabelSpace<LabelType> &LabelSpace<LabelType>::operator
   return *this;
 }
 
-template<class LabelType> LabelSpace<LabelType> operator + (const LabelSpace<LabelType> &lhs, const LabelSpace<LabelType> &rhs)
+template<class LabelType>
+LabelSpace<LabelType> operator + (const LabelSpace<LabelType> &lhs, const LabelSpace<LabelType> &rhs)
 {
   LabelSpace<LabelType> union_label_space = lhs;
   union_label_space += rhs;

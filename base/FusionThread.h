@@ -8,7 +8,7 @@
 #include "FusionSolver.h"
 #include "LabelSpace.h"
 
-#include "../base/cv_utils/cv_utils.h"
+#include "cv_utils/cv_utils.h"
 
 template<class LabelType> class FusionThread
 {

@@ -6,14 +6,16 @@
 #define PARALLELFUSION_SIMPLESTEREO_H
 
 #include <glog/logging.h>
+#include <iostream>
+
 #include "../../../base/LabelSpace.h"
 #include "../../../base/FusionSolver.h"
 #include "../../../base/FusionThread.h"
 #include "../../../base/ParallelFusionPipeline.h"
 #include "../../../base/ProposalGenerator.h"
 
-class simplestereo {
-
+class SimpleStereoSolver: public FusionSolver {
+    virtual
 };
 
 
