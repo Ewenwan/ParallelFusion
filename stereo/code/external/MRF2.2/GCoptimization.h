@@ -271,7 +271,9 @@ public:
 
     /* Peforms  expansion on one label, specified by the input parameter alpha_label */
     EnergyType alpha_expansion(LabelType alpha_label);
-    
+
+
+
 protected:
     void optimizeAlg(int nIterations);
 
@@ -282,9 +284,8 @@ private:
     void set_up_expansion_energy_G_FnPix(int size, LabelType alpha_label,Energy* e, Energy::Var *variables);
     void set_up_expansion_energy_NG_ARRAY(int size, LabelType alpha_label,Energy* e, Energy::Var *variables);       
     void set_up_expansion_energy_NG_FnPix(int size, LabelType alpha_label,Energy* e, Energy::Var *variables);       
-    void perform_alpha_expansion(LabelType label);  
     EnergyType start_expansion(int max_iterations);
-
+    void perform_alpha_expansion(LabelType label);
 };
 
 

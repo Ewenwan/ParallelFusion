@@ -8,17 +8,17 @@
 namespace ParallelFusion {
 
     //FusionSolver class represents both energy definition and solving procedure.
-    template<typename LabelType>
+    template<class LABELSPACE>
     class FusionSolver {
     public:
         //take initial value, run optimization and store solution in 'solution', return error
-        virtual double solve(const LabelSpace<LabelType> &proposals, std::vector<LabelType> &solution) const = 0;
+        virtual double solve(const LABELSPACE &proposals, LABELSPACE &solution) const = 0;
 
         //initialize solver with an initial solution, will be called automatically
-        virtual void initSolver(const std::vector<LabelType>& initial){}
+        virtual void initSolver(const LABELSPACE & initial){}
 
         //given a solution, evaluate energy
-        virtual double evaluateEnergy(const std::vector<LabelType>& solution) const = 0;
+        virtual double evaluateEnergy(const LABELSPACE & solution) const = 0;
     };
 }//namespace ParallelFusion
 #endif
