@@ -10,6 +10,7 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
+using namespace stereo_base;
 namespace sce_stereo{
 
     FirstOrderOptimize::FirstOrderOptimize(const FileIO& file_io_, const int kFrames_,const cv::Mat& image_, const std::vector<EnergyType> &MRF_data_,

@@ -3,6 +3,12 @@
 //
 
 #include "simplestereo.h"
+#include "../stereo_base/local_matcher.h"
+
+using namespace std;
+using namespace stereo_base;
+using namespace cv;
+using namespace Eigen;
 
 namespace simple_stereo {
     void SimpleStereoGenerator::getProposal(std::vector<int> &proposal,
@@ -18,5 +24,133 @@ namespace simple_stereo {
 
     double SimpleStereoSolver::evaluateEnergy(const std::vector<int> &solution) const {
         return 0;
+    }
+
+    SimpleStereo::SimpleStereo(const FileIO &file_io_, const int anchor_, const int dispResolution_):
+            file_io(file_io_), anchor(anchor_), dispResolution(dispResolution_), MRFRatio(100.0) {
+        CHECK_GE(file_io.getTotalNum(), 2) << "Too few images at " << file_io.getDirectory();
+        images.resize((size_t)file_io.getTotalNum());
+        for(auto i=0; i<images.size(); ++i)
+            images[i] = imread(file_io.getImage(i));
+        width = images[0].cols;
+        height = images[0].rows;
+    }
+
+    void SimpleStereo::initMRF() {
+        printf("Computing matching cost\n");
+        computeMatchingCost();
+        printf("Assigning smoothness weight\n");
+        assignSmoothWeight();
+    }
+
+    void SimpleStereo::computeMatchingCost() {
+        //read from cache
+        char buffer[1024] = {};
+        sprintf(buffer, "%s/temp/cacheMRFdata", file_io.getDirectory().c_str());
+        ifstream fin(buffer, ios::binary);
+        MRF_data.resize((size_t)width * height * dispResolution, 0);
+        bool recompute = true;
+        if (fin.is_open()) {
+            int frame, resolution, tw, type;
+            fin.read((char *) &frame, sizeof(int));
+            fin.read((char *) &resolution, sizeof(int));
+            fin.read((char *) &type, sizeof(int));
+            printf("Cached data: anchor:%d, resolution:%d, Energytype:%d\n",
+                   frame, resolution, type);
+            if (frame == anchor && resolution == dispResolution  &&
+                type == sizeof(int)) {
+                printf("Reading unary term from cache...\n");
+                fin.read((char *) MRF_data.data(), MRF_data.size() * sizeof(int));
+                recompute = false;
+            }
+            fin.close();
+        }
+        if (recompute) {
+            int index = 0;
+            int unit = width * height / 10;
+            //Be careful about down sample ratio!!!!!
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x, ++index) {
+                    if (index % unit == 0)
+                        cout << '.' << flush;
+#pragma omp parallel for
+                    for (int d = 0; d < dispResolution; ++d) {
+                        //project onto other views and compute matching cost
+                        vector<vector<double>> patches(images.size());
+                        for (auto v = 0; v < images.size(); ++v) {
+                            if(v == anchor)
+                                continue;
+                            double distance = (double) (v - anchor) * (double)d;
+                            Vector2d imgpt(x - distance, y);
+                            local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
+                        }
+                        double mCost = local_matcher::sumMatchingCost(patches, anchor);
+                        MRF_data[dispResolution * (y * width + x) + d] = (int) ((mCost + 1) * MRFRatio);
+                    }
+                }
+            }
+
+            const int energyTypeSize = sizeof(EnergyType);
+            ofstream cacheOut(buffer, ios::binary);
+            cacheOut.write((char *) &anchor, sizeof(int));
+            cacheOut.write((char *) &dispResolution, sizeof(int));
+            cacheOut.write((char *) &energyTypeSize, sizeof(int));
+            cacheOut.write((char *) MRF_data.data(), sizeof(EnergyType) * MRF_data.size());
+            cacheOut.close();
+        }
+        cout << "Done" << endl;
+        //compute unary disparity
+        unaryDisp.initialize(width, height, -1);
+        for(auto i=0; i<width * height; ++i){
+            EnergyType min_e = std::numeric_limits<EnergyType>::max();
+            for(auto d=0; d<dispResolution; ++d){
+                if(MRF_data[dispResolution * i + d] < min_e){
+                    unaryDisp.setDepthAtInd(i, (double)d);
+                    min_e = MRF_data[dispResolution * i + d];
+                }
+            }
+        }
+    }
+
+    void SimpleStereo::assignSmoothWeight() {
+        const double t = 0.3;
+        hCue.resize(width * height, 0);
+        vCue.resize(width * height, 0);
+        double ratio = 441.0;
+        const Mat &img = images[anchor];
+        for (auto y = 0; y < height; ++y) {
+            for (auto x = 0; x < width; ++x) {
+                Vec3b pix1 = img.at<Vec3b>(y, x);
+                //pixel value range from 0 to 1, not 255!
+                Vector3d dpix1 = Vector3d(pix1[0], pix1[1], pix1[2]) / 255.0;
+                if (y < height - 1) {
+                    Vec3b pix2 = img.at<Vec3b>(y + 1, x);
+                    Vector3d dpix2 = Vector3d(pix2[0], pix2[1], pix2[2]) / 255.0;
+                    double diff = (dpix1 - dpix2).norm();
+                    if (diff > t)
+                        vCue[y * width + x] = 0;
+                    else
+                        vCue[y * width + x] = (EnergyType) ((diff - t) * (diff - t) * ratio);
+                }
+                if (x < width - 1) {
+                    Vec3b pix2 = img.at<Vec3b>(y, x + 1);
+                    Vector3d dpix2 = Vector3d(pix2[0], pix2[1], pix2[2]) / 255.0;
+                    double diff = (dpix1 - dpix2).norm();
+                    if (diff > t)
+                        hCue[y * width + x] = 0;
+                    else
+                        hCue[y * width + x] = (EnergyType) ((diff - t) * (diff - t) * ratio);
+                }
+            }
+        }
+    }
+
+
+    void SimpleStereo::runStereo() {
+        char buffer[1024] = {};
+        initMRF();
+
+        sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
+        unaryDisp.saveImage(buffer, 256.0 / (double)dispResolution);
     }
 }

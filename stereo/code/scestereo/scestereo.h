@@ -19,7 +19,7 @@
 namespace sce_stereo {
     class SceStereo {
     public:
-        SceStereo(const FileIO& file_io_, const int anchor_, const int tWindow_, const int resolution_);
+        SceStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int tWindow_, const int resolution_);
 
         void runStereo();
     private:
@@ -27,14 +27,14 @@ namespace sce_stereo {
         void initMRF();
         void computeMatchingCost();
 
-        const FileIO& file_io;
+        const stereo_base::FileIO& file_io;
         const int anchor;
         //const int tWindow;
         const int dispResolution;
         const double MRFRatio;
         const int pR;
 
-        Depth unaryDisp;
+        stereo_base::Depth unaryDisp;
 
         int offset;
         int width;

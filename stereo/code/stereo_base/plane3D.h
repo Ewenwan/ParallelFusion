@@ -5,7 +5,7 @@
 #include <Eigen/Eigen>
 #include <glog/logging.h>
 
-namespace sce_stereo {
+namespace stereo_base {
 	class Plane3D {
 
 	public:

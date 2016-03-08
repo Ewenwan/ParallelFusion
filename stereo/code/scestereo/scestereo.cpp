@@ -3,12 +3,14 @@
 //
 
 #include "scestereo.h"
-#include "local_matcher.h"
+#include "../stereo_base/local_matcher.h"
 #include "optimization.h"
 
 using namespace std;
 using namespace cv;
 using namespace Eigen;
+
+using namespace stereo_base;
 
 namespace sce_stereo{
 
@@ -70,7 +72,7 @@ namespace sce_stereo{
                             Vector2d imgpt(x - distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
-                        double mCost = local_matcher::sumMatchingCostHalf(patches, anchor - offset);
+                        double mCost = local_matcher::sumMatchingCost(patches, anchor - offset);
                         MRF_data[dispResolution * (y * width + x) + d] = (EnergyType) ((mCost + 1) * MRFRatio);
                     }
                 }

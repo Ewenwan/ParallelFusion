@@ -10,7 +10,7 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
-namespace sce_stereo {
+namespace stereo_base {
 
 	void Depth::initialize(int width, int height, const double v) {
 		depthwidth = width;
