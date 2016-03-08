@@ -53,6 +53,7 @@ namespace ParallelFusion {
 
     struct ParallelFusionOption {
         ParallelFusionOption() : probProposalFromOther(0.2), convergeThreshold(0.01), max_iteration(10), num_threads(6), fuseSize(2), addMethod(APPEND) { }
+        //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
         enum ProposalAddition{APPEND, UNION};
         double probProposalFromOther;
         double convergeThreshold;
@@ -65,27 +66,30 @@ namespace ParallelFusion {
     template<typename T>
     class ParallelFusionPipeline {
         //solver should be read only
-        ParallelFusionPipeline(const std::shared_ptr<const FusionSolver<T> >& solver_, const ParallelFusionOption &option_) : solver(solver_), option(option_), terminate(false) { }
+        ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), terminate(false) { }
 
         typedef std::shared_ptr<ProposalGenerator<T> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
+        typedef std::shared_ptr<FusionSolver<T> > SolverPtr;
+        typedef std::vector<SolverPtr> SolverSet;
 
         //run parallel fusion. The logic in this routine represents the master thread
         //input: num_threads: number of threads to use
         //       max_iter: maximum iterations of fusion in each thread
         //       initials: initial solution for each thread. The size must be num_threads
+        //       gnerators: shared pointers of ProposalGenerator, one for each thread
+        //       solvers: shared pointers of FusionSolver, one for each thread
         //return: final energy
-        //each thread has its own generator. Note, the size of generators must be the
-        //same with option.num_thread. If all threads use exactly the same generator, duplicate
-        //it multiple times
         double runParallelFusion(const std::vector<std::vector<T> > &initials,
-                                 const GeneratorSet& generator);
+                                 const GeneratorSet& generators,
+                                 const SolverSet& solvers);
 
         void getLabeling(std::vector<T>& solution);
 
         //slave threads
         void workerThread(const int id, const std::vector<T> &initial,
-                          const GeneratorPtr &generator);
+                          const GeneratorPtr &generator,
+                          const SolverPtr& solver);
 
         inline const ParallelFusionOption &getOption() const { return option; }
 
@@ -103,7 +107,6 @@ namespace ParallelFusion {
 
         //The following two parameters controls the parallel fusion.
         //each fusion
-        const std::shared_ptr<const FusionSolver<T> > solver;
         ParallelFusionOption option;
 
         int kSelfThread;
@@ -118,21 +121,26 @@ namespace ParallelFusion {
 
     template<typename T>
     double ParallelFusionPipeline<T>::runParallelFusion(const std::vector<std::vector<T> > &initials,
-                                                                const GeneratorSet& generators){
+                                                        const GeneratorSet& generators,
+                                                        const SolverSet& solvers){
         CHECK_EQ(option.num_threads, initials.size());
         CHECK_EQ(option.num_threads, generators.size());
+        CHECK_EQ(option.num_threads, solvers.size());
 
         bestSolutions.resize((size_t)option.num_threads);
+        SolutionType<T> initSolution((T)-1, std::vector<T>());
+        for(auto &s: bestSolutions)
+            s.set(initSolution);
 
         kOtherThread = (int)(option.fuseSize * option.probProposalFromOther);
         kSelfThread = option.fuseSize - kOtherThread;
 
         CHECK_GT(kSelfThread, 1) << "Probability of drawing proposals from other thread is too high";
 
-        //launch threads and acquire futures for exception handling
+        //launch threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves;
         for(auto tid=0; tid<slaves.size(); ++tid){
-            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, initials[tid], generators[tid]);
+            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, initials[tid], generators[tid], solvers[tid]);
             slaves[tid].bind(t);
         }
     }
@@ -144,13 +152,15 @@ namespace ParallelFusion {
 
     template<typename T>
     void ParallelFusionPipeline<T>::workerThread(const int id,
-                                                         const std::vector<T> &initial,
-                                                         const GeneratorPtr& generator){
+                                                 const std::vector<T> &initial,
+                                                 const GeneratorPtr& generator,
+                                                 const SolverPtr& solver){
         try {
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(0, option.num_threads);
-
             bool converge = false;
+
+            solver->initSolver(initial);
 
             SolutionType<T> current_solution;
             current_solution.first = solver->evaluateEnergy(initial);
@@ -173,21 +183,33 @@ namespace ParallelFusion {
                     else
                         proposals.unionSolution(curproposal);
                 }
-                //Take best solutions from other threads
+                //Take best solutions from other threads. Initially there is no 'best solution', marked by
+                //the energy less than 0. If such condition occurs, replace this with another self generated
+                //proposal.
                 for(auto pid=0; pid < kOtherThread; ++pid) {
                     int tid = distribution(seed);
                     SolutionType<T> s;
                     bestSolutions[tid].get(s);
-                    if(option.addMethod == ParallelFusionOption::APPEND)
-                        proposals.appendSolution(s.second);
-                    else
-                        proposals.unionSolution(s.second);
+                    if(s.first >= 0) {
+                        if (option.addMethod == ParallelFusionOption::APPEND)
+                            proposals.appendSolution(s.second);
+                        else
+                            proposals.unionSolution(s.second);
+                    }else{
+                        std::vector<T> curproposal;
+                        generator->getProposals(curproposal, current_solution.second);
+                        if(option.addMethod == ParallelFusionOption::APPEND)
+                            proposals.appendSolution(curproposal);
+                        else
+                            proposals.unionSolution(curproposal);
+                    }
                 }
 
                 //solve
                 SolutionType<T> curSolution;
-                solver->solve(proposals, curSolution.second);
-                curSolution.first = solver->evaluateEnergy(curSolution.second);
+                curSolution.first = solver->solve(proposals, curSolution.second);
+
+                //set the current best solution. It will be visible from other threads
                 bestSolutions[id].set(curSolution);
                 //double diffE =  lastEnergy - curSolution.first;
             }

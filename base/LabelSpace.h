@@ -24,6 +24,8 @@ namespace ParallelFusion {
         void clear();
 
         inline int getNumNode()const{return num_nodes_; }
+        inline bool empty() const{ return label_space_.empty();}
+
         inline const std::vector<LabelType>& getLabelOfNode(const int nid) const{
             CHECK_GE(nid, 0);
             CHECK_LT(nid, label_space_.size());

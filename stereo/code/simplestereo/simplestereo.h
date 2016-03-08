@@ -12,15 +12,40 @@
 
 #include "../stereo_base/file_io.h"
 #include "../stereo_base/depth.h"
+#include "../external/MRF2.2/GCoptimization.h"
 #include "../../../base/LabelSpace.h"
 #include "../../../base/FusionSolver.h"
 #include "../../../base/ParallelFusionPipeline.h"
 #include "../../../base/ProposalGenerator.h"
 
 namespace simple_stereo {
+
+    template<typename T>
+    struct MRFModel{
+        MRFModel(): width(0), height(0), MRFRatio(100.0){}
+        int width;
+        int height;
+        int nLabel;
+        std::vector<T> MRF_data;
+        std::vector<T> hCue;
+        std::vector<T> vCue;
+        T weight_smooth;
+        const double MRFRatio;
+
+        void init(const int w, const int h, const int n, const double wei){
+            MRF_data.resize((size_t)w * h * n);
+            hCue.resize((size_t)w * h);
+            vCue.resize((size_t)w * h);
+            width = w;
+            height = h;
+            nLabel = n;
+            weight_smooth = (T)(wei * MRFRatio);
+        }
+    };
+
     class SimpleStereo{
     public:
-        SimpleStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int dispResolution_);
+        SimpleStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int dispResolution_, const double weight_smooth_);
         void initMRF();
         void computeMatchingCost();
         void assignSmoothWeight();
@@ -35,12 +60,9 @@ namespace simple_stereo {
 
         const stereo_base::FileIO& file_io;
         const int anchor;
-        const int dispResolution;
-        const double MRFRatio;
         std::vector<cv::Mat> images;
-        std::vector<int> MRF_data;
-        std::vector<int> hCue;
-        std::vector<int> vCue;
+
+        MRFModel<int> model;
 
         stereo_base::Depth unaryDisp;
         int width;
@@ -50,9 +72,12 @@ namespace simple_stereo {
 
     class SimpleStereoSolver : public ParallelFusion::FusionSolver<int> {
     public:
-        SimpleStereoSolver(){}
+        SimpleStereoSolver(const MRFModel<int>& model_): model(model_){}
+        virtual void initSolver(const std::vector<int>& initial);
         virtual double solve(const ParallelFusion::LabelSpace<int> &proposals, std::vector<int> &solution) const;
         virtual double evaluateEnergy(const std::vector<int>& solution) const;
+    private:
+        const MRFModel<int>& model;
     };
 
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<int>{

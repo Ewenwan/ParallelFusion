@@ -14,6 +14,9 @@ namespace ParallelFusion {
         //take initial value, run optimization and store solution in 'solution', return error
         virtual double solve(const LabelSpace<LabelType> &proposals, std::vector<LabelType> &solution) const = 0;
 
+        //initialize solver with an initial solution, will be called automatically
+        virtual void initSolver(const std::vector<LabelType>& initial){}
+
         //given a solution, evaluate energy
         virtual double evaluateEnergy(const std::vector<LabelType>& solution) const = 0;
     };

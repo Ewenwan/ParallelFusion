@@ -2,6 +2,7 @@
 // Created by yanhang on 3/7/16.
 //
 
+#include <stereo/code/external/MRF2.2/mrf.h>
 #include "simplestereo.h"
 #include "../stereo_base/local_matcher.h"
 
@@ -13,12 +14,28 @@ using namespace Eigen;
 namespace simple_stereo {
     void SimpleStereoGenerator::getProposal(std::vector<int> &proposal,
                                             const std::vector<int> &current_solution) {
-
+        proposal.resize(current_solution.size());
+        for(auto& v: proposal)
+            v = nextLabel;
+        nextLabel = (nextLabel + 1) % nLabel;
     }
 
+    void SimpleStereoSolver::initSolver(const std::vector<int>& initial) {
+        CHECK_EQ(initial.size(), model.width * model.height);
+        EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<int *>(model.MRF_data.data())),
+                                                             new SmoothnessCost(1, 4, model.weight_smooth,
+                                                                                const_cast<int *>(model.hCue.data()),
+                                                                                const_cast<int *>(model.vCue.data())));
+    }
 
     double SimpleStereoSolver::solve(const ParallelFusion::LabelSpace<int> &proposals,
                                      std::vector<int> &solution) const {
+        CHECK(!proposals.empty());
+        vector<int> curData;
+
+        for(auto i=0; i<labelToExpand; ++i){
+            if(labelToExpand[i])
+        }
         return 0;
     }
 
@@ -26,14 +43,16 @@ namespace simple_stereo {
         return 0;
     }
 
-    SimpleStereo::SimpleStereo(const FileIO &file_io_, const int anchor_, const int dispResolution_):
-            file_io(file_io_), anchor(anchor_), dispResolution(dispResolution_), MRFRatio(100.0) {
+    SimpleStereo::SimpleStereo(const FileIO &file_io_, const int anchor_, const int dispResolution_, const double weight_smooth_):
+            file_io(file_io_), anchor(anchor_){
         CHECK_GE(file_io.getTotalNum(), 2) << "Too few images at " << file_io.getDirectory();
         images.resize((size_t)file_io.getTotalNum());
         for(auto i=0; i<images.size(); ++i)
             images[i] = imread(file_io.getImage(i));
         width = images[0].cols;
         height = images[0].rows;
+
+        model.init(width, height, dispResolution_, weight_smooth_);
     }
 
     void SimpleStereo::initMRF() {
@@ -48,19 +67,18 @@ namespace simple_stereo {
         char buffer[1024] = {};
         sprintf(buffer, "%s/temp/cacheMRFdata", file_io.getDirectory().c_str());
         ifstream fin(buffer, ios::binary);
-        MRF_data.resize((size_t)width * height * dispResolution, 0);
         bool recompute = true;
         if (fin.is_open()) {
-            int frame, resolution, tw, type;
+            int frame, resolution, type;
             fin.read((char *) &frame, sizeof(int));
             fin.read((char *) &resolution, sizeof(int));
             fin.read((char *) &type, sizeof(int));
             printf("Cached data: anchor:%d, resolution:%d, Energytype:%d\n",
                    frame, resolution, type);
-            if (frame == anchor && resolution == dispResolution  &&
+            if (frame == anchor && resolution == model.nLabel  &&
                 type == sizeof(int)) {
                 printf("Reading unary term from cache...\n");
-                fin.read((char *) MRF_data.data(), MRF_data.size() * sizeof(int));
+                fin.read((char *) model.MRF_data.data(), model.MRF_data.size() * sizeof(int));
                 recompute = false;
             }
             fin.close();
@@ -74,18 +92,16 @@ namespace simple_stereo {
                     if (index % unit == 0)
                         cout << '.' << flush;
 #pragma omp parallel for
-                    for (int d = 0; d < dispResolution; ++d) {
+                    for (int d = 0; d < model.nLabel; ++d) {
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            if(v == anchor)
-                                continue;
                             double distance = (double) (v - anchor) * (double)d;
                             Vector2d imgpt(x - distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
                         double mCost = local_matcher::sumMatchingCost(patches, anchor);
-                        MRF_data[dispResolution * (y * width + x) + d] = (int) ((mCost + 1) * MRFRatio);
+                        model.MRF_data[model.nLabel * (y * width + x) + d] = (int) ((mCost + 1) * model.MRFRatio);
                     }
                 }
             }
@@ -93,9 +109,9 @@ namespace simple_stereo {
             const int energyTypeSize = sizeof(EnergyType);
             ofstream cacheOut(buffer, ios::binary);
             cacheOut.write((char *) &anchor, sizeof(int));
-            cacheOut.write((char *) &dispResolution, sizeof(int));
+            cacheOut.write((char *) &model.nLabel, sizeof(int));
             cacheOut.write((char *) &energyTypeSize, sizeof(int));
-            cacheOut.write((char *) MRF_data.data(), sizeof(EnergyType) * MRF_data.size());
+            cacheOut.write((char *) model.MRF_data.data(), sizeof(EnergyType) * model.MRF_data.size());
             cacheOut.close();
         }
         cout << "Done" << endl;
@@ -103,10 +119,10 @@ namespace simple_stereo {
         unaryDisp.initialize(width, height, -1);
         for(auto i=0; i<width * height; ++i){
             EnergyType min_e = std::numeric_limits<EnergyType>::max();
-            for(auto d=0; d<dispResolution; ++d){
-                if(MRF_data[dispResolution * i + d] < min_e){
+            for(auto d=0; d<model.nLabel; ++d){
+                if(model.MRF_data[model.nLabel * i + d] < min_e){
                     unaryDisp.setDepthAtInd(i, (double)d);
-                    min_e = MRF_data[dispResolution * i + d];
+                    min_e = model.MRF_data[model.nLabel * i + d];
                 }
             }
         }
@@ -114,8 +130,6 @@ namespace simple_stereo {
 
     void SimpleStereo::assignSmoothWeight() {
         const double t = 0.3;
-        hCue.resize(width * height, 0);
-        vCue.resize(width * height, 0);
         double ratio = 441.0;
         const Mat &img = images[anchor];
         for (auto y = 0; y < height; ++y) {
@@ -128,18 +142,18 @@ namespace simple_stereo {
                     Vector3d dpix2 = Vector3d(pix2[0], pix2[1], pix2[2]) / 255.0;
                     double diff = (dpix1 - dpix2).norm();
                     if (diff > t)
-                        vCue[y * width + x] = 0;
+                        model.vCue[y * width + x] = 0;
                     else
-                        vCue[y * width + x] = (EnergyType) ((diff - t) * (diff - t) * ratio);
+                        model.vCue[y * width + x] = (EnergyType) ((diff - t) * (diff - t) * ratio);
                 }
                 if (x < width - 1) {
                     Vec3b pix2 = img.at<Vec3b>(y, x + 1);
                     Vector3d dpix2 = Vector3d(pix2[0], pix2[1], pix2[2]) / 255.0;
                     double diff = (dpix1 - dpix2).norm();
                     if (diff > t)
-                        hCue[y * width + x] = 0;
+                        model.hCue[y * width + x] = 0;
                     else
-                        hCue[y * width + x] = (EnergyType) ((diff - t) * (diff - t) * ratio);
+                        model.hCue[y * width + x] = (EnergyType) ((diff - t) * (diff - t) * ratio);
                 }
             }
         }
@@ -151,6 +165,6 @@ namespace simple_stereo {
         initMRF();
 
         sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
-        unaryDisp.saveImage(buffer, 256.0 / (double)dispResolution);
+        unaryDisp.saveImage(buffer, 256.0 / (double)model.nLabel);
     }
 }
