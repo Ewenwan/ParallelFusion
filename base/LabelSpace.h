@@ -44,8 +44,8 @@ namespace ParallelFusion {
             label_space_.assign(NUM_NODES, node_labels);
         };
 
-        virtual void appendSpace(const std::shared_ptr<LabelSpace<LabelType> > & rhs);
-        virtual void unionSpace(const std::shared_ptr<LabelSpace<LabelType> > &rhs);
+        void appendSpace(const LabelSpace<LabelType> & rhs);
+        void unionSpace(const LabelSpace<LabelType> &rhs);
 
         void setSingleLabels(const std::vector<LabelType> &single_labels);
 
@@ -98,16 +98,18 @@ namespace ParallelFusion {
 
 
     template<typename LabelType>
-    void LabelSpace<LabelType>::appendSpace(const std::shared_ptr<LabelSpace<LabelType> > &rhs) {
+    void LabelSpace<LabelType>::appendSpace(const LabelSpace<LabelType> &rhs) {
         if(num_nodes_ == 0)
-            label_space_.resize((size_t)rhs->getNumNode());
-        for(auto i=0; i<rhs->getNumNode(); ++i)
-            label_space_[i].insert(rhs->getLabelOfNode(i).begin(), rhs->getLabelOfNode(i).end());
+            label_space_.resize((size_t)rhs.getNumNode());
+        for(auto i=0; i<rhs.getNumNode(); ++i){
+            for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
+                label_space_[i].push_back(rhs(i,j));
+        }
     }
 
     template<typename LabelType>
-    void LabelSpace<LabelType>::unionSpace(const std::shared_ptr<LabelSpace<LabelType> > &rhs){
-        const std::vector<std::vector<LabelType> >& rhs_label_space = rhs->getLabelSpace();
+    void LabelSpace<LabelType>::unionSpace(const LabelSpace<LabelType> &rhs){
+        const std::vector<std::vector<LabelType> >& rhs_label_space = rhs.getLabelSpace();
         CHECK_EQ(label_space_.size(), rhs_label_space.size());
         if (num_nodes_ == 0) {
             num_nodes_ = (int)rhs_label_space.size();
