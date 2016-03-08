@@ -1,5 +1,7 @@
 \section{Related work}
 
+FM was first introduced by Lempitsky et al. in solving an optical flow
+problem~\cite{first_fusion_viktor}, where proposals
 
 Hiroshi had a paper for doing this for binary variables but not for multilabel variables.
 
@@ -13,11 +15,28 @@ However, unlike GA or PSO where the fusion step is essentially just arbitrarily 
 
  
 
-While PSO and GA have limited theoretical justification, they have been used to produce great empirical results. For instance, in our recent work on hand tracking, we used the particle swarm optimization method. See “Model Fitting” section on page 5 of the following paper:
+While PSO and GA have limited theoretical justification, they have been
+used to produce great empirical results. For instance, in our recent
+work on hand tracking, we used the particle swarm optimization
+method. See Model Fitting section on page 5 of the following paper:
 
-http://research.microsoft.com/en-us/um/people/pkohli/papers/skrts_chi2015.pdf
+\url{http://research.microsoft.com/en-us/um/people/pkohli/papers/skrts_chi2015.pdf}
 
-Also see the video here: https://www.youtube.com/watch?v=R-SfOJyZlRQ&list=PLE7aZMY3Wubx6yRgP8U6GRwJCOi2Zyh2S&index=9
+Also see the video here: \url{https://www.youtube.com/watch?v=R-SfOJyZlRQ&list=PLE7aZMY3Wubx6yRgP8U6GRwJCOi2Zyh2S&index=9}
 
  
 
+
+
+ 
+Note that one may rather seek to parallelize the core optimization
+libraries such as Graph-cuts~\cite{}, TRW~\cite{kolmogorov}, or
+QPBO~\cite{}.~\footnote{GPU speeds-up message-passing algorithms via
+parallel computation. However, these algorithms need to store all the
+messages and states and cannot handle problems with a large label space~\cite{layered_depthmap}.} However, the core optimization libraries are often
+very complex and require significant engineering by experts for
+modification.
+%
+While state-of-the-art optimization libraries are often freely available for
+non-commercial purposes, most companies have to develop and maintain
+in-house implementation of these optimization algorithms.

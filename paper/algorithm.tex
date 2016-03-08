@@ -1,1 +1,28 @@
-\section{Parallel Fusion Moves}
+\section{Swarm Fusion Method}
+
+Swarm Fusion is a natural multi-core extension of Fusion Move
+Method. Take a multi-threading environment to explain our idea, which is
+also applicable to other parallel computation environments such as cloud
+computing. Every thread $T_i$ keeps track of a solution $S_i$, and
+repeats updating $S_i$ by fusion ($i = 1, 2, \cdots N$). Two parameters
+$\alpha_i$ and $\beta_i$ control the behavior of fusion steps in each
+thread $T_i$. $\alpha_i$ specifies how many solution proposals are to be
+generated from proposal generation schemes. Similarly, $\beta_i$
+specifies how many solutions in the other threads are to be
+fused. Suppose $N=4$, $\alpha_1 = 2$, and $\beta_1 = 3$. In this
+configuration, the first thread $T_1$ fuses its current solution $S_1$,
+two new proposal solutions (e.g., by randomly picking two proposal
+generation schemes), and the current solutions $(S_2, S_3, S_4)$ in the
+other three threads. This is a multi-way fusion with a non-submodular
+energy in general, and message passing algorithm such as
+TRW~\cite{kolmogorov} can be used. Sequential QPBO application is
+another.
+
+
+Our model is flexible. For example, a parallel fusion move algorithm by
+Lempitsky et al.~\cite{viktor} is a special case of ours, where $\alpha_$
+
+, and it is easy to see that 
+Existing parallel fusion techniques are special 
+
+Our model is flexible and 
