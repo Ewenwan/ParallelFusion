@@ -59,9 +59,7 @@
     added in blocks for memory and time efficiency.
     Below are numbers of items in blocks
 */
-#define NODE_BLOCK_SIZE 512
-#define ARC_BLOCK_SIZE 1024
-#define NODEPTR_BLOCK_SIZE 128
+
 
 class Graph
 {
@@ -117,8 +115,11 @@ public:
 /***********************************************************************/
 /***********************************************************************/
 /***********************************************************************/
-    
+
 private:
+    static const int  NODE_BLOCK_SIZE = 512;
+    static const int  ARC_BLOCK_SIZE = 1024;
+    static const int  NODEPTR_BLOCK_SIZE = 128;
     /* internal variables and functions */
 
     struct arc_forward_st;
