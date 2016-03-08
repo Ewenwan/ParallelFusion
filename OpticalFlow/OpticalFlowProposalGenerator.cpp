@@ -24,11 +24,11 @@ LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::getProposal()
 
   num_proposed_solutions_ = 0;
 
-  LabelSpace<pair<double, double> > proposal_label_space; //(current_solution_);
+  LabelSpace<pair<double, double> > proposal_label_space(current_solution_);
   //int index = 0;
   while (num_proposed_solutions_ < NUM_PROPOSAL_SOLUTIONS_THRESHOLD_) {
-    //int proposal_type = rand() % 6;
-    int proposal_type = 0;
+    int proposal_type = rand() % 4 + 4 * (cv_utils::randomProbability() < 0.3);
+    //int proposal_type = 5;
     //if (index == 1)
     //proposal_type = 5;
     //index++;
@@ -43,13 +43,19 @@ LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::getProposal()
       proposal_label_space += generateProposalLayerWise();
       break;
     case 3:
-      proposal_label_space += generateProposalMoveAround();
+      proposal_label_space += generateProposalNearestNeighbor();
       break;
     case 4:
-      proposal_label_space += generateProposalShift();
+      proposal_label_space += generateProposalMoveAround();
       break;
     case 5:
+      proposal_label_space += generateProposalShift();
+      break;
+    case 6:
       proposal_label_space += generateProposalCluster();
+      break;
+    case 7:
+      proposal_label_space += generateProposalDisturb();
       break;
     }
   }
@@ -66,6 +72,7 @@ void OpticalFlowProposalGenerator::writeSolution(const std::vector<pair<double, 
   Mat solution_image = drawFlows(solution, IMAGE_WIDTH_, IMAGE_HEIGHT_);
   imwrite("Test/solution_image_" + to_string(iteration) + "_" + to_string(thread_index) + ".png", solution_image);
   cout << "error: " << calcFlowsDiff(solution, ground_truth_flows_, IMAGE_WIDTH_, IMAGE_HEIGHT_) << endl;
+  writeFlows(solution, IMAGE_WIDTH_, IMAGE_HEIGHT_, "Cache/flows_" + to_string(iteration) + "_" + to_string(thread_index) + ".flo");
 }
 
 LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposalPyrLK()
@@ -110,6 +117,19 @@ LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposal
   num_proposed_solutions_++;
 
   imwrite("Test/proposal_flows_LayerWise.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+  return LabelSpace<pair<double, double> >(proposal_flows);
+}
+
+LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposalNearestNeighbor()
+{
+  cout << "generate proposal NearestNeighbor" << endl;
+  proposal_name_ = "NearestNeighbor";
+  
+  const int WINDOW_SIZE = 5 + 2 * (rand() % 6);
+  vector<pair<double, double> > proposal_flows = calcFlowsNearestNeighbor(image_1_, image_2_, WINDOW_SIZE);
+
+  num_proposed_solutions_++;
+  imwrite("Test/proposal_flows_NearestNeighbor.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
   return LabelSpace<pair<double, double> >(proposal_flows);
 }
 
@@ -162,6 +182,18 @@ LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposal
   return proposed_label_space;
 }
 
+LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposalDisturb()
+{
+  cout << "generate proposal Disturb" << endl;
+  proposal_name_ = "Disturb";
+
+  const double DISTURB_STDDEV = 1;
+  vector<pair<double, double> > proposal_flows = disturbFlows(current_solution_, IMAGE_WIDTH_, IMAGE_HEIGHT_, DISTURB_STDDEV);
+  imwrite("Test/proposal_flows_disturb.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+  num_proposed_solutions_++;
+  return LabelSpace<pair<double, double> >(proposal_flows);;
+}
+
 LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposalCluster()
 {
   cout << "generate proposal Cluster" << endl;
@@ -180,8 +212,8 @@ LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposal
       
   Mat labels, centers;
   kmeans(flow_points, NUM_CLUSTERS, labels, TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-  for (int i = 0; i < NUM_CLUSTERS; i++)
-    cout << "center: " << centers.at<Vec2f>(i) << endl;
+  // for (int i = 0; i < NUM_CLUSTERS; i++)
+  //   cout << "center: " << centers.at<Vec2f>(i) << endl;
   
   LabelSpace<pair<double, double> > proposal_label_space;
   for (int proposal_solution_index = 0; proposal_solution_index < NUM_PROPOSAL_SOLUTIONS; proposal_solution_index++) {
@@ -191,7 +223,7 @@ LabelSpace<pair<double, double> > OpticalFlowProposalGenerator::generateProposal
     vector<pair<double, double> > proposal_flows = current_solution_;
     for (int y = IMAGE_BORDER; y < IMAGE_HEIGHT_ - IMAGE_BORDER; y++) {
       for (int x = IMAGE_BORDER; x < IMAGE_WIDTH_ - IMAGE_BORDER; x++) {
-	int label = flow_points.at<int>((y - IMAGE_BORDER) * (IMAGE_WIDTH_ - IMAGE_BORDER * 2) + (x - IMAGE_BORDER));
+	int label = labels.at<int>((y - IMAGE_BORDER) * (IMAGE_WIDTH_ - IMAGE_BORDER * 2) + (x - IMAGE_BORDER));
 	Vec2f center = centers.at<Vec2f>(label);
 	pair<double, double> flow(center[0] + shift_x, center[1] + shift_y);
 	proposal_flows[y * IMAGE_WIDTH_ + x] = flow;
