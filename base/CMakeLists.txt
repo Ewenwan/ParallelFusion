@@ -4,6 +4,8 @@ project(ParallelFusion_base)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_FXX_FLAGS} -std=c++11 -O3")
 
+file(GLOB BASE_HEADER "*.h")
+file(GLOB BASE_SOURCE "*.cpp")
 include_directories(/usr/local/include/eigen3)
 
 add_library(ParallelFusion_base ${BASE_HEADER} ${BASE_SOURCE})

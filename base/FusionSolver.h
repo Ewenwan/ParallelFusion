@@ -5,11 +5,17 @@
 
 #include "LabelSpace.h"
 
-template<class LabelType> class FusionSolver
-{
- public:
-  virtual std::vector<LabelType> solve(const LabelSpace<LabelType> &label_space, double &energy) const = 0;
-  
-};
-  
+namespace ParallelFusion {
+
+    //FusionSolver class represents both energy definition and solving procedure.
+    template<typename LabelType>
+    class FusionSolver {
+    public:
+        //take initial value, run optimization and store solution in 'solution', return error
+        virtual double solve(const LabelSpace<LabelType> &proposals, std::vector<LabelType> &solution) const = 0;
+
+        //given a solution, evaluate energy
+        virtual double evaluateEnergy(const std::vector<LabelType>& solution) const = 0;
+    };
+}//namespace ParallelFusion
 #endif

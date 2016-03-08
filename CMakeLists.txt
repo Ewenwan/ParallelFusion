@@ -7,7 +7,7 @@ set(BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/base)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-#add_subdirectory(base)
+add_subdirectory(base)
 add_subdirectory(stereo)
 
 #uncomment this line one we have something in opticalflow
