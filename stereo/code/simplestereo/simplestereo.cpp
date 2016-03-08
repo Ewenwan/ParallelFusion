@@ -11,18 +11,19 @@ using namespace std;
 using namespace stereo_base;
 using namespace cv;
 using namespace Eigen;
+using namespace ParallelFusion;
 
 namespace simple_stereo {
-    void SimpleStereoGenerator::getProposal(ParallelFusion::LabelSpace<int> proposals,
-                                            const std::vector<int> &current_solution) {
+    void SimpleStereoGenerator::getProposal(LabelSpace<int>& proposals,
+                                            const LabelSpace<int> &current_solution, const int N) {
 //        proposal.resize(current_solution.size());
 //        for(auto& v: proposal)
 //            v = nextLabel;
 //        nextLabel = (nextLabel + 1) % nLabel;
     }
 
-    void SimpleStereoSolver::initSolver(const std::vector<int>& initial) {
-        CHECK_EQ(initial.size(), model.width * model.height);
+    void SimpleStereoSolver::initSolver(const LabelSpace<int>& initial) {
+        CHECK_EQ(initial.getNumNode(), model.width * model.height);
         EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<int *>(model.MRF_data.data())),
                                                              new SmoothnessCost(1, 4, model.weight_smooth,
                                                                                 const_cast<int *>(model.hCue.data()),
@@ -30,8 +31,8 @@ namespace simple_stereo {
         mrf = shared_ptr<Expansion>(new Expansion(model.width, model.height, energy_function));
     }
 
-    double SimpleStereoSolver::solve(const ParallelFusion::LabelSpace<int> &proposals,
-                                     std::vector<int> &solution) const {
+    double SimpleStereoSolver::solve(const LabelSpace<int> &proposals,
+                                     LabelSpace<int> &solution) const {
         CHECK(!proposals.empty());
         CHECK_EQ(proposals.getNumNode(), kPix);
         const int kProposal = (int)proposals.getLabelOfNode(0).size();

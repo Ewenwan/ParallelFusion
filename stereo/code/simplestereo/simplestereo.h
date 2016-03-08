@@ -75,12 +75,12 @@ namespace simple_stereo {
 
     };
 
-    class SimpleStereoSolver : public ParallelFusion::FusionSolver<int> {
+    class SimpleStereoSolver : public ParallelFusion::FusionSolver<ParallelFusion::LabelSpace<int> > {
     public:
         SimpleStereoSolver(const MRFModel<int>& model_): model(model_), kPix(model.width * model.height){}
-        virtual void initSolver(const std::vector<int>& initial);
-        virtual double solve(const ParallelFusion::LabelSpace<int> &proposals, std::vector<int> &solution) const;
-        virtual double evaluateEnergy(const std::vector<int>& solution) const;
+        virtual void initSolver(const ParallelFusion::LabelSpace<int>& initial);
+        virtual double solve(const ParallelFusion::LabelSpace<int> &proposals, ParallelFusion::LabelSpace<int> &solution) const;
+        virtual double evaluateEnergy(const ParallelFusion::LabelSpace<int>& solution) const;
     private:
         inline int smoothnessCost(int pix, int l1, int l2, bool xDirection) const{
             double cue = xDirection ? model.hCue[pix] : model.vCue[pix];
@@ -91,10 +91,10 @@ namespace simple_stereo {
         std::shared_ptr<Expansion> mrf;
     };
 
-    class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<int>{
+    class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<ParallelFusion::LabelSpace<int> >{
     public:
         SimpleStereoGenerator(const int nPix_, const int nLabel_, const int startid): nPix(nPix_), nLabel(nLabel_), nextLabel(startid % nLabel_){}
-        virtual void getProposal(ParallelFusion::LabelSpace<int>& proposals, const std::vector<int>& current_solution, const int N);
+        virtual void getProposal(ParallelFusion::LabelSpace<int>& proposals, const ParallelFusion::LabelSpace<int>& current_solution, const int N);
     private:
         const int nPix;
         const int nLabel;
