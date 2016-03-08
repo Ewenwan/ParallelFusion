@@ -73,7 +73,7 @@ namespace ParallelFusion {
     };
 
     template<typename LabelType>
-    LabelSpace<LabelType>::LabelSpace(const std::vector<LabelType> &single_labels) : num_nodes_((int)single_labels.size()) {
+      LabelSpace<LabelType>::LabelSpace(const std::vector<LabelType> &single_labels) : num_nodes_((int)single_labels.size()) {
         label_space_.assign(num_nodes_, std::vector<LabelType>());
         setSingleLabels(single_labels);
     }
