@@ -1,48 +1,58 @@
 \section{Related work}
 
 
-A Markov Random Field (MRF) inference has been a very active field in
-Computer Vision with extensive literature.
+Markov Random Field (MRF) inference has been a very active field in
+Computer Vision with extensive literature. We refer the readers to
+survey articles for a comprehensive
+review~\cite{middlebury_mrf,comparative_study_of_modern_inference}, and
+here focus our description on closely related topics.
+
+\mysubsubsection{Fusion Move Methods}
+
+\noindent FM was first introduced by Lempitsky et al. in solving an
+optical flow problem~\cite{first_fusion_viktor}. FM has been effectively
+used to solve challenging problems in Computer Vision such as a stereo
+problem with second order smoothness priors~\cite{woodford}, a stereo
+problem with parameteric surface fitting and segmentation (i.e., Surface
+Stereo)~\cite{surface_stereo}, or multicut
+partiioning~\cite{fusionmovesforcorrelationclustering}.
+%
+FM has two main advantages over the other general inference
+techniques~\cite{trw,loopy_belief_propagation}. \yasu{Pushmeet, is this
+correct? Am not confident to say this?} First, FM allows us to exploit
+domain-specific knowledge in customizing proposal generation
+schemes. Second, FM can handle problems with very large label spaces,
+because the core optimization just solves a binary decision problem. In
+contrast, methods like message passing algorithms need to maintain
+messages and beliefs for the entire label space all the time.
 
 
+\mysubsubsection{Parallel Fusion Methods}
 
-in particular, fusion move methods and parallel fusion techniques.
-
-
-
-FM was first introduced by Lempitsky et al. in solving an optical flow
-problem~\cite{first_fusion_viktor}, where proposals
-
-Hiroshi had a paper for doing this for binary variables but not for multilabel variables.
-
-http://www.f.waseda.jp/hfs/CVPR2014.pdf
-
- This is a good idea.  Rather than having one perfect solution threads, we maintain multiple solution hypothesis which are then combined with each other.  At a high level, this strategy is similar to methods like genetic algorithms (GA) or particle swarm optimization (PSO) where multiple solutions are maintained and improved over time.
-
+\noindent There exist a few but not many parallel fusion
+algorithms~\cite{viktor,olga,delong}. Lempitsky et al. introduces
+parallel computation to an alpha-expansion technique, where multiple
+threads simultaneously fuses mutually exclusive sets of labels. Delong
+et al.~\cite{delong} and Veksler~\cite{olga} proposed an hierarchical
+fusion algorithm, where labels can be simultaneously fused in a
+particular order defined by a tree.
  
 
-GA or PSO
- 
-However, unlike GA or PSO where the fusion step is essentially just arbitrarily copying part of the solution, we try to find the optimal copy.
 
- 
-
-While PSO and GA have limited theoretical justification, they have been
-used to produce great empirical results. For instance, in our recent
-work on hand tracking, we used the particle swarm optimization
-method. See Model Fitting section on page 5 of the following paper:
-
-\url{http://research.microsoft.com/en-us/um/people/pkohli/papers/skrts_chi2015.pdf}
-
-Also see the video here: \url{https://www.youtube.com/watch?v=R-SfOJyZlRQ&list=PLE7aZMY3Wubx6yRgP8U6GRwJCOi2Zyh2S&index=9}
-
- 
+\mysubsubsection{Parallel MAP inference}
 
 
-
+Although conceptually straightforward, we are not aware of parallel
+fusion move algorithms that fuses solution proposals (as opposed to
+labels) in parallel.
  
 Note that one may rather seek to parallelize the core optimization
 libraries such as Graph-cuts~\cite{}, TRW~\cite{kolmogorov}, or
+
+graph-cuts
+\cite{strandmark2010parallel}
+
+
 QPBO~\cite{}.~\footnote{GPU speeds-up message-passing algorithms via
 parallel computation. However, these algorithms need to store all the
 messages and states and cannot handle problems with a large label space~\cite{layered_depthmap}.} However, the core optimization libraries are often
@@ -52,3 +62,21 @@ modification.
 While state-of-the-art optimization libraries are often freely available for
 non-commercial purposes, most companies have to develop and maintain
 in-house implementation of these optimization algorithms.
+
+
+
+\mysubsubsection{Genetic algorithms and Particle Swarm Optimization}
+
+\noindent
+Genetic algorithms (GA)~\cite{ga} and Particle Swarm
+Optimization (PSO)~\cite{pso} maintain multiple solutions and improve
+them over time.
+%
+While GA and PSO have limited theoretical justification, they have been
+used to produce great empirical results, for example, hand tracking via
+PSO~\cite{pushmeet_hand_tracking}.  At high level, our strategy is
+similar to theirs. However, unlike GA or PSO where the fusion step is
+essentially just arbitrarily copying part of the solution, we 
+directly optimize the objective function to find the optimal copy.
+
+
