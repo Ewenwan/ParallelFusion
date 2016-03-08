@@ -175,14 +175,13 @@ namespace ParallelFusion {
                 }
                 LabelSpace<T> proposals;
                 //generate proposal by own generator
-                for(auto pid=0; pid < kSelfThread; ++pid) {
-                    std::vector<T> curproposal;
-                    generator->getProposals(curproposal, current_solution.second);
-                    if(option.addMethod == ParallelFusionOption::APPEND)
-                        proposals.appendSolution(curproposal);
-                    else
-                        proposals.unionSolution(curproposal);
-                }
+                LabelSpace<T> proposals_self;
+                generator->getProposals(proposals_self, current_solution.second, kSelfThread);
+                if(option.addMethod == ParallelFusionOption::APPEND)
+                    proposals.appendSpace(proposals_self);
+                else
+                    proposals.unionSpace(proposals_self);
+
                 //Take best solutions from other threads. Initially there is no 'best solution', marked by
                 //the energy less than 0. If such condition occurs, replace this with another self generated
                 //proposal.
@@ -196,12 +195,12 @@ namespace ParallelFusion {
                         else
                             proposals.unionSolution(s.second);
                     }else{
-                        std::vector<T> curproposal;
-                        generator->getProposals(curproposal, current_solution.second);
+                        LabelSpace<T> tempProposal;
+                        generator->getProposals(tempProposal, current_solution.second, 1);
                         if(option.addMethod == ParallelFusionOption::APPEND)
-                            proposals.appendSolution(curproposal);
+                            proposals.appendSpace(tempProposal);
                         else
-                            proposals.unionSolution(curproposal);
+                            proposals.unionSpace(tempProposal);
                     }
                 }
 

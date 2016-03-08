@@ -33,9 +33,6 @@ namespace simple_stereo {
         CHECK(!proposals.empty());
         vector<int> curData;
 
-        for(auto i=0; i<labelToExpand; ++i){
-            if(labelToExpand[i])
-        }
         return 0;
     }
 
