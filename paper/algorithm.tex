@@ -1,15 +1,71 @@
 \section{Swarm Fusion Method}
+\yasu{need to polish, reads very bad.}  Swarm Fusion is a natural
+multi-core extension of Fusion Move Method. Take a multi-threading
+environment to explain our idea, which is also applicable to other
+parallel computation environments such as cloud computing. Assume we
+have $N$ threads $\{T_i | i=1, 2, \cdots, N\}$. There are two places to
+collect solutions or solution proposals for fusion. First, the {\it
+proposal generation pool} can generate new solution proposals on
+request. Second, the {\it solution pool} stores the fused solutions from
+all the threads. At default, each thread keeps a single current solution
+in the pool, but the scheme can be more general.  Two parameters
+$\alpha_i$ and $\beta_i$ control the behavior of each fusion step in
+$T_i$. The thread collects $\alpha_i$ solution proposals and $\beta_i$
+solutions from the pool 
 
-Swarm Fusion is a natural multi-core extension of Fusion Move
-Method. Take a multi-threading environment to explain our idea, which is
-also applicable to other parallel computation environments such as cloud
-computing. Every thread $T_i$ keeps track of a solution $S_i$, and
-repeats updating $S_i$ by fusion ($i = 1, 2, \cdots N$). Two parameters
-$\alpha_i$ and $\beta_i$ control the behavior of fusion steps in each
-thread $T_i$. $\alpha_i$ specifies how many solution proposals are to be
-generated from proposal generation schemes. Similarly, $\beta_i$
-specifies how many solutions in the other threads are to be
-fused. Suppose $N=4$, $\alpha_1 = 2$, and $\beta_1 = 3$. In this
+
+
+$\alpha_i$ specifies how many solution proposals are generated
+from proposal generation schemes for a fusion step. Similarly, $\beta_i$
+specifies how many current solutions in the other threads are to be
+fused. Furthermore, one can control how to pick proposal generation
+schemes and how to choose other threads for using the current solutions
+(e.g., random or certain algorithm).
+
+
+Our framework is general, and many existing parallel fusion algorithms
+are just special cases of our framework.
+%
+For example, the parallel fusion algorithm by Lempitsky et
+al.~\cite{viktor} always performs binary fusion between the current
+solution and another label, which can be achieved by setting $\alpha_i =
+1$ and $\beta_i = 0$ for all the threads. The algorithm by
+Veksler~\cite{olga} or Dejong et al.~\cite{dejong} are a little complex,
+as they need to store as many intermediate solutions as labels, which is
+more than the number of threads. Our framework keeps one solution in
+each thread, but 
+
+lets each thread keep a
+single solution, but 
+
+
+
+
+
+
+
+
+
+Also note that these existing algorithms seek to parallelize
+alpha-expansion with constant solution proposals, and are not true
+fusion move algorithms.
+
+
+
+
+
+hierarchically fuses all the
+labels. Depending on the input {\it tree structure}, every thread might
+fuse different numbers of existing solutions
+
+
+
+
+We now illustrate the power of Swarm Fusion framework for three problems
+in Computer Vision. 
+
+
+Suppose $N=4$, $\alpha_1 = 2$, and $\beta_1 = 3$. In this
 configuration, the first thread $T_1$ fuses its current solution $S_1$,
 two new proposal solutions (e.g., by randomly picking two proposal
 generation schemes), and the current solutions $(S_2, S_3, S_4)$ in the
@@ -20,7 +76,7 @@ another.
 
 
 Our model is flexible. For example, a parallel fusion move algorithm by
-Lempitsky et al.~\cite{viktor} is a special case of ours, where $\alpha_$
+Lempitsky et al.~\cite{viktor} is a special case of ours, where $\alpha_i$
 
 , and it is easy to see that 
 Existing parallel fusion techniques are special 
