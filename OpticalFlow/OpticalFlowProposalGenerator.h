@@ -32,9 +32,11 @@ class OpticalFlowProposalGenerator : public ProposalGenerator<std::pair<double, 
   LabelSpace<std::pair<double, double> > generateProposalPyrLK();
   LabelSpace<std::pair<double, double> > generateProposalFarneback();
   LabelSpace<std::pair<double, double> > generateProposalLayerWise();
+  LabelSpace<std::pair<double, double> > generateProposalNearestNeighbor();
   LabelSpace<std::pair<double, double> > generateProposalMoveAround();
   LabelSpace<std::pair<double, double> > generateProposalShift();
   LabelSpace<std::pair<double, double> > generateProposalCluster();
+  LabelSpace<std::pair<double, double> > generateProposalDisturb();
 };
 
 #endif

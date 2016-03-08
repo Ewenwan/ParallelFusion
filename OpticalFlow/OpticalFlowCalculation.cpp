@@ -137,3 +137,20 @@ std::vector<std::pair<double, double> > calcFlowsBrox(const cv::Mat &image_1, co
   }
   return flows;
 }
+
+std::vector<std::pair<double, double> > calcFlowsNearestNeighbor(const cv::Mat &image_1, const cv::Mat &image_2, const int WINDOW_SIZE)
+{
+  const int IMAGE_WIDTH = image_1.cols;
+  const int IMAGE_HEIGHT = image_1.rows;
+
+  vector<int> nearest_neighbor_field;
+  findNearestNeighbors(image_2, image_1, nearest_neighbor_field, WINDOW_SIZE);
+
+  vector<pair<double, double> > flows(IMAGE_WIDTH * IMAGE_HEIGHT);
+  for (int pixel = 0; pixel < IMAGE_WIDTH * IMAGE_HEIGHT; pixel++) {
+    flows[pixel].first = nearest_neighbor_field[pixel] % IMAGE_WIDTH - pixel % IMAGE_WIDTH;
+    flows[pixel].second = nearest_neighbor_field[pixel] / IMAGE_WIDTH - pixel / IMAGE_WIDTH;
+  }
+  return flows;
+}
+
