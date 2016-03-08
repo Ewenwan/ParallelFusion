@@ -7,6 +7,44 @@ survey articles for a comprehensive
 review~\cite{middlebury_mrf,comparative_study_of_modern_inference}, and
 here focus our description on closely related topics.
 
+\mysubsubsection{Parallel Alpha-Expansion}
+
+\noindent Lempitsky et al. introduces parallel computation to an
+alpha-expansion technique, where multiple threads simultaneously fuses
+mutually exclusive sets of labels. Delong et al.~\cite{delong} and
+Veksler~\cite{olga} proposed an hierarchical fusion algorithm, where
+labels are simultaneously fused from the bottom to the top in a tree of
+labels. Strictly speaking, these parallelize alpha-expansion and are not
+in the family of Fusion Move methods, because they never generate
+solution proposals. Our approach parallelize fusion move methods.
+
+
+\mysubsubsection{Parallel MAP inference}
+
+\noindent
+The core MAP inference algorithms themselves can be parallelized.
+Strandmark et al. parallelized graph-cuts~\cite{strandmark2010parallel}.
+%
+Message passing algorithms are friendly to GPU implementation and can
+exploit the power of parallel computation.
+%
+However, the core optimization libraries are often very complex and
+require significant engineering by experts for modification.
+%
+While state-of-the-art optimization libraries are often freely available
+for non-commercial purposes, most companies have to develop and maintain
+in-house implementation of these algorithms. The modification of the
+core optimization libraries is a significant engineering investment for
+many companies. In contrast, our idea is extremely simple and instantly
+reproducible by standard engineers.
+
+
+% \footnote{GPU speeds-up message-passing algorithms via parallel
+% computation. However, these algorithms need to store all the messages
+% and states and cannot handle problems with a large label
+% space~\cite{layered_depthmap}.}
+
+
 \mysubsubsection{Fusion Move Methods}
 
 \noindent FM was first introduced by Lempitsky et al. in solving an
@@ -24,45 +62,12 @@ domain-specific knowledge in customizing proposal generation
 schemes. Second, FM can handle problems with very large label spaces,
 because the core optimization just solves a binary decision problem. In
 contrast, methods like message passing algorithms need to maintain
-messages and beliefs for the entire label space all the time.
-
-
-\mysubsubsection{Parallel Fusion Methods}
-
-\noindent There exist a few but not many parallel fusion
-algorithms~\cite{viktor,olga,delong}. Lempitsky et al. introduces
-parallel computation to an alpha-expansion technique, where multiple
-threads simultaneously fuses mutually exclusive sets of labels. Delong
-et al.~\cite{delong} and Veksler~\cite{olga} proposed an hierarchical
-fusion algorithm, where labels can be simultaneously fused in a
-particular order defined by a tree.
- 
-
-
-\mysubsubsection{Parallel MAP inference}
-
-
-Although conceptually straightforward, we are not aware of parallel
-fusion move algorithms that fuses solution proposals (as opposed to
-labels) in parallel.
- 
-Note that one may rather seek to parallelize the core optimization
-libraries such as Graph-cuts~\cite{}, TRW~\cite{kolmogorov}, or
-
-graph-cuts
-\cite{strandmark2010parallel}
-
-
-QPBO~\cite{}.~\footnote{GPU speeds-up message-passing algorithms via
-parallel computation. However, these algorithms need to store all the
-messages and states and cannot handle problems with a large label space~\cite{layered_depthmap}.} However, the core optimization libraries are often
-very complex and require significant engineering by experts for
-modification.
+messages and beliefs for the entire label space all the time. 
 %
-While state-of-the-art optimization libraries are often freely available for
-non-commercial purposes, most companies have to develop and maintain
-in-house implementation of these optimization algorithms.
-
+Although conceptually straightforward, we are not aware of {\it parallel
+fusion move} algorithms that fuses solution proposals, as opposed to
+labels, in parallel. This paper seeks to fully unleash the power of
+parallel computation in FM via a more general framework.
 
 
 \mysubsubsection{Genetic algorithms and Particle Swarm Optimization}
@@ -74,9 +79,9 @@ them over time.
 %
 While GA and PSO have limited theoretical justification, they have been
 used to produce great empirical results, for example, hand tracking via
-PSO~\cite{pushmeet_hand_tracking}.  At high level, our strategy is
-similar to theirs. However, unlike GA or PSO where the fusion step is
-essentially just arbitrarily copying part of the solution, we 
-directly optimize the objective function to find the optimal copy.
+PSO~\cite{pushmeet_hand_tracking}. At high level, our strategy is
+similar in spirit. However, GA or PSO rather arbitrarily copies part of
+the solution or makes random movements in each step. Our approach
+directly optimizes the objective function to improve solutions.
 
 
