@@ -7,6 +7,8 @@
 #include "../external/segment_ms/msImageProcessor.h"
 #include "../external/segment_gb/segment-image.h"
 
+using namespace stereo_base;
+
 namespace sce_stereo{
     ProposalSegPln::ProposalSegPln(const FileIO& file_io_, const cv::Mat &image_, const Depth &noisyDisp_, const int dispResolution_,
                                    const std::string& method_, const int num_proposal_):file_io(file_io_), noisyDisp(noisyDisp_), image(image_),

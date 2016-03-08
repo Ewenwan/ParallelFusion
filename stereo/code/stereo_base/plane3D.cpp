@@ -13,7 +13,7 @@
 using namespace std;
 using namespace Eigen;
 
-namespace sce_stereo {
+namespace stereo_base {
 
 	double Plane3D::epsilon = 1e-4;
 

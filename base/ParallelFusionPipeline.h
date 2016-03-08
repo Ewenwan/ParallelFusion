@@ -62,9 +62,10 @@ namespace ParallelFusion {
         ProposalAddition addMethod;
     };
 
-    template<typename T, class SOLVER>
+    template<typename T>
     class ParallelFusionPipeline {
-        ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), terminate(false) { }
+        //solver should be read only
+        ParallelFusionPipeline(const std::shared_ptr<const FusionSolver<T> >& solver_, const ParallelFusionOption &option_) : solver(solver_), option(option_), terminate(false) { }
 
         typedef std::shared_ptr<ProposalGenerator<T> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
@@ -102,6 +103,7 @@ namespace ParallelFusion {
 
         //The following two parameters controls the parallel fusion.
         //each fusion
+        const std::shared_ptr<const FusionSolver<T> > solver;
         ParallelFusionOption option;
 
         int kSelfThread;
@@ -114,8 +116,8 @@ namespace ParallelFusion {
 
     ///////////////////////////////////////////////////////////////////////
 
-    template<typename T, class SOLVER>
-    double ParallelFusionPipeline<T, SOLVER>::runParallelFusion(const std::vector<std::vector<T> > &initials,
+    template<typename T>
+    double ParallelFusionPipeline<T>::runParallelFusion(const std::vector<std::vector<T> > &initials,
                                                                 const GeneratorSet& generators){
         CHECK_EQ(option.num_threads, initials.size());
         CHECK_EQ(option.num_threads, generators.size());
@@ -135,25 +137,23 @@ namespace ParallelFusion {
         }
     }
 
-    template<typename T, class SOLVER>
-    void ParallelFusionPipeline<T, SOLVER>::getLabeling(std::vector<T> &solution) {
+    template<typename T>
+    void ParallelFusionPipeline<T>::getLabeling(std::vector<T> &solution) {
 
     }
 
-    template<typename T, class SOLVER>
-    void ParallelFusionPipeline<T, SOLVER>::workerThread(const int id,
+    template<typename T>
+    void ParallelFusionPipeline<T>::workerThread(const int id,
                                                          const std::vector<T> &initial,
                                                          const GeneratorPtr& generator){
         try {
-            SOLVER solver;
-
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(0, option.num_threads);
 
             bool converge = false;
 
             SolutionType<T> current_solution;
-            current_solution.first = solver.evaluateEnergy(initial);
+            current_solution.first = solver->evaluateEnergy(initial);
             current_solution.second = initial;
             bestSolutions[id].set(current_solution);
             double lastEnergy = current_solution.first;
@@ -186,8 +186,8 @@ namespace ParallelFusion {
 
                 //solve
                 SolutionType<T> curSolution;
-                solver.solve(proposals, curSolution.second);
-                curSolution.first = solver.evaluateEnergy(curSolution.second);
+                solver->solve(proposals, curSolution.second);
+                curSolution.first = solver->evaluateEnergy(curSolution.second);
                 bestSolutions[id].set(curSolution);
                 //double diffE =  lastEnergy - curSolution.first;
             }

@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <glog/logging.h>
 
-namespace sce_stereo{
+namespace stereo_base{
     class Depth{
     public:
         Depth(): depthwidth(0), depthheight(0), average_depth(0),median_depth(0), depth_var(0),max_depth(-1),min_depth(10000000), statics_computed(false){}

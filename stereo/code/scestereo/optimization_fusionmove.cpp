@@ -13,6 +13,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace stereo_base;
 namespace sce_stereo {
 
     SecondOrderOptimizeFusionMove::SecondOrderOptimizeFusionMove(const FileIO &file_io_, const int kFrames_,
