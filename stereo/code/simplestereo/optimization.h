@@ -106,6 +106,7 @@ namespace simple_stereo {
                 num_nodes_ = (int)label_space_.size();
             }
             CHECK_EQ(rhs.getNumNode(), getNumNode());
+            std::cout << "Appending space..." << std::endl << std::flush;
             for(auto i=0; i<label_space_.size(); ++i){
                 for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
                     label_space_[i].push_back(rhs(i,j));
@@ -131,9 +132,8 @@ namespace simple_stereo {
         SimpleStereoSolver(const MRFModel<int>& model_): model(model_), kPix(model.width * model.height){}
         virtual void initSolver(const CompactLabelSpace& initial);
         virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution, ParallelFusion::SolutionType<CompactLabelSpace>& solution);
-        virtual double evaluateEnergy(const CompactLabelSpace& solution) const{
-            return (double)mrf->totalEnergy();
-        }
+        virtual double evaluateEnergy(const CompactLabelSpace& solution) const;
+
     private:
         inline int smoothnessCost(int pix, int l1, int l2, bool xDirection) const{
             double cue = xDirection ? model.hCue[pix] : model.vCue[pix];

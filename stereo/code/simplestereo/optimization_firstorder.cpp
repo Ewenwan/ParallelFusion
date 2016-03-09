@@ -25,11 +25,14 @@ namespace simple_stereo{
             //randomly initialize
             std::default_random_engine generator;
             std::uniform_int_distribution<int> distribution(0, nLabel - 1);
+//        for (auto i = 0; i < width * height; ++i)
+//            mrf->setLabel(i, distribution(generator));
             for (auto i = 0; i < width * height; ++i)
-                    mrf->setLabel(i, distribution(generator));
+                    mrf->setLabel(i, 0);
 
             double initDataEnergy = (double) mrf->dataEnergy() / model.MRFRatio;
             double initSmoothEnergy = (double) mrf->smoothnessEnergy() / model.MRFRatio;
+            printf("Initial energy: (%.3f, %.3f, %.3f)\n", initDataEnergy, initSmoothEnergy, initDataEnergy+initSmoothEnergy);
             float t;
             mrf->optimize(max_iter, t);
             double finalDataEnergy = (double) mrf->dataEnergy() / model.MRFRatio;

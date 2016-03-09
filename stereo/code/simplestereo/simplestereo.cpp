@@ -144,10 +144,10 @@ namespace simple_stereo {
         sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
         result_parallel.saveImage(buffer);
 
-        FirstOrderOptimize optimize_firstOrder(file_io, model);
-        Depth result_firstOrder;
-        optimize_firstOrder.optimize(result_firstOrder, 1);
-        sprintf(buffer, "%s/temp/result_firstOrder.jpg", file_io.getDirectory().c_str());
-        result_firstOrder.saveImage(buffer);
+//        FirstOrderOptimize optimize_firstOrder(file_io, model);
+//        Depth result_firstOrder;
+//        optimize_firstOrder.optimize(result_firstOrder, 1);
+//        sprintf(buffer, "%s/temp/result_firstOrder.jpg", file_io.getDirectory().c_str());
+//        result_firstOrder.saveImage(buffer);
     }
 }
