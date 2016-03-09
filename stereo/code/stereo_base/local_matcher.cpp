@@ -63,6 +63,8 @@ namespace local_matcher {
         vector<double> mCost;
         getSSDArray(patches, refId, mCost);
         //if the patch is not visible in >50% frames, assign large penalty.
+        if(mCost.empty())
+            return 1;
 //        if (mCost.size() < 2)
 //            return 1;
 //        if (mCost.size() == 2)

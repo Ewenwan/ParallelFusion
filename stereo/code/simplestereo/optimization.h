@@ -41,9 +41,9 @@ namespace simple_stereo {
             return MRF_data[pixId * nLabel + l];
         }
         void init(const int w, const int h, const int n, const double wei){
-            MRF_data.resize((size_t)w * h * n);
-            hCue.resize((size_t)w * h);
-            vCue.resize((size_t)w * h);
+            MRF_data.resize((size_t)w * h * n, (T)0);
+            hCue.resize((size_t)w * h, (T)0);
+            vCue.resize((size_t)w * h), (T)0;
             width = w;
             height = h;
             nLabel = n;

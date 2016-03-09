@@ -16,36 +16,37 @@ namespace simple_stereo {
 
         result.initialize(width, height, -1);
         //configure as sequential fusion
-        ParallelFusionOption option;
-        option.num_threads = 1;
-        option.probProposalFromOther = 0;
-        option.max_iteration = 1;
-        option.fuseSize = 256;
-        const int kLabelPerThread = model.nLabel / option.num_threads;
+        ParallelFusionOption pipelineOption;
+        pipelineOption.num_threads = 6;
+        pipelineOption.max_iteration = 11;
+        const int kLabelPerThread = model.nLabel / pipelineOption.num_threads;
 
-        Pipeline::GeneratorSet generators((size_t)option.num_threads);
-        Pipeline::SolverSet solvers((size_t)option.num_threads);
-        vector<Space> initials((size_t)option.num_threads);
-
+        Pipeline::GeneratorSet generators((size_t)pipelineOption.num_threads);
+        Pipeline::SolverSet solvers((size_t)pipelineOption.num_threads);
+        vector<Space> initials((size_t)pipelineOption.num_threads);
+        vector<ThreadOption> threadOptions((size_t)pipelineOption.num_threads);
+        for(auto& to: threadOptions){
+            to.kOtherThread = 0;
+            to.kSelfThread = 4;
+        }
         const int kPix = model.width * model.height;
 
-        for(auto i=0; i<option.num_threads; ++i){
-            initials[i].init(kPix);
-            for(auto j=0; j<kPix; ++j)
-                initials[i].getLabelOfNode(j).push_back(0);
+        for(auto i=0; i<pipelineOption.num_threads; ++i){
             const int startid = i * kLabelPerThread;
             const int endid = (i+1) * kLabelPerThread - 1;
+
+            initials[i].init(kPix, vector<int>(1, startid));
             printf("Thread %d, start: %d, end: %d\n", i, startid, endid);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, startid, endid));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
             printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));
         }
 
-        Pipeline parallelFusionPipeline(option);
+        Pipeline parallelFusionPipeline(pipelineOption);
 
         float t = cv::getTickCount();
         printf("Start runing parallel optimization\n");
-        parallelFusionPipeline.runParallelFusion(initials, generators, solvers);
+        parallelFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);
         t = ((float)getTickCount() - t) / (float)getTickFrequency();
 
         SolutionType<Space > solution;
@@ -99,7 +100,6 @@ namespace simple_stereo {
         else
             kFullProposal = (int) proposals.getLabelOfNode(0).size();
 
-        cout << kFullProposal << endl << flush;
         const vector<int> &singleLabel = proposals.getSingleLabel();
         for (auto i = 0; i < singleLabel.size(); ++i) {
             printf("Fusing proposal with graph cut %d\n", singleLabel[i] );
@@ -139,7 +139,7 @@ namespace simple_stereo {
             qpbo.ComputeWeakPersistencies();
 
             for (auto pix = 0; pix < kPix; ++pix) {
-                if (qpbo.GetLabel(pix) >= 0)
+                if (qpbo.GetLabel(pix) > 0)
                     mrf->setLabel(pix, proposals(pix, i));
             }
         }
@@ -148,22 +148,22 @@ namespace simple_stereo {
         for (auto i = 0; i < kPix; ++i)
             solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
 
+        //solution.first = evaluateEnergy(solution.second);
         solution.first = evaluateEnergy(solution.second);
+        cout << "Current energy: " << solution.first << endl << flush;
     }
 
     double SimpleStereoSolver::evaluateEnergy(const CompactLabelSpace &solution) const {
         CHECK_EQ(solution.getNumNode(), kPix);
         double e = 0;
         for(auto i=0; i<kPix; ++i) {
-            e += (double) model.MRF_data[i * model.nLabel + solution(i, 0)] / model.MRFRatio;
-            printf("e: %.2f\n", e);
+            e += model.MRF_data[i * model.nLabel + solution(i, 0)] / model.MRFRatio;
         }
         for(auto x=0; x<model.width - 1; ++x){
             for(auto y=0; y<model.height-1; ++y){
                 int sc = smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution(y*model.width+x+1,0), true) +
                         smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution((y+1)*model.width+x,0), true);
                 e += (double)sc / model.MRFRatio;
-                printf("e: %.2f\n", e);
             }
         }
         return e;
