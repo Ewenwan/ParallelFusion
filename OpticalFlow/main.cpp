@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
   //GaussianBlur(image_1, image_1, cv::Size(5, 5), 0, 0);
   //GaussianBlur(image_2, image_2, cv::Size(5, 5), 0, 0);
 
-  // {
-  //   vector<pair<double, double> > flows = readFlows(FLAGS_dataset_name + "/flow10.flo");
-  //   imwrite(FLAGS_dataset_name + "/flow_image.png", drawFlows(flows, IMAGE_WIDTH, IMAGE_HEIGHT));
-  //   exit(1);
-  // }
+  {
+    vector<pair<double, double> > flows = readFlows(FLAGS_dataset_name + "/flow10.flo");
+    imwrite(FLAGS_dataset_name + "/flow_image.png", drawFlows(flows, IMAGE_WIDTH, IMAGE_HEIGHT));
+    exit(1);
+  }
   
   if (ifstream(FLAGS_dataset_name + "/flow10.flo"))
     return 0;
