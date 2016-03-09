@@ -269,6 +269,7 @@ namespace ParallelFusion {
                 solver->solve(proposals, current_solution, curSolution);
                 printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
+
                 generator->writeSolution(curSolution, id, iter);
 
                 //if synchronization is needed, thread won't submit solution unless

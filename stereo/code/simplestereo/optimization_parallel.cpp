@@ -100,16 +100,16 @@ namespace simple_stereo {
         const vector<int> &singleLabel = proposals.getSingleLabel();
 
         solution.second.init(kPix, vector<int>(1,0));
+        for(auto i=0; i<kPix; ++i)
+            mrf->setLabel(i, current_solution.second(i, 0));
         for (auto i = 0; i < singleLabel.size(); ++i) {
             printf("Fusing proposal with graph cut %d\n", singleLabel[i] );
-            for(auto i=0; i<kPix; ++i) {
-                mrf->setLabel(i, current_solution.second(i, 0));
-            }
             mrf->alpha_expansion(singleLabel[i]);
-            for(auto i=0; i<kPix; ++i)
-                solution.second(i,0) = mrf->getLabel(i);
             cout << "done" << endl << flush;
         }
+        for(auto i=0; i<kPix; ++i)
+            solution.second(i,0) = mrf->getLabel(i);
+
         for (auto i = 0; i < kFullProposal; ++i) {
             //run QPBO
             printf("Running QPBO...\n");
