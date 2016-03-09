@@ -250,9 +250,10 @@ namespace ParallelFusion {
                 //proposal.
                 for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                     //TODO: better thread selecting
-                    int tid = distribution(seed);
-                    while (tid == id)
-                        tid = distribution(seed);
+//                    int tid = distribution(seed);
+//                    while (tid == id)
+//                        tid = distribution(seed);
+                    int tid = (id + pid) % option.num_threads;
                     SolutionType<LABELSPACE> s;
                     //bestSolutions[tid]->get(s);
                     bestSolutions[tid].get(s);
