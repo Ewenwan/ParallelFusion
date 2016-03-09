@@ -176,7 +176,7 @@ namespace ParallelFusion {
     }
 
     template<class LABELSPACE>
-    void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
+      void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
 							  const LABELSPACE& initial,
                                                  const GeneratorPtr& generator,
                                                  const SolverPtr& solver){
