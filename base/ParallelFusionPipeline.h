@@ -79,21 +79,22 @@ namespace ParallelFusion {
 //    };
 
     struct ParallelFusionOption {
-        ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), addMethod(APPEND), synchronize(false) { }
-        //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
-        enum ProposalAddition{APPEND, UNION};
-        double convergeThreshold;
+    ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), synchronize(false), selectionMethod(RANDOM) { }
+      //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
+      double convergeThreshold;
         int max_iteration;
         int num_threads;
-        ProposalAddition addMethod;
-        bool synchronize;
+      bool synchronize;
+
+      enum SolutionSelection{RANDOM, BEST};
+      SolutionSelection selectionMethod;
     };
 
     struct ThreadOption {
         ThreadOption() : kSelfThread(2), kOtherThread(0), is_monitor(false) { }
         int kSelfThread;
         int kOtherThread;
-        bool is_monitor;
+      bool is_monitor;
     };
 
     template<class LABELSPACE>
@@ -249,20 +250,46 @@ namespace ParallelFusion {
                 //Take best solutions from other threads. Initially there is no 'best solution', marked by
                 //the energy less than 0. If such condition occurs, replace this with another self generated
                 //proposal.
-                for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
-                    //TODO: better thread selecting
+		//A monitor thread always require synchronization regardless whether other thread is synchronized or not.
+		if(thread_option.is_monitor) {
+		  for(auto tid=0; tid < option.num_threads; ++tid) {
+                    if (tid == id)
+		      continue;
+                    while(write_flag[tid].load())
+                      std::this_thread::yield();
+		    
+		    SolutionType<LABELSPACE> s;
+                    //bestSolutions[tid]->get(s);
+                    bestSolutions[tid].get(s);
+                    proposals.appendSpace(s.second);
+
+                    write_flag[tid].store(true);
+		  }
+		} else if (option.selectionMethod == ParallelFusionOption::RANDOM) {
+		  for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
+                  //TODO: better thread selecting
                     int tid = distribution(seed);
                     while (tid == id)
                         tid = distribution(seed);
                     SolutionType<LABELSPACE> s;
                     //bestSolutions[tid]->get(s);
                     bestSolutions[tid].get(s);
-
-                    if(thread_option.is_monitor && option.synchronize)
-                        write_flag[tid].store(true);
-
                     proposals.appendSpace(s.second);
-                }
+		  }
+                } else if (option.selectionMethod == ParallelFusionOption::BEST) {
+		  vector<pair<double, int> > solution_energy_index_pairs(option.num_threads);
+		  for(auto tid=0; tid < option.num_threads; ++tid)
+		    solution_energy_index_pairs[tid] = make_pair(bestSolutions[tid].getEnergy(), tid);
+		  sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
+                  for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
+		    int tid = solution_energy_index_pairs[pid].second;
+                    //TODO: better thread selecting
+                    SolutionType<LABELSPACE> s;
+                    //bestSolutions[tid]->get(s);
+                    bestSolutions[tid].get(s);
+                    proposals.appendSpace(s.second);
+                  }
+		}
 
                 printf("Solving...\n");
                 SolutionType<LABELSPACE> curSolution;
