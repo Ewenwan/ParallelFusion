@@ -20,7 +20,7 @@ namespace ParallelFusion {
         LabelSpace(const std::vector<std::vector<LabelType> > &label_space);
 
         inline virtual void clear(){
-            label_space_.clear();
+	  label_space_.clear();
             num_nodes_ = 0;
         }
 
