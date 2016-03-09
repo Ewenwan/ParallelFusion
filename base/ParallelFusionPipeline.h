@@ -221,7 +221,7 @@ namespace ParallelFusion {
         try {
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
-            std::uniform_int_distribution<int> distribution(0, option.num_threads-1);
+            std::uniform_int_distribution<int> distribution(0, option.num_threads-2);
             bool converge = false;
 
             solver->initSolver(initial);
@@ -267,13 +267,9 @@ namespace ParallelFusion {
                     }
                 } else if (option.selectionMethod == ParallelFusionOption::RANDOM) {
                     for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
-                        //TODO: better thread selecting
-                        /* int tid = distribution(seed); */
-                        /* while (tid == id) */
-                        /*     tid = distribution(seed); */
-                        int tid = (id + pid) % option.num_threads;
+                        int idshift = distribution(seed);
+                        int tid = (id + idshift) % option.num_threads;
                         SolutionType<LABELSPACE> s;
-                        //bestSolutions[tid]->get(s);
                         bestSolutions[tid].get(s);
                         proposals.appendSpace(s.second);
                     }
@@ -284,10 +280,7 @@ namespace ParallelFusion {
                     sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
                     for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                         int tid = solution_energy_index_pairs[pid].second;
-                        //TODO: better thread selecting
-
                         SolutionType<LABELSPACE> s;
-                        //bestSolutions[tid]->get(s);
                         bestSolutions[tid].get(s);
                         proposals.appendSpace(s.second);
                     }
