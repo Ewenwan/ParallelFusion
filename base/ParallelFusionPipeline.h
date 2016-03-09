@@ -237,7 +237,7 @@ namespace ParallelFusion {
                 printf("Solving...\n");
                 solver->solve(proposals, current_solution, curSolution);
                 current_solution = curSolution;
-                
+
                 //set the current best solution. It will be visible from other threads
                 bestSolutions[id]->set(curSolution);
                 //double diffE =  lastEnergy - curSolution.first;

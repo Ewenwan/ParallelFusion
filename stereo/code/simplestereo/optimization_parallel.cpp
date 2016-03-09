@@ -50,7 +50,7 @@ namespace simple_stereo {
         for(auto i=0; i<model.width * model.height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
         }
-        return solution;
+        return solution.first;
     }
 
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
@@ -76,8 +76,9 @@ namespace simple_stereo {
             mrf->setLabel(i, initial(i,0));
     }
 
-    double SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
-                                     CompactLabelSpace& solution){
+    void SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
+                                     const SolutionType<CompactLabelSpace>& current_solution,
+                                     SolutionType& solution){
         CHECK(!proposals.empty());
         int kFullProposal;
         if(proposals.getLabelSpace().empty())
@@ -128,10 +129,9 @@ namespace simple_stereo {
             }
         }
 
-        solution.init(kPix, vector<int>(1, 0));
         for (auto i = 0; i < kPix; ++i) {
-            solution.getLabelOfNode(i)[0] = mrf->getLabel(i);
+            solution.first = (double)mrf->totalEnergy() / model.MRFRatio;
+            solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }
-        return (double)mrf->totalEnergy() / model.MRFRatio;
     }
 }

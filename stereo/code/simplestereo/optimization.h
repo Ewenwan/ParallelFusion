@@ -130,7 +130,7 @@ namespace simple_stereo {
     public:
         SimpleStereoSolver(const MRFModel<int>& model_): model(model_), kPix(model.width * model.height){}
         virtual void initSolver(const CompactLabelSpace& initial);
-        virtual void solve(const CompactLabelSpace &proposals, ParallelFusion::SolutionType<CompactLabelSpace>& current_solution, ParallelFusion::SolutionType<CompactLabelSpace>& solution);
+        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution, ParallelFusion::SolutionType<CompactLabelSpace>& solution);
         virtual double evaluateEnergy(const CompactLabelSpace& solution) const{
             return (double)mrf->totalEnergy();
         }
