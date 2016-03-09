@@ -22,7 +22,7 @@
 
 namespace ParallelFusion {
 
-    //synchronized solution type
+  //synchronized solution type
     template<class LABELSPACE>
     class SynSolution {
     public:
@@ -60,17 +60,21 @@ namespace ParallelFusion {
     };
 
     struct ParallelFusionOption {
-        ParallelFusionOption() : probProposalFromOther(0.2), convergeThreshold(0.01), max_iteration(10), num_threads(6), fuseSize(2), addMethod(APPEND) { }
+    ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), addMethod(APPEND) { }
         //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
         enum ProposalAddition{APPEND, UNION};
-        double probProposalFromOther;
-        double convergeThreshold;
+      double convergeThreshold;
         int max_iteration;
         int num_threads;
-        int fuseSize;
       ProposalAddition addMethod;
     };
 
+    struct ThreadOption {
+    ThreadOption() : kSelfThread(2), kOtherThread(0) { }
+      int kSelfThread;
+      int kOtherThread;   
+    };
+    
     template<class LABELSPACE>
     class ParallelFusionPipeline {
     public:
@@ -80,8 +84,8 @@ namespace ParallelFusion {
         typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
         typedef std::shared_ptr<FusionSolver<LABELSPACE> > SolverPtr;
-        typedef std::vector<SolverPtr> SolverSet;
-
+	typedef std::vector<SolverPtr> SolverSet;
+	
         //run parallel fusion. The logic in this routine represents the master thread
         //input: num_threads: number of threads to use
         //       max_iter: maximum iterations of fusion in each thread
@@ -91,7 +95,8 @@ namespace ParallelFusion {
         //return: final energy
         double runParallelFusion(const std::vector<LABELSPACE> &initials,
                                  const GeneratorSet& generators,
-                                 const SolverSet& solvers);
+                                 const SolverSet& solvers,
+				 const std::vector<ThreadOption> &thread_options);
 
         double getBestLabeling(SolutionType<LABELSPACE>& solution) const;
 
@@ -99,7 +104,8 @@ namespace ParallelFusion {
         void workerThread(const int id,
                           const LABELSPACE& initial,
                           const GeneratorPtr &generator,
-                          const SolverPtr& solver);
+                          const SolverPtr& solver,
+			  const ThreadOption &thread_option);
 
         inline const ParallelFusionOption &getOption() const { return option; }
 
@@ -119,9 +125,6 @@ namespace ParallelFusion {
         //each fusion
         ParallelFusionOption option;
 
-        int kSelfThread;
-        int kOtherThread;
-
         //if one thread throws exception, notify all threads
         std::atomic<bool> terminate;
     };
@@ -132,30 +135,31 @@ namespace ParallelFusion {
     template<class LABELSPACE>
     double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(const std::vector<LABELSPACE> &initials,
                                                         const GeneratorSet& generators,
-                                                        const SolverSet& solvers){
+								 const SolverSet& solvers, 
+								 const std::vector<ThreadOption> &thread_options){
         CHECK_EQ(option.num_threads, initials.size());
         CHECK_EQ(option.num_threads, generators.size());
-        CHECK_EQ(option.num_threads, solvers.size());
+	CHECK_EQ(option.num_threads, solvers.size());
+	CHECK_EQ(option.num_threads, thread_options.size());
 
         bestSolutions.resize((size_t)option.num_threads);
-        for(auto i=0; i<bestSolutions.size(); ++i){
+	for(auto i=0; i<bestSolutions.size(); ++i){
             bestSolutions[i] = std::shared_ptr<SynSolution<LABELSPACE> >(
                     new SynSolution<LABELSPACE>()
             );
             bestSolutions[i]->getSolution().second = initials[i];
         }
 
-        kOtherThread = (int)((double)option.fuseSize * option.probProposalFromOther);
-        kSelfThread = option.fuseSize - kOtherThread;
-
-        printf("%d,%d\n", kOtherThread, kSelfThread);
-        CHECK_GT(kSelfThread, 1) << "Probability of drawing proposals from other thread is too high";
+	for(auto i=0; i<bestSolutions.size(); ++i){
+	  CHECK_GE(thread_options[i].kSelfThread, 0) << "Negative number of proposals from self.";
+	  CHECK_GE(thread_options[i].kOtherThread, 0) << "Negative number of proposals from others.";
+	}
 
         //launch threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves(option.num_threads);
         for(auto tid=0; tid<slaves.size(); ++tid){
 	  printf("Lauching threads %d...\n", tid);
-	  std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]));
+	  std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]), std::ref(thread_options[tid]));
             slaves[tid].bind(t);
         }
     }
@@ -178,9 +182,10 @@ namespace ParallelFusion {
 
     template<class LABELSPACE>
       void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
-							  const LABELSPACE& initial,
+							    const LABELSPACE& initial,
                                                  const GeneratorPtr& generator,
-                                                 const SolverPtr& solver){
+							    const SolverPtr& solver,
+							    const ThreadOption &thread_option){
         try {
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
@@ -206,7 +211,7 @@ namespace ParallelFusion {
                 LABELSPACE proposals_self;
                 printf("Generating proposals...\n");
 		
-                generator->getProposals(proposals_self, current_solution.second, kSelfThread);
+                generator->getProposals(proposals_self, current_solution.second, thread_option.kSelfThread);
 		
                 if(option.addMethod == ParallelFusionOption::APPEND)
                     proposals.appendSpace(proposals_self);
@@ -215,7 +220,7 @@ namespace ParallelFusion {
                 //Take best solutions from other threads. Initially there is no 'best solution', marked by
                 //the energy less than 0. If such condition occurs, replace this with another self generated
                 //proposal.
-                for(auto pid=0; pid < kOtherThread; ++pid) {
+                for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                     int tid = distribution(seed);
                     SolutionType<LABELSPACE> s;
                     bestSolutions[tid]->get(s);
