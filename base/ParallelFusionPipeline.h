@@ -153,8 +153,8 @@ namespace ParallelFusion {
         //launch threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves(option.num_threads);
         for(auto tid=0; tid<slaves.size(); ++tid){
-            printf("Lauching threads %d...\n", tid);
-            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]));
+	  printf("Lauching threads %d...\n", tid);
+	  std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]));
             slaves[tid].bind(t);
         }
     }
@@ -204,8 +204,7 @@ namespace ParallelFusion {
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
                 printf("Generating proposals...\n");
-                printf("current_solution:%d\n", current_solution.second.getNumNode());
-                generator->getProposals(proposals_self, current_solution.second, kSelfThread);
+                generator->getProposals(proposals_self, std::ref(current_solution.second), kSelfThread);
                 if(option.addMethod == ParallelFusionOption::APPEND)
                     proposals.appendSpace(proposals_self);
                 else

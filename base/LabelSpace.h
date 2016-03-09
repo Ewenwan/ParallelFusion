@@ -109,11 +109,11 @@ namespace ParallelFusion {
 
 
     template<typename LabelType>
-    void LabelSpace<LabelType>::appendSpace(const LabelSpace<LabelType> &rhs) {
-        if(num_nodes_ == 0) {
-            init(rhs.getNumNode());
-        }
-        for(auto i=0; i<rhs.getNumNode(); ++i){
+      void LabelSpace<LabelType>::appendSpace(const LabelSpace<LabelType> &rhs) {
+      if(num_nodes_ == 0) {
+	  init(rhs.getNumNode());
+      }
+      for(auto i=0; i<rhs.getNumNode(); ++i){
             for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
                 label_space_[i].push_back(rhs(i,j));
         }
