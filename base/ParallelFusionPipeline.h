@@ -154,7 +154,7 @@ namespace ParallelFusion {
         std::vector<thread_guard> slaves(option.num_threads);
         for(auto tid=0; tid<slaves.size(); ++tid){
             printf("Lauching threads %d...\n", tid);
-            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, initials[tid], generators[tid], solvers[tid]);
+            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]));
             slaves[tid].bind(t);
         }
     }
@@ -236,6 +236,7 @@ namespace ParallelFusion {
                 SolutionType<LABELSPACE> curSolution;
                 printf("Solving...\n");
                 solver->solve(proposals, current_solution, curSolution);
+                printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
 
                 //set the current best solution. It will be visible from other threads

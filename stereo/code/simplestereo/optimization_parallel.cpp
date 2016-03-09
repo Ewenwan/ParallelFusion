@@ -138,7 +138,9 @@ namespace simple_stereo {
         }
 
         solution.second.init(kPix, vector<int>(1,0));
-        solution.first = (double)mrf->totalEnergy() / model.MRFRatio;
+        cout << "Total Energy: " << mrf->totalEnergy() << endl;
+        solution.first = (double)(mrf->totalEnergy()) / model.MRFRatio;
+        printf("Energy: %.5f\n", solution.first);
         for (auto i = 0; i < kPix; ++i) {
             solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }
