@@ -1,4 +1,6 @@
-\section{Swarm Fusion implementations}
+\section{Swarm Fusion implementations} \yasu{this section is very rough
+at the moment. requires polishing. but algorithms might change as we run
+experiments.}
 We now explain detailed implementation of the Swarm Fusion method for
 three problems in Computer Vision.
 
@@ -13,7 +15,7 @@ window. Pairwise terms are simple Pottz model. Unary terms are rescaled
 by a factor of \yasu{X value?} to define the total energy.
 
 
-\mysubsubsubsection{Baseline methods}
+\mysubsubsection{Baseline methods}
 
 \noindent
 Parallel alpha-expansion~\cite{delong} or hierarchical
@@ -21,7 +23,7 @@ fusion~\cite{delong,olga} with Graph-cuts (when submodular) or QPBO
 (when non-submodular) have been the most effective parallel techniques.
 %
 
-\mysubsubsubsection{Swarm fusion implementation}
+\mysubsubsection{Swarm fusion implementation}
 
 \noindent
 To make the comparison simple, we restrict our proposal generation to be

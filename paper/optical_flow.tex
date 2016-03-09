@@ -1,14 +1,23 @@
 \subsection{Swarm Fusion optical flow}
 
-We use Swarm fusion to solve an optical flow problem, where a baseline
-is a FM-based algorithm by Lempitsky et al.~\cite{viktor_optical_flow}.
-Although their paper did not consider parallel implementation, it is
-straightfoward to apply the concept of parallel alpha-expansion and
-construct a ``parallel fusion move'' method, where multiple threads
-repeat fusing two solutions via QPBO. This time, we will compare it with
-our full swarm fusion model (bottom right example in
+The second problem is an optical flow problem, where Lempitsky
+introduced the fusion move algorithm~\cite{viktor}. We have used the
+energy definitions and proposals generation schemes as described in the
+paper. We again use test datasets from
+Middlebury~\cite{middlebury_optical_flow}.
+
+\mysubsubsection{Baseline methods} The first baseline is the FM
+algorithm exactly as given in the paper.  Although their paper did not
+consider parallel implementation, it is straightfoward to apply the
+concept of parallel alpha-expansion. Therefore, the second baseline is
+the ``parallel fusion move'' method (replacing constant label solutions
+with proposals inside ``parallel alpha-expansion'' in
 Fig.~\ref{fig:model}).
 
-
-
-
+\mysubsubsection{Swarm fusion implementation}
+%The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
+%are used to evaluate the effectiveness of our method.
+The full swarm fusion model (at the bottom right in
+Fig.~\ref{fig:model}) will be used to evaluate the effectiveness of our
+method. We will also try the other two Swarm fusion variants in
+Fig.~\ref{fig:model} with restrictions.
