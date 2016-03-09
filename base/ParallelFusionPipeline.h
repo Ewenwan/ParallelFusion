@@ -133,7 +133,7 @@ namespace ParallelFusion {
     ///////////////////////////////////////////////////////////////////////
 
     template<class LABELSPACE>
-    double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(const std::vector<LABELSPACE> &initials,
+      double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(const std::vector<LABELSPACE> &initials,
                                                         const GeneratorSet& generators,
 								 const SolverSet& solvers, 
 								 const std::vector<ThreadOption> &thread_options){
