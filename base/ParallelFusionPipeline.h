@@ -240,6 +240,7 @@ namespace ParallelFusion {
                 solver->solve(proposals, current_solution, curSolution);
                 printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
+		generator->writeSolution(curSolution, id, iter);
 
                 //set the current best solution. It will be visible from other threads
                 bestSolutions[id]->set(curSolution);
