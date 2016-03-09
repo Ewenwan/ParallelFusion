@@ -14,8 +14,15 @@ constant-label proposals, and limit to binary fusion so that Swarm
 Fusion will also use either Graph-cuts or QPBO for the core
 optimization. The main difference is that SF exchanges solutions among
 threads throughout the process.
+
+
+bottom middle example...
+
 %
 We use Middlebury stereo datasets for the experiments. Unary terms are
-computed a standard Normalized Cross Correlation inside a $7\times 7$
-window.
+computed as the average Normalized Cross Correlation score between the
+reference image and all the others inside a $7\times 7$ pixels
+window. Pairwise terms are simple Pottz model. We multiply \yasu{X
+value?} to the unary term to define the total energy.
+
 
