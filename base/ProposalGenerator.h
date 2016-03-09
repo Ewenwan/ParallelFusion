@@ -18,7 +18,7 @@ namespace ParallelFusion {
         //NOTE: the method only return one proposal one time!!!!!
         //If you need multiple proposals, call this method multiple times. The concrete subclass should know which
         //proposal to generate (e.g. by a internal counter). Again, be careful of synchronization
-        virtual void getProposals(LABELSPACE& proposals, const LABELSPACE& current_solution, const int N) = 0;
+      virtual void getProposals(LABELSPACE& proposals, const LABELSPACE& current_solution, const int N) = 0;
 
         virtual void writeSolution(const LABELSPACE &solution, const int thread_index,
                                    const int iteration) const { }; //write temporary solution for visualization purpose

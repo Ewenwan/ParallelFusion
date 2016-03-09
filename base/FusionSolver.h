@@ -18,7 +18,7 @@ namespace ParallelFusion {
         virtual void initSolver(const LABELSPACE & initial){}
 
         //given a solution, evaluate energy
-        virtual double evaluateEnergy(const LABELSPACE & solution) const = 0;
+	virtual double evaluateEnergy(const LABELSPACE & solution) const = 0;
     };
 }//namespace ParallelFusion
 #endif
