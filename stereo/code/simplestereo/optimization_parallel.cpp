@@ -56,8 +56,6 @@ namespace simple_stereo {
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
                                             const CompactLabelSpace &current_solution, const int N) {
         for(auto i=0; i<N; ++i){
-            printf("label %d\n", i);
-            printf("getProposals: proposals.NumNode:%d\n", proposals.getNumNode());
             proposals.getSingleLabel().push_back(nextLabel);
             nextLabel++;
         }
@@ -88,7 +86,7 @@ namespace simple_stereo {
 
         const vector<int> &singleLabel = proposals.getSingleLabel();
         for (auto i = 0; i < singleLabel.size(); ++i) {
-            printf("Fusing proposal with graph cut%d\n", i);
+            printf("Fusing proposal with graph cut %d\n", i);
             mrf->alpha_expansion(singleLabel[i]);
             cout << "done" << endl << flush;
         }
