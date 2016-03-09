@@ -144,16 +144,24 @@ namespace simple_stereo {
         }
 
         solution.second.init(kPix, vector<int>(1,0));
-        solution.first = (double)(mrf->totalEnergy()) / model.MRFRatio;
-        for (auto i = 0; i < kPix; ++i) {
+        for (auto i = 0; i < kPix; ++i)
             solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
-        }
+
+        solution.first = evaluateEnergy(solution.second);
     }
 
     double SimpleStereoSolver::evaluateEnergy(const CompactLabelSpace &solution) const {
         CHECK_EQ(solution.getNumNode(), kPix);
         double e = 0;
         for(auto i=0; i<kPix; ++i)
-            e += model.MRF_data[i * model.nLabel + solution(i,0)];
+            e += (double)model.MRF_data[i * model.nLabel + solution(i,0)] / model.MRFRatio;
+        for(auto x=0; x<model.width - 1; ++x){
+            for(auto y=0; y<model.height-1; ++y){
+                int sc = smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution(y*model.width+x+1,0), true) +
+                        smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution((y+1)*model.width+x,0), true);
+                e += (double)sc / model.MRFRatio;
+            }
+        }
+        return e;
     }
 }
