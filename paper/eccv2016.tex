@@ -7,9 +7,15 @@
 \usepackage{ruler}
 \usepackage{color}
 % \usepackage{tensor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{ulem}
 \usepackage{url}
 \usepackage[width=122mm,left=12mm,paperwidth=146mm,height=193mm,top=12mm,paperheight=217mm]{geometry}
+
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
 
 \newcommand{\mysubsubsection}[1]{\vspace{0.1cm} \noindent \underline{{\bf #1}}:}
 \newcommand{\mysubsubsubsection}[1]{\vspace{0.1cm} \noindent {\bf #1}:}
@@ -34,7 +40,8 @@
 \mainmatter
 \def\ECCV16SubNumber{***}  % Insert your submission number here
 
-\title{Parallelizing Hypothesis Fusion for Rapid MAP inference}
+%\title{Parallelizing Hypothesis Fusion for Rapid MAP inference}
+\title{Multi-way Particle Swarm Fusion}
 
 \titlerunning{ECCV-16 submission ID \ECCV16SubNumber}
 
