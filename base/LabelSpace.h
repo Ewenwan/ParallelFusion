@@ -102,6 +102,7 @@ namespace ParallelFusion {
     void LabelSpace<LabelType>::setSingleLabels(const std::vector<LabelType> &single_labels) {
         //CHECK(single_labels.size() == num_nodes_) << "The number of nodes is inconsistent.";
         num_nodes_ = (int)single_labels.size();
+        label_space_.resize((size_t)num_nodes_);
         for (int node_index = 0; node_index < num_nodes_; node_index++)
             label_space_[node_index] = std::vector<LabelType>(1, single_labels[node_index]);
     }

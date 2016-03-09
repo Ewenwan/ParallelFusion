@@ -146,11 +146,14 @@ namespace simple_stereo {
 
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
     public:
-        SimpleStereoGenerator(const int nPix_, const int nLabel_, const int startid): nPix(nPix_), nLabel(nLabel_), nextLabel(startid % nLabel_){}
+        SimpleStereoGenerator(const int nPix_, const int startid_, const int endid_, const bool randomOrder_ = true);
         virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
     private:
         const int nPix;
-        const int nLabel;
+        const int startLabel;
+        const int endLabel;
+        const bool randomOrder;
+        std::vector<int> labelTable;
         int nextLabel;
     };
 

@@ -32,7 +32,7 @@ namespace simple_stereo {
             initials[i].init(kPix);
             for(auto j=0; j<kPix; ++j)
                 initials[i].getLabelOfNode(j).push_back(0);
-            generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, model.nLabel, 0));
+            generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, 0, model.nLabel - 1));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
         }
 
@@ -53,11 +53,21 @@ namespace simple_stereo {
         return solution.first;
     }
 
+
+    SimpleStereoGenerator::SimpleStereoGenerator(const int nPix_, const int startid_, const int endid_, const bool randomOrder_):
+            nPix(nPix_), startLabel(startid_), endLabel(endid_), randomOrder(randomOrder_), nextLabel(0){
+        labelTable.resize((size_t)(endLabel - startLabel + 1));
+        for(auto i=0; i<labelTable.size(); ++i)
+            labelTable[i] = i + startLabel;
+        if(randomOrder)
+            std::random_shuffle(labelTable.begin(), labelTable.end());
+    }
+
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
                                             const CompactLabelSpace &current_solution, const int N) {
         for(auto i=0; i<N; ++i){
-            proposals.getSingleLabel().push_back(nextLabel);
-            nextLabel++;
+            proposals.getSingleLabel().push_back(labelTable[nextLabel]);
+            nextLabel = (nextLabel + 1) % (int)labelTable.size();
         }
     }
 
@@ -127,8 +137,9 @@ namespace simple_stereo {
             }
         }
 
+        solution.second.init(kPix, vector<int>(1,0));
+        solution.first = (double)mrf->totalEnergy() / model.MRFRatio;
         for (auto i = 0; i < kPix; ++i) {
-            solution.first = (double)mrf->totalEnergy() / model.MRFRatio;
             solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }
     }

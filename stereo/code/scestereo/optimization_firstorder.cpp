@@ -20,6 +20,7 @@ namespace sce_stereo{
     }
 
     void FirstOrderOptimize::optimize(Depth &result, const int max_iter) const {
+        printf("running sequential a-expansion...\n");
         EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<EnergyType *>(MRF_data.data())),
                                                              new SmoothnessCost(1, 4, weight_smooth,
                                                                                 const_cast<EnergyType *>(hCue.data()),
