@@ -12,7 +12,7 @@ namespace ParallelFusion {
     class FusionSolver {
     public:
         //take initial value, run optimization and store solution in 'solution', return error
-        virtual double solve(const LABELSPACE &proposals, LABELSPACE &solution) const = 0;
+        virtual double solve(const LABELSPACE &proposals, LABELSPACE &solution) = 0;
 
         //initialize solver with an initial solution, will be called automatically
         virtual void initSolver(const LABELSPACE & initial){}
