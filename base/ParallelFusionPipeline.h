@@ -79,14 +79,15 @@ namespace ParallelFusion {
 //    };
 
     struct ParallelFusionOption {
-        ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), addMethod(APPEND), synchronize(false) { }
+        ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), synchronize(false), selectionMethod(RANDOM) { }
         //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
-        enum ProposalAddition{APPEND, UNION};
         double convergeThreshold;
         int max_iteration;
         int num_threads;
-        ProposalAddition addMethod;
         bool synchronize;
+
+        enum SolutionSelection{RANDOM, BEST};
+        SolutionSelection selectionMethod;
     };
 
     struct ThreadOption {
@@ -165,6 +166,7 @@ namespace ParallelFusion {
                                                                  const GeneratorSet& generators,
                                                                  const SolverSet& solvers,
                                                                  const std::vector<ThreadOption> &thread_options){
+
         CHECK_EQ(option.num_threads, initials.size());
         CHECK_EQ(option.num_threads, generators.size());
         CHECK_EQ(option.num_threads, solvers.size());
@@ -219,7 +221,7 @@ namespace ParallelFusion {
         try {
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
-            std::uniform_int_distribution<int> distribution(0, option.num_threads-1);
+            std::uniform_int_distribution<int> distribution(0, option.num_threads-2);
             bool converge = false;
 
             solver->initSolver(initial);
@@ -240,7 +242,7 @@ namespace ParallelFusion {
                 LABELSPACE proposals;
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
-                printf("Generating proposals...\n");
+                //printf("Generating proposals...\n");
 
                 generator->getProposals(proposals_self, current_solution.second, thread_option.kSelfThread);
                 proposals.appendSpace(proposals_self);
@@ -248,26 +250,48 @@ namespace ParallelFusion {
                 //Take best solutions from other threads. Initially there is no 'best solution', marked by
                 //the energy less than 0. If such condition occurs, replace this with another self generated
                 //proposal.
-                for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
-                    //TODO: better thread selecting
-                    int tid = distribution(seed);
-                    while (tid == id)
-                        tid = distribution(seed);
-                    SolutionType<LABELSPACE> s;
-                    //bestSolutions[tid]->get(s);
-                    bestSolutions[tid].get(s);
+                //A monitor thread always require synchronization regardless whether other thread is synchronized or not.
+                if(thread_option.is_monitor) {
+                    for(auto tid=0; tid < option.num_threads; ++tid) {
+                        if (tid == id)
+                            continue;
+                        while(write_flag[tid].load())
+                            std::this_thread::yield();
 
-                    if(thread_option.is_monitor && option.synchronize)
+                        SolutionType<LABELSPACE> s;
+                        //bestSolutions[tid]->get(s);
+                        bestSolutions[tid].get(s);
+                        proposals.appendSpace(s.second);
+
                         write_flag[tid].store(true);
-
-                    proposals.appendSpace(s.second);
+                    }
+                } else if (option.selectionMethod == ParallelFusionOption::RANDOM) {
+                    for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
+                        int idshift = distribution(seed);
+                        int tid = (id + idshift) % option.num_threads;
+                        SolutionType<LABELSPACE> s;
+                        bestSolutions[tid].get(s);
+                        proposals.appendSpace(s.second);
+                    }
+                } else if (option.selectionMethod == ParallelFusionOption::BEST) {
+                    std::vector<std::pair<double, int> > solution_energy_index_pairs(option.num_threads);
+                    for(auto tid=0; tid < option.num_threads; ++tid)
+                        solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
+                    sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
+                    for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
+                        int tid = solution_energy_index_pairs[pid].second;
+                        SolutionType<LABELSPACE> s;
+                        bestSolutions[tid].get(s);
+                        proposals.appendSpace(s.second);
+                    }
                 }
 
-                printf("Solving...\n");
+                //printf("Solving...\n");
                 SolutionType<LABELSPACE> curSolution;
                 solver->solve(proposals, current_solution, curSolution);
-                printf("Done. Energy: %.5f\n", curSolution.first);
+                //printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
+
                 generator->writeSolution(curSolution, id, iter);
 
                 //if synchronization is needed, thread won't submit solution unless
