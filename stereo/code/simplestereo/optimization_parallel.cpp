@@ -131,16 +131,16 @@ namespace simple_stereo {
                     l11 = proposals(pix2, i);
                     l12 = proposals(pix3, i);
                     //x direction
-                    e00 = smoothnessCost(pix1, current_solution.second(pix1, 0), current_solution.second(pix2, 0), true);
-                    e01 = smoothnessCost(pix1, current_solution.second(pix1, 0), l11, true);
-                    e10 = smoothnessCost(pix1, l10, current_solution.second(pix2, 0), true);
+                    e00 = smoothnessCost(pix1, solution.second(pix1, 0), solution.second(pix2, 0), true);
+                    e01 = smoothnessCost(pix1, solution.second(pix1, 0), l11, true);
+                    e10 = smoothnessCost(pix1, l10, solution.second(pix2, 0), true);
                     e11 = smoothnessCost(pix1, l10, l11, true);
                     qpbo.AddPairwiseTerm(pix1, pix2, e00, e01, e10, e11);
 
                     //y direction
-                    e00 = smoothnessCost(pix1, current_solution.second(pix1, 0), current_solution.second(pix3, 0), false);
-                    e01 = smoothnessCost(pix1, current_solution.second(pix1, 0), l12, false);
-                    e10 = smoothnessCost(pix1, l10, current_solution.second(pix3, 0), false);
+                    e00 = smoothnessCost(pix1, solution.second(pix1, 0), solution.second(pix3, 0), false);
+                    e01 = smoothnessCost(pix1, solution.second(pix1, 0), l12, false);
+                    e10 = smoothnessCost(pix1, l10, solution.second(pix3, 0), false);
                     e11 = smoothnessCost(pix1, l10, l12, false);
                     qpbo.AddPairwiseTerm(pix1, pix3, e00, e01, e10, e11);
                 }
