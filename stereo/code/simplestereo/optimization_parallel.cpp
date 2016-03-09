@@ -17,10 +17,10 @@ namespace simple_stereo {
         result.initialize(width, height, -1);
         //configure as sequential fusion
         ParallelFusionOption option;
-        option.num_threads = 2;
-        option.probProposalFromOther = 0.25;
-        option.max_iteration = 16;
-        option.fuseSize = 22;
+        option.num_threads = 1;
+        option.probProposalFromOther = 0;
+        option.max_iteration = 1;
+        option.fuseSize = 256;
         const int kLabelPerThread = model.nLabel / option.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)option.num_threads);
@@ -38,6 +38,7 @@ namespace simple_stereo {
             printf("Thread %d, start: %d, end: %d\n", i, startid, endid);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, startid, endid));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
+            printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));
         }
 
         Pipeline parallelFusionPipeline(option);
@@ -153,13 +154,16 @@ namespace simple_stereo {
     double SimpleStereoSolver::evaluateEnergy(const CompactLabelSpace &solution) const {
         CHECK_EQ(solution.getNumNode(), kPix);
         double e = 0;
-        for(auto i=0; i<kPix; ++i)
-            e += (double)model.MRF_data[i * model.nLabel + solution(i,0)] / model.MRFRatio;
+        for(auto i=0; i<kPix; ++i) {
+            e += (double) model.MRF_data[i * model.nLabel + solution(i, 0)] / model.MRFRatio;
+            printf("e: %.2f\n", e);
+        }
         for(auto x=0; x<model.width - 1; ++x){
             for(auto y=0; y<model.height-1; ++y){
                 int sc = smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution(y*model.width+x+1,0), true) +
                         smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution((y+1)*model.width+x,0), true);
                 e += (double)sc / model.MRFRatio;
+                printf("e: %.2f\n", e);
             }
         }
         return e;
