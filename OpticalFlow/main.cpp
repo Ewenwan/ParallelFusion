@@ -37,7 +37,7 @@ using namespace cv;
 int main(int argc, char *argv[])
 {
   google::ParseCommandLineFlags(&argc, &argv, true);
-  //FLAGS_log_dir = "log";
+  FLAGS_log_dir = "log";
   FLAGS_logtostderr = false;
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << FLAGS_dataset_name;

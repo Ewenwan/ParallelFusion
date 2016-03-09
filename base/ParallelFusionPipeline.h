@@ -28,7 +28,7 @@ namespace ParallelFusion {
     public:
         SynSolution(): solution(SolutionType<LABELSPACE>(-1, LABELSPACE())){}
         void set(const SolutionType<LABELSPACE> &l) {
-            std::lock_guard<std::mutex> lock(mt);
+	  std::lock_guard<std::mutex> lock(mt);
             solution = l;
         }
 
@@ -68,7 +68,7 @@ namespace ParallelFusion {
         int max_iteration;
         int num_threads;
         int fuseSize;
-        ProposalAddition addMethod;
+      ProposalAddition addMethod;
     };
 
     template<class LABELSPACE>
@@ -154,8 +154,8 @@ namespace ParallelFusion {
         //launch threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves(option.num_threads);
         for(auto tid=0; tid<slaves.size(); ++tid){
-            printf("Lauching threads %d...\n", tid);
-            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]));
+	  printf("Lauching threads %d...\n", tid);
+	  std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]));
             slaves[tid].bind(t);
         }
     }
@@ -177,8 +177,8 @@ namespace ParallelFusion {
     }
 
     template<class LABELSPACE>
-    void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
-                                                 const LABELSPACE& initial,
+      void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
+							  const LABELSPACE& initial,
                                                  const GeneratorPtr& generator,
                                                  const SolverPtr& solver){
         try {
@@ -205,7 +205,9 @@ namespace ParallelFusion {
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
                 printf("Generating proposals...\n");
+		
                 generator->getProposals(proposals_self, current_solution.second, kSelfThread);
+		
                 if(option.addMethod == ParallelFusionOption::APPEND)
                     proposals.appendSpace(proposals_self);
                 else
