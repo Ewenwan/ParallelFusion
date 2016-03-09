@@ -184,7 +184,6 @@ GCoptimization::EnergyType GCoptimization::dataEnergy()
 GCoptimization::EnergyType GCoptimization::giveDataEnergyArray()
 {
 	EnergyType eng = (EnergyType) 0;
-
 	for ( int i = 0; i < m_nPixels; i++ )
 		eng = eng + m_datacost(i,m_labeling[i]);
 

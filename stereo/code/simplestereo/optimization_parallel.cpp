@@ -17,10 +17,11 @@ namespace simple_stereo {
         result.initialize(width, height, -1);
         //configure as sequential fusion
         ParallelFusionOption option;
-        option.num_threads = 1;
-        option.probProposalFromOther = 0;
-        option.max_iteration = 1;
-        option.fuseSize = model.nLabel;
+        option.num_threads = 2;
+        option.probProposalFromOther = 0.25;
+        option.max_iteration = 16;
+        option.fuseSize = 22;
+        const int kLabelPerThread = model.nLabel / option.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)option.num_threads);
         Pipeline::SolverSet solvers((size_t)option.num_threads);
@@ -32,7 +33,10 @@ namespace simple_stereo {
             initials[i].init(kPix);
             for(auto j=0; j<kPix; ++j)
                 initials[i].getLabelOfNode(j).push_back(0);
-            generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, 0, model.nLabel - 1));
+            const int startid = i * kLabelPerThread;
+            const int endid = (i+1) * kLabelPerThread - 1;
+            printf("Thread %d, start: %d, end: %d\n", i, startid, endid);
+            generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, startid, endid));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
         }
 
@@ -65,7 +69,6 @@ namespace simple_stereo {
 
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
                                             const CompactLabelSpace &current_solution, const int N) {
-        printf("Current solution size: %d\n", current_solution.getNumNode());
         for(auto i=0; i<N; ++i){
             proposals.getSingleLabel().push_back(labelTable[nextLabel]);
             nextLabel = (nextLabel + 1) % (int)labelTable.size();
@@ -95,9 +98,10 @@ namespace simple_stereo {
         else
             kFullProposal = (int) proposals.getLabelOfNode(0).size();
 
+        cout << kFullProposal << endl << flush;
         const vector<int> &singleLabel = proposals.getSingleLabel();
         for (auto i = 0; i < singleLabel.size(); ++i) {
-            printf("Fusing proposal with graph cut %d\n", i);
+            printf("Fusing proposal with graph cut %d\n", singleLabel[i] );
             mrf->alpha_expansion(singleLabel[i]);
             cout << "done" << endl << flush;
         }
@@ -140,11 +144,16 @@ namespace simple_stereo {
         }
 
         solution.second.init(kPix, vector<int>(1,0));
-        cout << "Total Energy: " << mrf->totalEnergy() << endl;
         solution.first = (double)(mrf->totalEnergy()) / model.MRFRatio;
-        printf("Energy: %.5f\n", solution.first);
         for (auto i = 0; i < kPix; ++i) {
             solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }
+    }
+
+    double SimpleStereoSolver::evaluateEnergy(const CompactLabelSpace &solution) const {
+        CHECK_EQ(solution.getNumNode(), kPix);
+        double e = 0;
+        for(auto i=0; i<kPix; ++i)
+            e += model.MRF_data[i * model.nLabel + solution(i,0)];
     }
 }

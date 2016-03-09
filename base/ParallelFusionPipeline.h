@@ -145,9 +145,10 @@ namespace ParallelFusion {
             bestSolutions[i]->getSolution().second = initials[i];
         }
 
-        kOtherThread = (int)(option.fuseSize * option.probProposalFromOther);
+        kOtherThread = (int)((double)option.fuseSize * option.probProposalFromOther);
         kSelfThread = option.fuseSize - kOtherThread;
 
+        printf("%d,%d\n", kOtherThread, kSelfThread);
         CHECK_GT(kSelfThread, 1) << "Probability of drawing proposals from other thread is too high";
 
         //launch threads. Join method is called from the destructor of thread_guard
@@ -183,7 +184,7 @@ namespace ParallelFusion {
         try {
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
-            std::uniform_int_distribution<int> distribution(0, option.num_threads);
+            std::uniform_int_distribution<int> distribution(0, option.num_threads-1);
             bool converge = false;
 
             solver->initSolver(initial);
@@ -204,13 +205,11 @@ namespace ParallelFusion {
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
                 printf("Generating proposals...\n");
-                printf("current_solution:%d\n", current_solution.second.getNumNode());
                 generator->getProposals(proposals_self, current_solution.second, kSelfThread);
                 if(option.addMethod == ParallelFusionOption::APPEND)
                     proposals.appendSpace(proposals_self);
                 else
                     proposals.unionSpace(proposals_self);
-
                 //Take best solutions from other threads. Initially there is no 'best solution', marked by
                 //the energy less than 0. If such condition occurs, replace this with another self generated
                 //proposal.
