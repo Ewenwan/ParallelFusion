@@ -985,7 +985,6 @@ GCoptimization::EnergyType Expansion::start_expansion(int max_num_iterations )
 GCoptimization::EnergyType Expansion::alpha_expansion(LabelType label)
 {
 	terminateOnError( label < 0 || label >= m_nLabels,"Illegal Label to Expand On");
-
 	perform_alpha_expansion(label);
 	return(dataEnergy()+smoothnessEnergy());
 }
