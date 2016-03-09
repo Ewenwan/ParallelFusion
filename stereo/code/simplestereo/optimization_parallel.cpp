@@ -78,7 +78,7 @@ namespace simple_stereo {
 
     void SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
                                      const SolutionType<CompactLabelSpace>& current_solution,
-                                     SolutionType& solution){
+                                     SolutionType<CompactLabelSpace>& solution){
         CHECK(!proposals.empty());
         int kFullProposal;
         if(proposals.getLabelSpace().empty())
