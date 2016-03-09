@@ -122,8 +122,8 @@ namespace ParallelFusion {
         //slave threads
         void workerThread(const int id,
                           const LABELSPACE& initial,
-                          const GeneratorPtr &generator,
-                          const SolverPtr& solver,
+                          GeneratorPtr generator,
+                          SolverPtr solver,
                           const ThreadOption &thread_option);
 
         inline const ParallelFusionOption &getOption() const { return option; }
@@ -181,7 +181,7 @@ namespace ParallelFusion {
         std::vector<thread_guard> slaves(option.num_threads);
         for(auto tid=0; tid<slaves.size(); ++tid){
             printf("Lauching threads %d...\n", tid);
-            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), std::ref(generators[tid]), std::ref(solvers[tid]), std::ref(thread_options[tid]));
+            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), generators[tid], solvers[tid], thread_options[tid]);
             slaves[tid].bind(t);
         }
     }
@@ -189,18 +189,7 @@ namespace ParallelFusion {
     template<class LABELSPACE>
     double ParallelFusionPipeline<LABELSPACE>::getBestLabeling(SolutionType<LABELSPACE> &solution) const {
         double minE = std::numeric_limits<double>::max();
-//        for(auto i=0; i<bestSolutions.size(); ++i){
-//            SolutionType<LABELSPACE> cursolution;
-//            //bestSolutions[i]->get(cursolution);
-//            if(cursolution.first < minE){
-//                solution.second.clear();
-//                solution.second.appendSpace(cursolution.second);
-//                solution.first = cursolution.first;
-//                minE = cursolution.first;
-//            }
-
         for(auto i=0; i<bestSolutions.size(); ++i){
-            SolutionType<LABELSPACE> curSolution;
             if(bestSolutions[i].getSolution().first < minE){
                 solution.second.clear();
                 solution.second.appendSpace(bestSolutions[i].getSolution().second);
@@ -214,8 +203,8 @@ namespace ParallelFusion {
     template<class LABELSPACE>
     void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
                                                           const LABELSPACE& initial,
-                                                          const GeneratorPtr& generator,
-                                                          const SolverPtr& solver,
+                                                          GeneratorPtr generator,
+                                                          SolverPtr solver,
                                                           const ThreadOption &thread_option){
         try {
             printf("Thread %d lauched\n", id);
@@ -227,8 +216,7 @@ namespace ParallelFusion {
 
             SolutionType<LABELSPACE> current_solution;
             current_solution.first = solver->evaluateEnergy(initial);
-            current_solution.second.appendSpace(initial);
-            //bestSolutions[id]->set(current_solution);
+            current_solution.second = initial;
             bestSolutions[id].set(current_solution);
 
 
@@ -245,11 +233,8 @@ namespace ParallelFusion {
                 printf("Generating proposals...\n");
 
                 generator->getProposals(proposals_self, current_solution.second, thread_option.kSelfThread);
+                proposals.appendSpace(proposals_self);
 
-                if(option.addMethod == ParallelFusionOption::APPEND)
-                    proposals.appendSpace(proposals_self);
-                else
-                    proposals.unionSpace(proposals_self);
                 //Take best solutions from other threads. Initially there is no 'best solution', marked by
                 //the energy less than 0. If such condition occurs, replace this with another self generated
                 //proposal.
@@ -260,24 +245,18 @@ namespace ParallelFusion {
                     SolutionType<LABELSPACE> s;
                     //bestSolutions[tid]->get(s);
                     bestSolutions[tid].get(s);
-                    if(s.first >= 0) {
-                        if (option.addMethod == ParallelFusionOption::APPEND)
-                            proposals.appendSpace(s.second);
-                        else
-                            proposals.unionSpace(s.second);
-                    }else{
-                        LABELSPACE tempProposal;
-                        generator->getProposals(tempProposal, current_solution.second, 1);
-                        if(option.addMethod == ParallelFusionOption::APPEND)
-                            proposals.appendSpace(tempProposal);
-                        else
-                            proposals.unionSpace(tempProposal);
-                    }
+                    proposals.appendSpace(s.second);
+//                    if(s.first >= 0) {
+//
+//                    }else{
+//                        LABELSPACE tempProposal;
+//                        generator->getProposals(tempProposal, current_solution.second, 1);
+//                        proposals.appendSpace(tempProposal);
+//                    }
                 }
 
-                //solve
-                SolutionType<LABELSPACE> curSolution;
                 printf("Solving...\n");
+                SolutionType<LABELSPACE> curSolution;
                 solver->solve(proposals, current_solution, curSolution);
                 printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
