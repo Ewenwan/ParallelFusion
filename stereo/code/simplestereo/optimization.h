@@ -123,7 +123,6 @@ namespace simple_stereo {
                 num_nodes_ = (int)label_space_.size();
             }
             CHECK_EQ(rhs.getNumNode(), getNumNode());
-            std::cout << "Appending space..." << std::endl << std::flush;
             for(auto i=0; i<label_space_.size(); ++i){
                 for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
                     label_space_[i].push_back(rhs(i,j));
@@ -167,12 +166,10 @@ namespace simple_stereo {
 
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
     public:
-        SimpleStereoGenerator(const int nPix_, const int startid_, const int endid_, const bool randomOrder_ = true);
+        SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_ = true);
         virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
     private:
         const int nPix;
-        const int startLabel;
-        const int endLabel;
         const bool randomOrder;
         std::vector<int> labelTable;
         int nextLabel;

@@ -15,7 +15,7 @@ using namespace ParallelFusion;
 namespace simple_stereo {
 
     SimpleStereo::SimpleStereo(const FileIO &file_io_, const int anchor_, const int dispResolution_, const int downsample_, const double weight_smooth_):
-            file_io(file_io_), anchor(anchor_), downsample(downsample_){
+            file_io(file_io_), anchor(anchor_), downsample(downsample_), model(new MRFModel<int>()){
         CHECK_GE(file_io.getTotalNum(), 2) << "Too few images at " << file_io.getDirectory();
         images.resize((size_t)file_io.getTotalNum());
         CHECK(downsample == 1 || downsample == 2 || downsample == 4 || downsample == 8) << "Invalid downsample ratio!";

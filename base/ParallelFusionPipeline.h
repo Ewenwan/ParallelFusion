@@ -240,7 +240,7 @@ namespace ParallelFusion {
                 LABELSPACE proposals;
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
-                printf("Generating proposals...\n");
+                //printf("Generating proposals...\n");
 
                 generator->getProposals(proposals_self, current_solution.second, thread_option.kSelfThread);
                 proposals.appendSpace(proposals_self);
@@ -250,10 +250,10 @@ namespace ParallelFusion {
                 //proposal.
                 for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                     //TODO: better thread selecting
-//                    int tid = distribution(seed);
-//                    while (tid == id)
-//                        tid = distribution(seed);
-                    int tid = (id + pid) % option.num_threads;
+                    int tid = distribution(seed);
+                    while (tid == id)
+                        tid = distribution(seed);
+                    //int tid = (id + pid) % option.num_threads;
                     SolutionType<LABELSPACE> s;
                     //bestSolutions[tid]->get(s);
                     bestSolutions[tid].get(s);
@@ -264,10 +264,10 @@ namespace ParallelFusion {
                     proposals.appendSpace(s.second);
                 }
 
-                printf("Solving...\n");
+                //printf("Solving...\n");
                 SolutionType<LABELSPACE> curSolution;
                 solver->solve(proposals, current_solution, curSolution);
-                printf("Done. Energy: %.5f\n", curSolution.first);
+                //printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
 
                 generator->writeSolution(curSolution, id, iter);
