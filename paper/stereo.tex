@@ -3,5 +3,26 @@ We now explain detailed implementation of the Swarm Fusion method for
 three problems in Computer Vision.
 
 \subsection{Swarm Fusion stereo}
-We start with a simple Swarm Fusion implementation for a standard stereo
-problem with unary and pairwise (submodular) terms.
+We start with a relatively ``easy'' problem, a depthmap stereo problem
+with unary and submodular pairwise terms. Parallel
+alpha-expansion~\cite{delong} or hierarchical fusion~\cite{delong,olga}
+with Graph-cuts (when submodular) or QPBO (when non-submodular) have
+been the most effective techniques.
+%
+To make the comparison simple, we restrict our proposal generation to be
+constant-label proposals, and limit to binary fusion so that Swarm
+Fusion will also use either Graph-cuts or QPBO for the core
+optimization. The main difference is that SF exchanges solutions among
+threads throughout the process.
+
+
+bottom middle example...
+
+%
+We use Middlebury stereo datasets for the experiments. Unary terms are
+computed as the average Normalized Cross Correlation score between the
+reference image and all the others inside a $7\times 7$ pixels
+window. Pairwise terms are simple Pottz model. We multiply \yasu{X
+value?} to the unary term to define the total energy.
+
+
