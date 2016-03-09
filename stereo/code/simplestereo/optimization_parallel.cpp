@@ -155,8 +155,9 @@ namespace simple_stereo {
         CHECK_EQ(solution.getNumNode(), kPix);
         double e = 0;
         for(auto i=0; i<kPix; ++i) {
-            e += (double) model.MRF_data[i * model.nLabel + solution(i, 0)] / model.MRFRatio;
-            printf("e: %.2f\n", e);
+            e += model.MRF_data[i * model.nLabel + solution(i, 0)] / model.MRFRatio;
+            printf("pix:%d, label:%d, oridata: %d MRFRatio:%.5f, e: %.2f\n", i, solution(i,0), model.MRF_data[i * model.nLabel + solution(i, 0)], model.MRFRatio, e);
+            getchar();
         }
         for(auto x=0; x<model.width - 1; ++x){
             for(auto y=0; y<model.height-1; ++y){

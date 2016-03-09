@@ -37,6 +37,10 @@ namespace simple_stereo {
         //read from cache
         char buffer[1024] = {};
         sprintf(buffer, "%s/temp/cacheMRFdata", file_io.getDirectory().c_str());
+        vector<int> cache(model.MRF_data.size(), 0);
+        CHECK(!model.MRF_data.empty());
+        CHECK(!cache.empty());
+
         ifstream fin(buffer, ios::binary);
         bool recompute = true;
         if (fin.is_open()) {
@@ -49,7 +53,7 @@ namespace simple_stereo {
             if (frame == anchor && resolution == model.nLabel  &&
                 type == sizeof(int)) {
                 printf("Reading unary term from cache...\n");
-                fin.read((char *) model.MRF_data.data(), model.MRF_data.size() * sizeof(int));
+                fin.read((char *) cache.data(), cache.size() * sizeof(int));
                 recompute = false;
             }
             fin.close();
@@ -72,20 +76,24 @@ namespace simple_stereo {
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
                         double mCost = local_matcher::sumMatchingCost(patches, anchor);
-                        model.MRF_data[model.nLabel * (y * width + x) + d] = (int) ((mCost + 1) * model.MRFRatio);
+                        cache[model.nLabel * (y * width + x) + d] = (int) ((mCost + 1) * model.MRFRatio);
                     }
                 }
             }
-
             const int energyTypeSize = sizeof(EnergyType);
             ofstream cacheOut(buffer, ios::binary);
             cacheOut.write((char *) &anchor, sizeof(int));
             cacheOut.write((char *) &model.nLabel, sizeof(int));
             cacheOut.write((char *) &energyTypeSize, sizeof(int));
-            cacheOut.write((char *) model.MRF_data.data(), sizeof(EnergyType) * model.MRF_data.size());
+            cacheOut.write((char *) cache.data(), sizeof(EnergyType) * cache.size());
             cacheOut.close();
+
+
         }
         cout << "Done" << endl;
+        for(auto i=0; i<cache.size(); ++i)
+            model.MRF_data[i] = cache[i];
+
         //compute unary disparity
         unaryDisp.initialize(width, height, -1);
         for(auto i=0; i<width * height; ++i){
