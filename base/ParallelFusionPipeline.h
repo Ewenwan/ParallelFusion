@@ -204,6 +204,7 @@ namespace ParallelFusion {
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
                 printf("Generating proposals...\n");
+                printf("current_solution:%d\n", current_solution.second.getNumNode());
                 generator->getProposals(proposals_self, current_solution.second, kSelfThread);
                 if(option.addMethod == ParallelFusionOption::APPEND)
                     proposals.appendSpace(proposals_self);
