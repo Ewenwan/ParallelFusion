@@ -17,8 +17,8 @@ namespace simple_stereo {
         result.initialize(width, height, -1);
         //configure as sequential fusion
         ParallelFusionOption pipelineOption;
-        pipelineOption.num_threads = 6;
-        pipelineOption.max_iteration = 11;
+        pipelineOption.num_threads = 7;
+        pipelineOption.max_iteration = 1;
         const int kLabelPerThread = model.nLabel / pipelineOption.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)pipelineOption.num_threads);
@@ -27,7 +27,7 @@ namespace simple_stereo {
         vector<ThreadOption> threadOptions((size_t)pipelineOption.num_threads);
         for(auto& to: threadOptions){
             to.kOtherThread = 0;
-            to.kSelfThread = 4;
+            to.kSelfThread = 40;
         }
         const int kPix = model.width * model.height;
 
@@ -38,7 +38,7 @@ namespace simple_stereo {
             initials[i].init(kPix, vector<int>(1, startid));
             printf("Thread %d, start: %d, end: %d\n", i, startid, endid);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, startid, endid));
-            solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
+            solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(&model));
             printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));
         }
 
@@ -78,16 +78,13 @@ namespace simple_stereo {
     }
 
     void SimpleStereoSolver::initSolver(const CompactLabelSpace &initial) {
-        CHECK_EQ(initial.getNumNode(), model.width * model.height);
-        EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<int *>(model.MRF_data.data())),
-                                                             new SmoothnessCost(1, 4, model.weight_smooth,
-                                                                                const_cast<int *>(model.hCue.data()),
-                                                                                const_cast<int *>(model.vCue.data())));
-        mrf = shared_ptr<Expansion>(new Expansion(model.width, model.height, model.nLabel, energy_function));
+        CHECK_EQ(initial.getNumNode(), model->width * model->height);
+        EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<int*>(model->MRF_data.data())),
+                                                             new SmoothnessCost(1, 4, model->weight_smooth,
+                                                                                const_cast<int*>(model->hCue.data()),
+                                                                                const_cast<int*>(model->vCue.data())));
+        mrf = shared_ptr<Expansion>(new Expansion(model->width, model->height, model->nLabel, energy_function));
         mrf->initialize();
-        mrf->clearAnswer();
-        for(auto i=0; i<kPix; ++i)
-            mrf->setLabel(i, initial(i,0));
     }
 
     void SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
@@ -101,9 +98,16 @@ namespace simple_stereo {
             kFullProposal = (int) proposals.getLabelOfNode(0).size();
 
         const vector<int> &singleLabel = proposals.getSingleLabel();
+
+        solution = current_solution;
         for (auto i = 0; i < singleLabel.size(); ++i) {
             printf("Fusing proposal with graph cut %d\n", singleLabel[i] );
+            for(auto i=0; i<kPix; ++i) {
+                mrf->setLabel(i, solution.second(i, 0));
+            }
             mrf->alpha_expansion(singleLabel[i]);
+            for(auto i=0; i<kPix; ++i)
+                solution.second(i,0) = mrf->getLabel(i);
             cout << "done" << endl << flush;
         }
         for (auto i = 0; i < kFullProposal; ++i) {
@@ -112,24 +116,24 @@ namespace simple_stereo {
             kolmogorov::qpbo::QPBO<int> qpbo(kPix, 4 * kPix);
             qpbo.AddNode(kPix);
             for (auto j = 0; j < kPix; ++j)
-                qpbo.AddUnaryTerm(j, model(j, mrf->getLabel(j)), model(j, proposals(j, i)));
+                qpbo.AddUnaryTerm(j, model->operator()(j, current_solution.second(i,0)), model->operator()(j, proposals(j, i)));
 
-            for (auto y = 0; y < model.height - 1; ++y) {
-                for (auto x = 0; x < model.width - 1; ++x) {
+            for (auto y = 0; y < model->height - 1; ++y) {
+                for (auto x = 0; x < model->width - 1; ++x) {
                     int e00, e01, e10, e11;
-                    int pix1 = y * model.width + x, pix2 = y * model.width + x + 1, pix3 =
-                            (y + 1) * model.width + x;
+                    int pix1 = y * model->width + x, pix2 = y * model->width + x + 1, pix3 =
+                            (y + 1) * model->width + x;
                     //x direction
-                    e00 = smoothnessCost(pix1, mrf->getLabel(pix1), mrf->getLabel(pix2), true);
-                    e01 = smoothnessCost(pix1, mrf->getLabel(pix1), proposals(pix2, i), true);
-                    e10 = smoothnessCost(pix1, proposals(pix1, i), mrf->getLabel(pix2), true);
+                    e00 = smoothnessCost(pix1, solution.second(pix1, 0), solution.second(pix2, 0), true);
+                    e01 = smoothnessCost(pix1, solution.second(pix1, 0), proposals(pix2, i), true);
+                    e10 = smoothnessCost(pix1, proposals(pix1, i), solution.second(pix2, 0), true);
                     e11 = smoothnessCost(pix1, proposals(pix1, i), proposals(pix2, i), true);
                     qpbo.AddPairwiseTerm(pix1, pix2, e00, e01, e10, e11);
 
                     //y direction
-                    e00 = smoothnessCost(pix1, mrf->getLabel(pix1), mrf->getLabel(pix3), false);
-                    e01 = smoothnessCost(pix1, mrf->getLabel(pix1), proposals(pix3, i), false);
-                    e10 = smoothnessCost(pix1, proposals(pix1, i), mrf->getLabel(pix3), false);
+                    e00 = smoothnessCost(pix1, solution.second(pix1, 0), solution.second(pix3, 0), false);
+                    e01 = smoothnessCost(pix1, solution.second(pix1, 0), proposals(pix3, i), false);
+                    e10 = smoothnessCost(pix1, proposals(pix1, i), solution.second(pix3, 0), false);
                     e11 = smoothnessCost(pix1, proposals(pix1, i), proposals(pix3, i), false);
                     qpbo.AddPairwiseTerm(pix1, pix3, e00, e01, e10, e11);
                 }
@@ -140,13 +144,9 @@ namespace simple_stereo {
 
             for (auto pix = 0; pix < kPix; ++pix) {
                 if (qpbo.GetLabel(pix) > 0)
-                    mrf->setLabel(pix, proposals(pix, i));
+                    solution.second(pix, 0) = proposals(pix, i);
             }
         }
-
-        solution.second.init(kPix, vector<int>(1,0));
-        for (auto i = 0; i < kPix; ++i)
-            solution.second.getLabelOfNode(i)[0] = mrf->getLabel(i);
 
         //solution.first = evaluateEnergy(solution.second);
         solution.first = evaluateEnergy(solution.second);
@@ -156,14 +156,17 @@ namespace simple_stereo {
     double SimpleStereoSolver::evaluateEnergy(const CompactLabelSpace &solution) const {
         CHECK_EQ(solution.getNumNode(), kPix);
         double e = 0;
+        const int w = model->width;
+        const int h = model->height;
+        const double r = model->MRFRatio;
         for(auto i=0; i<kPix; ++i) {
-            e += model.MRF_data[i * model.nLabel + solution(i, 0)] / model.MRFRatio;
+            e += model->MRF_data[i * model->nLabel + solution(i, 0)] / model->MRFRatio;
         }
-        for(auto x=0; x<model.width - 1; ++x){
-            for(auto y=0; y<model.height-1; ++y){
-                int sc = smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution(y*model.width+x+1,0), true) +
-                        smoothnessCost(y*model.width+x, solution(y*model.width+x, 0), solution((y+1)*model.width+x,0), true);
-                e += (double)sc / model.MRFRatio;
+        for(auto x=0; x<w - 1; ++x) {
+            for (auto y = 0; y < h - 1; ++y) {
+                int sc = smoothnessCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
+                         smoothnessCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
+                e += (double) sc / r;
             }
         }
         return e;

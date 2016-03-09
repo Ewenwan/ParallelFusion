@@ -2,7 +2,7 @@
 #define FUSION_SOLVER_H__
 
 #include <vector>
-
+#include <memory>
 #include "LabelSpace.h"
 
 namespace ParallelFusion {
@@ -15,7 +15,7 @@ namespace ParallelFusion {
     class FusionSolver {
     public:
         //take initial value, run optimization and store solution in 'solution', return error
-        virtual void solve(const LABELSPACE &proposals, const SolutionType<LABELSPACE>& current_solution, SolutionType<LABELSPACE> &solution) = 0;
+        virtual void solve(const LABELSPACE &proposals, const SolutionType<LABELSPACE>& current_solution, SolutionType<LABELSPACE>& solution) = 0;
 
         //initialize solver with an initial solution, will be called automatically
         virtual void initSolver(const LABELSPACE & initial){}
