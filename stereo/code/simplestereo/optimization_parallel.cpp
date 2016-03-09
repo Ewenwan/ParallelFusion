@@ -65,6 +65,7 @@ namespace simple_stereo {
 
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
                                             const CompactLabelSpace &current_solution, const int N) {
+        printf("Current solution size: %d\n", current_solution.getNumNode());
         for(auto i=0; i<N; ++i){
             proposals.getSingleLabel().push_back(labelTable[nextLabel]);
             nextLabel = (nextLabel + 1) % (int)labelTable.size();
@@ -102,6 +103,7 @@ namespace simple_stereo {
         }
         for (auto i = 0; i < kFullProposal; ++i) {
             //run QPBO
+            printf("Running QPBO...\n");
             kolmogorov::qpbo::QPBO<int> qpbo(kPix, 4 * kPix);
             qpbo.AddNode(kPix);
             for (auto j = 0; j < kPix; ++j)
