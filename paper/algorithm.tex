@@ -40,10 +40,18 @@ processing architectures as shown in Figure~\ref{fig:model}.
 %
 \begin{figure}[tb]
  \includegraphics[width=\columnwidth]{figure/model.pdf} \caption{Swarm
- Fusion architecture and its relationships to existing methods. mention
- that hierarchical fusion works in a different way, but we can still
- consider that to be our special case, by letting each thread not using
- its own solution in the next fusion.}\label{fig:model}
+ Fusion architecture and its relationships to existing methods. The
+ bottom right diagram shows the general Swarm fusion architecture, where
+ each thread takes arbitrary number of solution proposals and concurrent
+ solutions from other threads for fusion. The left two examples at the
+ bottom row are Swarm fusion architecture with some restrictions, for
+ which we provide comparative evaluations in
+ Section~\ref{section:results}. Swarm fusion is a very flexible model,
+ and it is easy to verify that existing methods such as
+ alpha-expansion~\cite{alpha_expansion}, Fusion move~\cite{FM}, parallel
+ alpha-expansion~\cite{delong}, or hierarchical
+ fusion~\cite{delong_hierarchical_fusion,olga}, are all its special
+ cases.}\label{fig:model}
 \end{figure}
 %
 The bottom right configuration is the most general one, in which we
