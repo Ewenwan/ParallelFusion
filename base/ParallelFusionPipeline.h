@@ -28,7 +28,7 @@ namespace ParallelFusion {
     public:
         SynSolution(): solution(SolutionType<LABELSPACE>(-1, LABELSPACE())){}
         void set(const SolutionType<LABELSPACE> &l) {
-            std::lock_guard<std::mutex> lock(mt);
+	  std::lock_guard<std::mutex> lock(mt);
             solution = l;
         }
 
@@ -177,7 +177,7 @@ namespace ParallelFusion {
 
     template<class LABELSPACE>
     void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
-                                                 const LABELSPACE& initial,
+							  const LABELSPACE& initial,
                                                  const GeneratorPtr& generator,
                                                  const SolverPtr& solver){
         try {
