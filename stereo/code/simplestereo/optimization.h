@@ -86,13 +86,54 @@ namespace simple_stereo {
         const int num_threads;
     };
 
+    class CompactLabelSpace: public ParallelFusion::LabelSpace<int>{
+    public:
+        inline size_t getNumSingleLabel() const{
+            return singleLabel.size();
+        }
 
-    class SimpleStereoSolver : public ParallelFusion::FusionSolver<ParallelFusion::LabelSpace<int> > {
+        std::vector<int>& getSingleLabel(){
+            return singleLabel;
+        }
+
+        const std::vector<int>& getSingleLabel() const{
+            return singleLabel;
+        }
+
+        const void appendSpace(const CompactLabelSpace& rhs){
+            if(num_nodes_ == 0){
+                label_space_.resize((size_t)rhs.getNumNode());
+                num_nodes_ = (int)label_space_.size();
+            }
+            CHECK_EQ(rhs.getNumNode(), getNumNode());
+            for(auto i=0; i<label_space_.size(); ++i){
+                for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++i)
+                    label_space_[i].push_back(rhs(i,j));
+            }
+            for(auto i=0; i<rhs.getSingleLabel().size(); ++i)
+                singleLabel.push_back(rhs.getSingleLabel()[i]);
+        }
+
+        inline virtual bool empty() const{
+            return singleLabel.empty() && label_space_.empty();
+        }
+
+        inline virtual void clear(){
+            ParallelFusion::LabelSpace<int>::clear();
+            singleLabel.clear();
+        }
+    private:
+        std::vector<int> singleLabel;
+    };
+
+    class SimpleStereoSolver : public ParallelFusion::FusionSolver<CompactLabelSpace> {
     public:
         SimpleStereoSolver(const MRFModel<int>& model_): model(model_), kPix(model.width * model.height){}
-        virtual void initSolver(const ParallelFusion::LabelSpace<int>& initial);
-        virtual double solve(const ParallelFusion::LabelSpace<int> &proposals, ParallelFusion::LabelSpace<int> &solution) const;
-        virtual double evaluateEnergy(const ParallelFusion::LabelSpace<int>& solution) const;
+        virtual void initSolver(const CompactLabelSpace& initial);
+        virtual double solve(const CompactLabelSpace &proposals, CompactLabelSpace &solution) const;
+        virtual double evaluateEnergy(const CompactLabelSpace& solution) const{
+            return (double)mrf->totalEnergy();
+        }
     private:
         inline int smoothnessCost(int pix, int l1, int l2, bool xDirection) const{
             double cue = xDirection ? model.hCue[pix] : model.vCue[pix];
@@ -103,10 +144,10 @@ namespace simple_stereo {
         std::shared_ptr<Expansion> mrf;
     };
 
-    class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<ParallelFusion::LabelSpace<int> >{
+    class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
     public:
         SimpleStereoGenerator(const int nPix_, const int nLabel_, const int startid): nPix(nPix_), nLabel(nLabel_), nextLabel(startid % nLabel_){}
-        virtual void getProposals(ParallelFusion::LabelSpace<int>& proposals, const ParallelFusion::LabelSpace<int>& current_solution, const int N);
+        virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
     private:
         const int nPix;
         const int nLabel;

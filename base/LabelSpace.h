@@ -19,7 +19,10 @@ namespace ParallelFusion {
 
         LabelSpace(const std::vector<std::vector<LabelType> > &label_space);
 
-        void clear();
+        inline virtual void clear(){
+            label_space_.clear();
+            num_nodes_ = 0;
+        }
 
         inline void init(const int NUM_NODE, std::vector<int> v = std::vector<int>()){
             num_nodes_ = NUM_NODE;
@@ -37,7 +40,7 @@ namespace ParallelFusion {
             return label_space_;
         }
 
-        inline bool empty() const{ return label_space_.empty();}
+        inline virtual bool empty() const{ return label_space_.empty();}
 
         inline const std::vector<LabelType>& getLabelOfNode(const int nid) const{
             CHECK_GE(nid, 0);
@@ -94,11 +97,6 @@ namespace ParallelFusion {
     LabelSpace<LabelType>::LabelSpace(const std::vector<std::vector<LabelType> > &label_space) : num_nodes_((int)label_space.size()), label_space_(label_space) {
     }
 
-    template<typename LabelType>
-    void LabelSpace<LabelType>::clear() {
-        for (int node_index = 0; node_index < num_nodes_; node_index++)
-            label_space_[node_index].clear();
-    }
 
     template<typename LabelType>
     void LabelSpace<LabelType>::setSingleLabels(const std::vector<LabelType> &single_labels) {

@@ -11,7 +11,7 @@ using namespace ParallelFusion;
 namespace simple_stereo {
 
     double ParallelOptimize::optimize(stereo_base::Depth &result, const int max_iter) const {
-        typedef LabelSpace<int> Space;
+        typedef CompactLabelSpace Space;
         typedef ParallelFusionPipeline<Space> Pipeline;
 
         result.initialize(width, height, -1);
@@ -43,7 +43,7 @@ namespace simple_stereo {
         parallelFusionPipeline.runParallelFusion(initials, generators, solvers);
         t = ((float)getTickCount() - t) / (float)getTickFrequency();
 
-        SolutionType<LabelSpace<int> > solution;
+        SolutionType<Space > solution;
         parallelFusionPipeline.getBestLabeling(solution);
         printf("Done! Final energy: %.5f\n", solution.first);
 
@@ -53,19 +53,17 @@ namespace simple_stereo {
         return 0.0;
     }
 
-    void SimpleStereoGenerator::getProposals(LabelSpace<int> &proposals,
-                                            const LabelSpace<int> &current_solution, const int N) {
-        proposals.init(nPix, vector<int>((size_t)N, 0));
+    void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
+                                            const CompactLabelSpace &current_solution, const int N) {
         for(auto i=0; i<N; ++i){
             printf("label %d\n", i);
             printf("getProposals: proposals.NumNode:%d\n", proposals.getNumNode());
-            for(auto j=0; j<nPix; ++j)
-                proposals(j,i) = nextLabel;
+            proposals.getSingleLabel().push_back(nextLabel);
             nextLabel++;
         }
     }
 
-    void SimpleStereoSolver::initSolver(const LabelSpace<int> &initial) {
+    void SimpleStereoSolver::initSolver(const CompactLabelSpace &initial) {
         CHECK_EQ(initial.getNumNode(), model.width * model.height);
         EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<int *>(model.MRF_data.data())),
                                                              new SmoothnessCost(1, 4, model.weight_smooth,
@@ -74,62 +72,52 @@ namespace simple_stereo {
         mrf = shared_ptr<Expansion>(new Expansion(model.width, model.height, energy_function));
     }
 
-    double SimpleStereoSolver::solve(const LabelSpace<int> &proposals,
-                                     LabelSpace<int> &solution) const {
+    double SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
+                                     CompactLabelSpace& solution) const {
         CHECK(!proposals.empty());
         CHECK_EQ(proposals.getNumNode(), kPix);
-        const int kProposal = (int) proposals.getLabelOfNode(0).size();
+        const int kFullProposal = (int) proposals.getLabelOfNode(0).size();
+        const vector<int> &singleLabel = proposals.getSingleLabel();
+        for (auto i = 0; i < singleLabel.size(); ++i) {
+            printf("Fusing proposal with graph cut%d\n", i);
+            mrf->alpha_expansion(singleLabel[i]);
+            cout << "done" << endl << flush;
+        }
 
-        for (auto i = 0; i < kProposal; ++i) {
-            printf("Fusing proposal %d\n", i);
-            bool graphCut = true;
-            int label = proposals(0, i);
-            for (auto nid = 1; nid < proposals.getNumNode(); ++nid) {
-                if (proposals(nid, i) != label) {
-                    graphCut = false;
-                    break;
+        for (auto i = 0; i < kFullProposal; ++i) {
+            //run QPBO
+            kolmogorov::qpbo::QPBO<int> qpbo(kPix, 4 * kPix);
+            qpbo.AddNode(kPix);
+            for (auto j = 0; j < kPix; ++j)
+                qpbo.AddUnaryTerm(j, model(j, mrf->getLabel(j)), model(j, proposals(j, i)));
+
+            for (auto y = 0; y < model.height - 1; ++y) {
+                for (auto x = 0; x < model.width - 1; ++x) {
+                    int e00, e01, e10, e11;
+                    int pix1 = y * model.width + x, pix2 = y * model.width + x + 1, pix3 =
+                            (y + 1) * model.width + x;
+                    //x direction
+                    e00 = smoothnessCost(pix1, mrf->getLabel(pix1), mrf->getLabel(pix2), true);
+                    e01 = smoothnessCost(pix1, mrf->getLabel(pix1), proposals(pix2, i), true);
+                    e10 = smoothnessCost(pix1, proposals(pix1, i), mrf->getLabel(pix2), true);
+                    e11 = smoothnessCost(pix1, proposals(pix1, i), proposals(pix2, i), true);
+                    qpbo.AddPairwiseTerm(pix1, pix2, e00, e01, e10, e11);
+
+                    //y direction
+                    e00 = smoothnessCost(pix1, mrf->getLabel(pix1), mrf->getLabel(pix3), false);
+                    e01 = smoothnessCost(pix1, mrf->getLabel(pix1), proposals(pix3, i), false);
+                    e10 = smoothnessCost(pix1, proposals(pix1, i), mrf->getLabel(pix3), false);
+                    e11 = smoothnessCost(pix1, proposals(pix1, i), proposals(pix3, i), false);
+                    qpbo.AddPairwiseTerm(pix1, pix3, e00, e01, e10, e11);
                 }
             }
-            if (graphCut) {
-                //run alpha-expansion
-                cout << "Running alpha-expansion..." << endl << flush;
-                mrf->alpha_expansion(label);
-                cout << "done" << endl <<flush;
-            } else {
-                //run QPBO
-                kolmogorov::qpbo::QPBO<int> qpbo(kPix, 4 * kPix);
-                qpbo.AddNode(kPix);
-                for (auto j = 0; j < kPix; ++j)
-                    qpbo.AddUnaryTerm(j, model(j, mrf->getLabel(j)), model(j, proposals(j, i)));
 
-                for (auto y = 0; y < model.height - 1; ++y) {
-                    for (auto x = 0; x < model.width - 1; ++x) {
-                        int e00, e01, e10, e11;
-                        int pix1 = y * model.width + x, pix2 = y * model.width + x + 1, pix3 =
-                                (y + 1) * model.width + x;
-                        //x direction
-                        e00 = smoothnessCost(pix1, mrf->getLabel(pix1), mrf->getLabel(pix2), true);
-                        e01 = smoothnessCost(pix1, mrf->getLabel(pix1), proposals(pix2, i), true);
-                        e10 = smoothnessCost(pix1, proposals(pix1, i), mrf->getLabel(pix2), true);
-                        e11 = smoothnessCost(pix1, proposals(pix1, i), proposals(pix2, i), true);
-                        qpbo.AddPairwiseTerm(pix1, pix2, e00, e01, e10, e11);
+            qpbo.Solve();
+            qpbo.ComputeWeakPersistencies();
 
-                        //y direction
-                        e00 = smoothnessCost(pix1, mrf->getLabel(pix1), mrf->getLabel(pix3), false);
-                        e01 = smoothnessCost(pix1, mrf->getLabel(pix1), proposals(pix3, i), false);
-                        e10 = smoothnessCost(pix1, proposals(pix1, i), mrf->getLabel(pix3), false);
-                        e11 = smoothnessCost(pix1, proposals(pix1, i), proposals(pix3, i), false);
-                        qpbo.AddPairwiseTerm(pix1, pix3, e00, e01, e10, e11);
-                    }
-                }
-
-                qpbo.Solve();
-                qpbo.ComputeWeakPersistencies();
-
-                for (auto pix = 0; pix < kPix; ++pix) {
-                    if (qpbo.GetLabel(pix) >= 0)
-                        mrf->setLabel(pix, proposals(pix, i));
-                }
+            for (auto pix = 0; pix < kPix; ++pix) {
+                if (qpbo.GetLabel(pix) >= 0)
+                    mrf->setLabel(pix, proposals(pix, i));
             }
         }
 
@@ -137,10 +125,6 @@ namespace simple_stereo {
         for (auto i = 0; i < kPix; ++i) {
             solution.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }
-        return 0;
-    }
-
-    double SimpleStereoSolver::evaluateEnergy(const LabelSpace<int> &solution) const {
         return 0;
     }
 }
