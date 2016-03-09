@@ -26,10 +26,14 @@ namespace simple_stereo {
         Pipeline::SolverSet solvers((size_t)option.num_threads);
         vector<Space> initials((size_t)option.num_threads);
 
+        const int kPix = model.width * model.height;
+
         for(auto i=0; i<option.num_threads; ++i){
+            initials[i].init(kPix);
+            for(auto j=0; j<kPix; ++j)
+                initials[i].getLabelOfNode(j).push_back(0);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model.width * model.height, model.nLabel, 0));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
-            initials[i].getLabelSpace().resize((size_t)(model.width * model.height), vector<int>(1, 0));
         }
 
         Pipeline parallelFusionPipeline(option);
@@ -51,8 +55,10 @@ namespace simple_stereo {
 
     void SimpleStereoGenerator::getProposals(LabelSpace<int> &proposals,
                                             const LabelSpace<int> &current_solution, const int N) {
-        proposals.getLabelSpace().resize((size_t)nPix, vector<int>((size_t)N, 0));
+        proposals.init(nPix, vector<int>((size_t)N, 0));
         for(auto i=0; i<N; ++i){
+            printf("label %d\n", i);
+            printf("getProposals: proposals.NumNode:%d\n", proposals.getNumNode());
             for(auto j=0; j<nPix; ++j)
                 proposals(j,i) = nextLabel;
             nextLabel++;
@@ -75,6 +81,7 @@ namespace simple_stereo {
         const int kProposal = (int) proposals.getLabelOfNode(0).size();
 
         for (auto i = 0; i < kProposal; ++i) {
+            printf("Fusing proposal %d\n", i);
             bool graphCut = true;
             int label = proposals(0, i);
             for (auto nid = 1; nid < proposals.getNumNode(); ++nid) {
@@ -85,7 +92,9 @@ namespace simple_stereo {
             }
             if (graphCut) {
                 //run alpha-expansion
-                int e = mrf->alpha_expansion(label);
+                cout << "Running alpha-expansion..." << endl << flush;
+                mrf->alpha_expansion(label);
+                cout << "done" << endl <<flush;
             } else {
                 //run QPBO
                 kolmogorov::qpbo::QPBO<int> qpbo(kPix, 4 * kPix);
@@ -124,7 +133,7 @@ namespace simple_stereo {
             }
         }
 
-        solution.getLabelSpace().resize((size_t) kPix, vector<int>(1, 0));
+        solution.init(kPix, vector<int>(1, 0));
         for (auto i = 0; i < kPix; ++i) {
             solution.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }

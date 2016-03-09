@@ -19,12 +19,24 @@ namespace ParallelFusion {
 
         LabelSpace(const std::vector<std::vector<LabelType> > &label_space);
 
-        std::vector<std::vector<LabelType> > &getLabelSpace() { return label_space_; };
-        const std::vector<std::vector<LabelType> >& getLabelSpace()const { return label_space_; };
-
         void clear();
 
-        inline int getNumNode()const{return num_nodes_; }
+        inline void init(const int NUM_NODE, std::vector<int> v = std::vector<int>()){
+            num_nodes_ = NUM_NODE;
+            label_space_.resize((size_t)NUM_NODE, v);
+        }
+
+        inline int getNumNode() const{
+            return num_nodes_;
+        }
+
+        inline std::vector<std::vector<LabelType> >& getLabelSpace(){
+            return label_space_;
+        }
+        inline const std::vector<std::vector<LabelType> >& getLabelSpace() const{
+            return label_space_;
+        }
+
         inline bool empty() const{ return label_space_.empty();}
 
         inline const std::vector<LabelType>& getLabelOfNode(const int nid) const{
@@ -99,8 +111,9 @@ namespace ParallelFusion {
 
     template<typename LabelType>
     void LabelSpace<LabelType>::appendSpace(const LabelSpace<LabelType> &rhs) {
-        if(num_nodes_ == 0)
-            label_space_.resize((size_t)rhs.getNumNode());
+        if(num_nodes_ == 0) {
+            init(rhs.getNumNode());
+        }
         for(auto i=0; i<rhs.getNumNode(); ++i){
             for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
                 label_space_[i].push_back(rhs(i,j));

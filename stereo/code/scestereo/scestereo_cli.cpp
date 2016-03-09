@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace sce_stereo;
+using namespace stereo_base;
 
 DEFINE_int32(testFrame, -1, "test frame");
 DEFINE_int32(tWindow, -1, "tWindow");

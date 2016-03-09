@@ -3,7 +3,7 @@
 //
 
 #include "simplestereo.h"
-
+#include "optimization.h"
 #include "../stereo_base/local_matcher.h"
 
 using namespace std;
@@ -137,5 +137,12 @@ namespace simple_stereo {
 
         sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
         unaryDisp.saveImage(buffer, 256.0 / (double)model.nLabel);
+
+        ParallelOptimize optimize_parallel(file_io, model, 1);
+        Depth result_parallel;
+        optimize_parallel.optimize(result_parallel, 1);
+        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
+        result_parallel.saveImage(buffer);
+
     }
 }

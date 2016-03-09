@@ -153,8 +153,9 @@ namespace ParallelFusion {
         CHECK_GT(kSelfThread, 1) << "Probability of drawing proposals from other thread is too high";
 
         //launch threads. Join method is called from the destructor of thread_guard
-        std::vector<thread_guard> slaves;
+        std::vector<thread_guard> slaves(option.num_threads);
         for(auto tid=0; tid<slaves.size(); ++tid){
+            printf("Lauching threads %d...\n", tid);
             std::thread t(&ParallelFusionPipeline::workerThread, this, tid, initials[tid], generators[tid], solvers[tid]);
             slaves[tid].bind(t);
         }
@@ -182,6 +183,7 @@ namespace ParallelFusion {
                                                  const GeneratorPtr& generator,
                                                  const SolverPtr& solver){
         try {
+            printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(0, option.num_threads);
             bool converge = false;
@@ -202,6 +204,7 @@ namespace ParallelFusion {
                 LABELSPACE proposals;
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
+                printf("Generating proposals...\n");
                 generator->getProposals(proposals_self, current_solution.second, kSelfThread);
                 if(option.addMethod == ParallelFusionOption::APPEND)
                     proposals.appendSpace(proposals_self);
@@ -232,6 +235,7 @@ namespace ParallelFusion {
 
                 //solve
                 SolutionType<LABELSPACE> curSolution;
+                printf("Solving...\n");
                 curSolution.first = solver->solve(proposals, curSolution.second);
 
                 //set the current best solution. It will be visible from other threads
