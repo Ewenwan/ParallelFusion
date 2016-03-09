@@ -32,6 +32,7 @@
 #include <assert.h>
 #include "graph.h"
 #include "energy.h"
+#include <glog/logging.h>
 #define m_datacost(pix,lab)     (m_datacost[(pix)*m_nLabels+(lab)] )
 #define m_smoothcost(lab1,lab2) (m_smoothcost[(lab1)+(lab2)*m_nLabels] )
 #define USE_MEMBER_FUNCTION 0
@@ -105,7 +106,7 @@ public:
 
     /* This function can be used to change the label of any pixel at any time      */
     inline void setLabel(PixelType pixel, LabelType label){
-        assert(label >= 0 && label < m_nLabels && pixel >= 0 && pixel < m_nPixels);m_labeling[pixel] = label;};
+        CHECK(label >= 0 && label < m_nLabels && pixel >= 0 && pixel < m_nPixels);m_labeling[pixel] = label;};
     
     /* By default, the labels are visited in random order for both the swap and alpha-expansion moves */
     /* Use this function with boolean argument 0 to fix the order to be not random                    */

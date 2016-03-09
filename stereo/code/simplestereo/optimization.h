@@ -129,17 +129,20 @@ namespace simple_stereo {
 
     class SimpleStereoSolver : public ParallelFusion::FusionSolver<CompactLabelSpace> {
     public:
-        SimpleStereoSolver(const MRFModel<int>& model_): model(model_), kPix(model.width * model.height){}
+        SimpleStereoSolver(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
+        ~SimpleStereoSolver(){
+            //delete mrf;
+        }
         virtual void initSolver(const CompactLabelSpace& initial);
         virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution, ParallelFusion::SolutionType<CompactLabelSpace>& solution);
         virtual double evaluateEnergy(const CompactLabelSpace& solution) const;
 
     private:
         inline int smoothnessCost(int pix, int l1, int l2, bool xDirection) const{
-            double cue = xDirection ? model.hCue[pix] : model.vCue[pix];
-            return (int)((double)model.weight_smooth * (std::min(4, std::abs(l1-l2))) * cue);
+            double cue = xDirection ? model->hCue[pix] : model->vCue[pix];
+            return (int)((double)model->weight_smooth * (std::min(4, std::abs(l1-l2))) * cue);
         }
-        const MRFModel<int>& model;
+        const MRFModel<int>* model;
         const int kPix;
         std::shared_ptr<Expansion> mrf;
     };

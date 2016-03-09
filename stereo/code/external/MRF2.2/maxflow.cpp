@@ -20,14 +20,14 @@
 
 #include <stdio.h>
 #include "graph.h"
-
+#include <iostream>
 /*
     special constants for node->parent
 */
-#define TERMINAL ( (arc_forward *) 1 )      /* to terminal */
-#define ORPHAN   ( (arc_forward *) 2 )      /* orphan */
+#define MAXFLOW_TERMINAL ( (arc_forward *) 1 )      /* to terminal */
+#define MAXFLOW_ORPHAN   ( (arc_forward *) 2 )      /* orphan */
 
-#define INFINITE_D 1000000000       /* infinite distance to the terminal */
+#define MAXFLOW_INFINITE_D 1000000000       /* infinite distance to the terminal */
 
 /***********************************************************************/
 
@@ -98,33 +98,33 @@ void Graph::maxflow_init()
     orphan_first = NULL;
 
     for (nb=node_block_first; nb; nb=nb->next)
-    for (i=&nb->nodes[0]; i<nb->current; i++)
-    {
-        i -> next = NULL;
-        i -> TS = 0;
-        if (i->tr_cap > 0)
+        for (i=&nb->nodes[0]; i<nb->current; i++)
         {
-            /* i is connected to the source */
-            i -> is_sink = 0;
-            i -> parent = TERMINAL;
-            set_active(i);
+            i -> next = NULL;
             i -> TS = 0;
-            i -> DIST = 1;
+            if (i->tr_cap > 0)
+            {
+                /* i is connected to the source */
+                i -> is_sink = 0;
+                i -> parent = MAXFLOW_TERMINAL;
+                set_active(i);
+                i -> TS = 0;
+                i -> DIST = 1;
+            }
+            else if (i->tr_cap < 0)
+            {
+                /* i is connected to the sink */
+                i -> is_sink = 1;
+                i -> parent = MAXFLOW_TERMINAL;
+                set_active(i);
+                i -> TS = 0;
+                i -> DIST = 1;
+            }
+            else
+            {
+                i -> parent = NULL;
+            }
         }
-        else if (i->tr_cap < 0)
-        {
-            /* i is connected to the sink */
-            i -> is_sink = 1;
-            i -> parent = TERMINAL;
-            set_active(i);
-            i -> TS = 0;
-            i -> DIST = 1;
-        }
-        else
-        {
-            i -> parent = NULL;
-        }
-    }
     TIME = 0;
 }
 
@@ -144,7 +144,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
     for (i=s_start; ; )
     {
         a = i -> parent;
-        if (a == TERMINAL) break;
+        if (a == MAXFLOW_TERMINAL) break;
         if (IS_ODD(a))
         {
             a = MAKE_EVEN(a);
@@ -162,7 +162,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
     for (i=t_start; ; )
     {
         a = i -> parent;
-        if (a == TERMINAL) break;
+        if (a == MAXFLOW_TERMINAL) break;
         if (IS_ODD(a))
         {
             a = MAKE_EVEN(a);
@@ -185,7 +185,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
     for (i=s_start; ; )
     {
         a = i -> parent;
-        if (a == TERMINAL) break;
+        if (a == MAXFLOW_TERMINAL) break;
         if (IS_ODD(a))
         {
             a = MAKE_EVEN(a);
@@ -194,7 +194,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
             if (!a->r_cap)
             {
                 /* add i to the adoption list */
-                i -> parent = ORPHAN;
+                i -> parent = MAXFLOW_ORPHAN;
                 np = nodeptr_block -> New();
                 np -> ptr = i;
                 np -> next = orphan_first;
@@ -209,7 +209,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
             if (!a->r_rev_cap)
             {
                 /* add i to the adoption list */
-                i -> parent = ORPHAN;
+                i -> parent = MAXFLOW_ORPHAN;
                 np = nodeptr_block -> New();
                 np -> ptr = i;
                 np -> next = orphan_first;
@@ -222,7 +222,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
     if (!i->tr_cap)
     {
         /* add i to the adoption list */
-        i -> parent = ORPHAN;
+        i -> parent = MAXFLOW_ORPHAN;
         np = nodeptr_block -> New();
         np -> ptr = i;
         np -> next = orphan_first;
@@ -232,7 +232,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
     for (i=t_start; ; )
     {
         a = i -> parent;
-        if (a == TERMINAL) break;
+        if (a == MAXFLOW_TERMINAL) break;
         if (IS_ODD(a))
         {
             a = MAKE_EVEN(a);
@@ -241,7 +241,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
             if (!a->r_rev_cap)
             {
                 /* add i to the adoption list */
-                i -> parent = ORPHAN;
+                i -> parent = MAXFLOW_ORPHAN;
                 np = nodeptr_block -> New();
                 np -> ptr = i;
                 np -> next = orphan_first;
@@ -256,7 +256,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
             if (!a->r_cap)
             {
                 /* add i to the adoption list */
-                i -> parent = ORPHAN;
+                i -> parent = MAXFLOW_ORPHAN;
                 np = nodeptr_block -> New();
                 np -> ptr = i;
                 np -> next = orphan_first;
@@ -269,7 +269,7 @@ void Graph::augment(node *s_start, node *t_start, captype *cap_middle, captype *
     if (!i->tr_cap)
     {
         /* add i to the adoption list */
-        i -> parent = ORPHAN;
+        i -> parent = MAXFLOW_ORPHAN;
         np = nodeptr_block -> New();
         np -> ptr = i;
         np -> next = orphan_first;
@@ -289,7 +289,7 @@ void Graph::process_source_orphan(node *i)
     arc_reverse *a0_rev, *a0_rev_first, *a0_rev_last;
     arc_forward *a0_min = NULL, *a;
     nodeptr *np;
-    int d, d_min = INFINITE_D;
+    int d, d_min = MAXFLOW_INFINITE_D;
 
     /* trying to find a new parent */
     a0_for_first = i -> first_out;
@@ -309,55 +309,55 @@ void Graph::process_source_orphan(node *i)
 
 
     for (a0_for=a0_for_first; a0_for<a0_for_last; a0_for++)
-    if (a0_for->r_rev_cap)
-    {
-        j = NEIGHBOR_NODE(i, a0_for -> shift);
-        if (!j->is_sink && (a=j->parent))
+        if (a0_for->r_rev_cap)
         {
-            /* checking the origin of j */
-            d = 0;
-            while ( 1 )
+            j = NEIGHBOR_NODE(i, a0_for -> shift);
+            if (!j->is_sink && (a=j->parent))
             {
-                if (j->TS == TIME)
+                /* checking the origin of j */
+                d = 0;
+                while ( 1 )
                 {
-                    d += j -> DIST;
-                    break;
-                }
-                a = j -> parent;
-                d ++;
-                if (a==TERMINAL)
-                {
-                    j -> TS = TIME;
-                    j -> DIST = 1;
-                    break;
-                }
-                if (a==ORPHAN) { d = INFINITE_D; break; }
-                if (IS_ODD(a))
-                    j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
-                else
-                    j = NEIGHBOR_NODE(j, a -> shift);
-            }
-            if (d<INFINITE_D) /* j originates from the source - done */
-            {
-                if (d<d_min)
-                {
-                    a0_min = a0_for;
-                    d_min = d;
-                }
-                /* set marks along the path */
-                for (j=NEIGHBOR_NODE(i, a0_for->shift); j->TS!=TIME; )
-                {
-                    j -> TS = TIME;
-                    j -> DIST = d --;
-                    a = j->parent;
+                    if (j->TS == TIME)
+                    {
+                        d += j -> DIST;
+                        break;
+                    }
+                    a = j -> parent;
+                    d ++;
+                    if (a==MAXFLOW_TERMINAL)
+                    {
+                        j -> TS = TIME;
+                        j -> DIST = 1;
+                        break;
+                    }
+                    if (a==MAXFLOW_ORPHAN) { d = MAXFLOW_INFINITE_D; break; }
                     if (IS_ODD(a))
                         j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
                     else
                         j = NEIGHBOR_NODE(j, a -> shift);
                 }
+                if (d<MAXFLOW_INFINITE_D) /* j originates from the source - done */
+                {
+                    if (d<d_min)
+                    {
+                        a0_min = a0_for;
+                        d_min = d;
+                    }
+                    /* set marks along the path */
+                    for (j=NEIGHBOR_NODE(i, a0_for->shift); j->TS!=TIME; )
+                    {
+                        j -> TS = TIME;
+                        j -> DIST = d --;
+                        a = j->parent;
+                        if (IS_ODD(a))
+                            j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
+                        else
+                            j = NEIGHBOR_NODE(j, a -> shift);
+                    }
+                }
             }
         }
-    }
     for (a0_rev=a0_rev_first; a0_rev<a0_rev_last; a0_rev++)
     {
         a0_for = a0_rev -> sister;
@@ -377,19 +377,19 @@ void Graph::process_source_orphan(node *i)
                     }
                     a = j -> parent;
                     d ++;
-                    if (a==TERMINAL)
+                    if (a==MAXFLOW_TERMINAL)
                     {
                         j -> TS = TIME;
                         j -> DIST = 1;
                         break;
                     }
-                    if (a==ORPHAN) { d = INFINITE_D; break; }
+                    if (a==MAXFLOW_ORPHAN) { d = MAXFLOW_INFINITE_D; break; }
                     if (IS_ODD(a))
                         j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
                     else
                         j = NEIGHBOR_NODE(j, a -> shift);
                 }
-                if (d<INFINITE_D) /* j originates from the source - done */
+                if (d<MAXFLOW_INFINITE_D) /* j originates from the source - done */
                 {
                     if (d<d_min)
                     {
@@ -429,10 +429,10 @@ void Graph::process_source_orphan(node *i)
             if (!j->is_sink && (a=j->parent))
             {
                 if (a0_for->r_rev_cap) set_active(j);
-                if (a!=TERMINAL && a!=ORPHAN && IS_ODD(a) && NEIGHBOR_NODE_REV(j, MAKE_EVEN(a)->shift)==i)
+                if (a!=MAXFLOW_TERMINAL && a!=MAXFLOW_ORPHAN && IS_ODD(a) && NEIGHBOR_NODE_REV(j, MAKE_EVEN(a)->shift)==i)
                 {
                     /* add j to the adoption list */
-                    j -> parent = ORPHAN;
+                    j -> parent = MAXFLOW_ORPHAN;
                     np = nodeptr_block -> New();
                     np -> ptr = j;
                     if (orphan_last) orphan_last -> next = np;
@@ -449,10 +449,10 @@ void Graph::process_source_orphan(node *i)
             if (!j->is_sink && (a=j->parent))
             {
                 if (a0_for->r_cap) set_active(j);
-                if (a!=TERMINAL && a!=ORPHAN && !IS_ODD(a) && NEIGHBOR_NODE(j, a->shift)==i)
+                if (a!=MAXFLOW_TERMINAL && a!=MAXFLOW_ORPHAN && !IS_ODD(a) && NEIGHBOR_NODE(j, a->shift)==i)
                 {
                     /* add j to the adoption list */
-                    j -> parent = ORPHAN;
+                    j -> parent = MAXFLOW_ORPHAN;
                     np = nodeptr_block -> New();
                     np -> ptr = j;
                     if (orphan_last) orphan_last -> next = np;
@@ -472,7 +472,7 @@ void Graph::process_sink_orphan(node *i)
     arc_reverse *a0_rev, *a0_rev_first, *a0_rev_last;
     arc_forward *a0_min = NULL, *a;
     nodeptr *np;
-    int d, d_min = INFINITE_D;
+    int d, d_min = MAXFLOW_INFINITE_D;
 
     /* trying to find a new parent */
     a0_for_first = i -> first_out;
@@ -492,55 +492,55 @@ void Graph::process_sink_orphan(node *i)
 
 
     for (a0_for=a0_for_first; a0_for<a0_for_last; a0_for++)
-    if (a0_for->r_cap)
-    {
-        j = NEIGHBOR_NODE(i, a0_for -> shift);
-        if (j->is_sink && (a=j->parent))
+        if (a0_for->r_cap)
         {
-            /* checking the origin of j */
-            d = 0;
-            while ( 1 )
+            j = NEIGHBOR_NODE(i, a0_for -> shift);
+            if (j->is_sink && (a=j->parent))
             {
-                if (j->TS == TIME)
+                /* checking the origin of j */
+                d = 0;
+                while ( 1 )
                 {
-                    d += j -> DIST;
-                    break;
-                }
-                a = j -> parent;
-                d ++;
-                if (a==TERMINAL)
-                {
-                    j -> TS = TIME;
-                    j -> DIST = 1;
-                    break;
-                }
-                if (a==ORPHAN) { d = INFINITE_D; break; }
-                if (IS_ODD(a))
-                    j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
-                else
-                    j = NEIGHBOR_NODE(j, a -> shift);
-            }
-            if (d<INFINITE_D) /* j originates from the sink - done */
-            {
-                if (d<d_min)
-                {
-                    a0_min = a0_for;
-                    d_min = d;
-                }
-                /* set marks along the path */
-                for (j=NEIGHBOR_NODE(i, a0_for->shift); j->TS!=TIME; )
-                {
-                    j -> TS = TIME;
-                    j -> DIST = d --;
-                    a = j->parent;
+                    if (j->TS == TIME)
+                    {
+                        d += j -> DIST;
+                        break;
+                    }
+                    a = j -> parent;
+                    d ++;
+                    if (a==MAXFLOW_TERMINAL)
+                    {
+                        j -> TS = TIME;
+                        j -> DIST = 1;
+                        break;
+                    }
+                    if (a==MAXFLOW_ORPHAN) { d = MAXFLOW_INFINITE_D; break; }
                     if (IS_ODD(a))
                         j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
                     else
                         j = NEIGHBOR_NODE(j, a -> shift);
                 }
+                if (d<MAXFLOW_INFINITE_D) /* j originates from the sink - done */
+                {
+                    if (d<d_min)
+                    {
+                        a0_min = a0_for;
+                        d_min = d;
+                    }
+                    /* set marks along the path */
+                    for (j=NEIGHBOR_NODE(i, a0_for->shift); j->TS!=TIME; )
+                    {
+                        j -> TS = TIME;
+                        j -> DIST = d --;
+                        a = j->parent;
+                        if (IS_ODD(a))
+                            j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
+                        else
+                            j = NEIGHBOR_NODE(j, a -> shift);
+                    }
+                }
             }
         }
-    }
     for (a0_rev=a0_rev_first; a0_rev<a0_rev_last; a0_rev++)
     {
         a0_for = a0_rev -> sister;
@@ -560,19 +560,19 @@ void Graph::process_sink_orphan(node *i)
                     }
                     a = j -> parent;
                     d ++;
-                    if (a==TERMINAL)
+                    if (a==MAXFLOW_TERMINAL)
                     {
                         j -> TS = TIME;
                         j -> DIST = 1;
                         break;
                     }
-                    if (a==ORPHAN) { d = INFINITE_D; break; }
+                    if (a==MAXFLOW_ORPHAN) { d = MAXFLOW_INFINITE_D; break; }
                     if (IS_ODD(a))
                         j = NEIGHBOR_NODE_REV(j, MAKE_EVEN(a) -> shift);
                     else
                         j = NEIGHBOR_NODE(j, a -> shift);
                 }
-                if (d<INFINITE_D) /* j originates from the sink - done */
+                if (d<MAXFLOW_INFINITE_D) /* j originates from the sink - done */
                 {
                     if (d<d_min)
                     {
@@ -612,10 +612,10 @@ void Graph::process_sink_orphan(node *i)
             if (j->is_sink && (a=j->parent))
             {
                 if (a0_for->r_cap) set_active(j);
-                if (a!=TERMINAL && a!=ORPHAN && IS_ODD(a) && NEIGHBOR_NODE_REV(j, MAKE_EVEN(a)->shift)==i)
+                if (a!=MAXFLOW_TERMINAL && a!=MAXFLOW_ORPHAN && IS_ODD(a) && NEIGHBOR_NODE_REV(j, MAKE_EVEN(a)->shift)==i)
                 {
                     /* add j to the adoption list */
-                    j -> parent = ORPHAN;
+                    j -> parent = MAXFLOW_ORPHAN;
                     np = nodeptr_block -> New();
                     np -> ptr = j;
                     if (orphan_last) orphan_last -> next = np;
@@ -632,10 +632,10 @@ void Graph::process_sink_orphan(node *i)
             if (j->is_sink && (a=j->parent))
             {
                 if (a0_for->r_rev_cap) set_active(j);
-                if (a!=TERMINAL && a!=ORPHAN && !IS_ODD(a) && NEIGHBOR_NODE(j, a->shift)==i)
+                if (a!=MAXFLOW_TERMINAL && a!=MAXFLOW_ORPHAN && !IS_ODD(a) && NEIGHBOR_NODE(j, a->shift)==i)
                 {
                     /* add j to the adoption list */
-                    j -> parent = ORPHAN;
+                    j -> parent = MAXFLOW_ORPHAN;
                     np = nodeptr_block -> New();
                     np -> ptr = j;
                     if (orphan_last) orphan_last -> next = np;
@@ -652,6 +652,7 @@ void Graph::process_sink_orphan(node *i)
 
 Graph::flowtype Graph::maxflow()
 {
+    using namespace std;
     node *i, *j, *current_node = NULL, *s_start, *t_start = NULL;
     captype *cap_middle = NULL, *rev_cap_middle = NULL;
     arc_forward *a_for, *a_for_first, *a_for_last;
@@ -695,65 +696,58 @@ Graph::flowtype Graph::maxflow()
         if (!i->is_sink)
         {
             /* grow source tree */
-            for (a_for=a_for_first; a_for<a_for_last; a_for++)
-            if (a_for->r_cap)
-            {
-                j = NEIGHBOR_NODE(i, a_for -> shift);
-                if (!j->parent)
-                {
-                    j -> is_sink = 0;
-                    j -> parent = MAKE_ODD(a_for);
-                    j -> TS = i -> TS;
-                    j -> DIST = i -> DIST + 1;
-                    set_active(j);
-                }
-                else if (j->is_sink)
-                {
-                    s_start = i;
-                    t_start = j;
-                    cap_middle     = & ( a_for -> r_cap );
-                    rev_cap_middle = & ( a_for -> r_rev_cap );
-                    break;
-                }
-                else if (j->TS <= i->TS &&
-                         j->DIST > i->DIST)
-                {
-                    /* heuristic - trying to make the distance from j to the source shorter */
-                    j -> parent = MAKE_ODD(a_for);
-                    j -> TS = i -> TS;
-                    j -> DIST = i -> DIST + 1;
-                }
-            }
-            if (!s_start)
-            for (a_rev=a_rev_first; a_rev<a_rev_last; a_rev++)
-            {
-                a_for = a_rev -> sister;
-                if (a_for->r_rev_cap)
-                {
-                    j = NEIGHBOR_NODE_REV(i, a_for -> shift);
-                    if (!j->parent)
-                    {
-                        j -> is_sink = 0;
-                        j -> parent = a_for;
-                        j -> TS = i -> TS;
-                        j -> DIST = i -> DIST + 1;
+            for (a_for=a_for_first; a_for<a_for_last; a_for++) {
+                if (a_for->r_cap) {
+                    j = NEIGHBOR_NODE(i, a_for->shift);
+                    if (!j->parent) {
+                        j->is_sink = 0;
+                        j->parent = MAKE_ODD(a_for);
+                        j->TS = i->TS;
+                        j->DIST = i->DIST + 1;
                         set_active(j);
                     }
-                    else if (j->is_sink)
-                    {
+                    else if (j->is_sink) {
                         s_start = i;
                         t_start = j;
-                        cap_middle     = & ( a_for -> r_rev_cap );
-                        rev_cap_middle = & ( a_for -> r_cap );
+                        cap_middle = &(a_for->r_cap);
+                        rev_cap_middle = &(a_for->r_rev_cap);
                         break;
                     }
                     else if (j->TS <= i->TS &&
-                             j->DIST > i->DIST)
-                    {
+                             j->DIST > i->DIST) {
                         /* heuristic - trying to make the distance from j to the source shorter */
-                        j -> parent = a_for;
-                        j -> TS = i -> TS;
-                        j -> DIST = i -> DIST + 1;
+                        j->parent = MAKE_ODD(a_for);
+                        j->TS = i->TS;
+                        j->DIST = i->DIST + 1;
+                    }
+                }
+            }
+            if (!s_start) {
+                for (a_rev = a_rev_first; a_rev < a_rev_last; a_rev++) {
+                    a_for = a_rev->sister;
+                    if (a_for->r_rev_cap) {
+                        j = NEIGHBOR_NODE_REV(i, a_for->shift);
+                        if (!j->parent) {
+                            j->is_sink = 0;
+                            j->parent = a_for;
+                            j->TS = i->TS;
+                            j->DIST = i->DIST + 1;
+                            set_active(j);
+                        }
+                        else if (j->is_sink) {
+                            s_start = i;
+                            t_start = j;
+                            cap_middle = &(a_for->r_rev_cap);
+                            rev_cap_middle = &(a_for->r_cap);
+                            break;
+                        }
+                        else if (j->TS <= i->TS &&
+                                 j->DIST > i->DIST) {
+                            /* heuristic - trying to make the distance from j to the source shorter */
+                            j->parent = a_for;
+                            j->TS = i->TS;
+                            j->DIST = i->DIST + 1;
+                        }
                     }
                 }
             }
@@ -762,34 +756,35 @@ Graph::flowtype Graph::maxflow()
         {
             /* grow sink tree */
             for (a_for=a_for_first; a_for<a_for_last; a_for++)
-            if (a_for->r_rev_cap)
-            {
-                j = NEIGHBOR_NODE(i, a_for -> shift);
-                if (!j->parent)
+                if (a_for->r_rev_cap)
                 {
-                    j -> is_sink = 1;
-                    j -> parent = MAKE_ODD(a_for);
-                    j -> TS = i -> TS;
-                    j -> DIST = i -> DIST + 1;
-                    set_active(j);
+                    j = NEIGHBOR_NODE(i, a_for -> shift);
+                    if (!j->parent)
+                    {
+                        j -> is_sink = 1;
+                        j -> parent = MAKE_ODD(a_for);
+                        j -> TS = i -> TS;
+                        j -> DIST = i -> DIST + 1;
+                        set_active(j);
+                    }
+                    else if (!j->is_sink)
+                    {
+                        s_start = j;
+                        t_start = i;
+                        cap_middle     = & ( a_for -> r_rev_cap );
+                        rev_cap_middle = & ( a_for -> r_cap );
+                        break;
+                    }
+                    else if (j->TS <= i->TS &&
+                             j->DIST > i->DIST)
+                    {
+                        /* heuristic - trying to make the distance from j to the sink shorter */
+                        j -> parent = MAKE_ODD(a_for);
+                        j -> TS = i -> TS;
+                        j -> DIST = i -> DIST + 1;
+                    }
                 }
-                else if (!j->is_sink)
-                {
-                    s_start = j;
-                    t_start = i;
-                    cap_middle     = & ( a_for -> r_rev_cap );
-                    rev_cap_middle = & ( a_for -> r_cap );
-                    break;
-                }
-                else if (j->TS <= i->TS &&
-                         j->DIST > i->DIST)
-                {
-                    /* heuristic - trying to make the distance from j to the sink shorter */
-                    j -> parent = MAKE_ODD(a_for);
-                    j -> TS = i -> TS;
-                    j -> DIST = i -> DIST + 1;
-                }
-            }
+
             for (a_rev=a_rev_first; a_rev<a_rev_last; a_rev++)
             {
                 a_for = a_rev -> sister;

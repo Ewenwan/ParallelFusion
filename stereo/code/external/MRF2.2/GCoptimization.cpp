@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "string.h"
 #include <glog/logging.h>
+#include <iostream>
 
 #define MAX_INTT 1000000000
 
@@ -414,7 +415,7 @@ void GCoptimization::add_t_links_ARRAY(Energy *e,Energy::Var *variables,int size
 {
 	for ( int i = 0; i < size; i++ )
 		e -> add_term1(variables[i], m_datacost(m_lookupPixVar[i],alpha_label),
-		               m_datacost(m_lookupPixVar[i],m_labeling[m_lookupPixVar[i]]));
+					   m_datacost(m_lookupPixVar[i],m_labeling[m_lookupPixVar[i]]));
 
 }
 
@@ -424,7 +425,7 @@ void GCoptimization::add_t_links_FnPix(Energy *e,Energy::Var *variables,int size
 {
 	for ( int i = 0; i < size; i++ )
 		e -> add_term1(variables[i], m_dataFnPix(m_lookupPixVar[i],alpha_label),
-		               m_dataFnPix(m_lookupPixVar[i],m_labeling[m_lookupPixVar[i]]));
+					   m_dataFnPix(m_lookupPixVar[i],m_labeling[m_lookupPixVar[i]]));
 
 }
 /**************************************************************************************/
@@ -550,31 +551,31 @@ GCoptimization::EnergyType Swap::oneSwapIteration()
 GCoptimization::EnergyType Swap::alpha_beta_swap(LabelType alpha_label, LabelType beta_label)
 {
 	terminateOnError( alpha_label < 0 || alpha_label >= m_nLabels || beta_label < 0 || beta_label >= m_nLabels,
-	                  "Illegal Label to Expand On");
+					  "Illegal Label to Expand On");
 	perform_alpha_beta_swap(alpha_label,beta_label);
 	return(dataEnergy()+smoothnessEnergy());
 }
 /**************************************************************************************/
 
 void Swap::add_t_links_ARRAY_swap(Energy *e,Energy::Var *variables,int size,
-                                  LabelType alpha_label, LabelType beta_label,
-                                  PixelType *pixels)
+								  LabelType alpha_label, LabelType beta_label,
+								  PixelType *pixels)
 {
 	for ( int i = 0; i < size; i++ )
 		e -> add_term1(variables[i], m_datacost(pixels[i],alpha_label),
-		               m_datacost(pixels[i],beta_label));
+					   m_datacost(pixels[i],beta_label));
 
 }
 
 /**************************************************************************************/
 
 void Swap::add_t_links_FnPix_swap(Energy *e,Energy::Var *variables,int size,
-                                  LabelType alpha_label, LabelType beta_label,
-                                  PixelType *pixels)
+								  LabelType alpha_label, LabelType beta_label,
+								  PixelType *pixels)
 {
 	for ( int i = 0; i < size; i++ )
 		e -> add_term1(variables[i], m_dataFnPix(pixels[i],alpha_label),
-		               m_dataFnPix(pixels[i],beta_label));
+					   m_dataFnPix(pixels[i],beta_label));
 
 }
 
@@ -644,7 +645,7 @@ void Swap::perform_alpha_beta_swap(LabelType alpha_label, LabelType beta_label)
 /**************************************************************************************/
 
 void Swap::set_up_swap_energy_NG_ARRAY(int size,LabelType alpha_label,LabelType beta_label,
-                                       PixelType *pixels,Energy* e, Energy::Var *variables)
+									   PixelType *pixels,Energy* e, Energy::Var *variables)
 {
 	PixelType nPix,pix,i;
 	EnergyTermType weight;
@@ -669,14 +670,14 @@ void Swap::set_up_swap_energy_NG_ARRAY(int size,LabelType alpha_label,LabelType 
 				{
 					if ( pix < nPix )
 						e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-						              m_smoothcost(alpha_label,alpha_label)*weight,
-						              m_smoothcost(alpha_label,beta_label)*weight,
-						              m_smoothcost(beta_label,alpha_label)*weight,
-						              m_smoothcost(beta_label,beta_label)*weight);
+									  m_smoothcost(alpha_label,alpha_label)*weight,
+									  m_smoothcost(alpha_label,beta_label)*weight,
+									  m_smoothcost(beta_label,alpha_label)*weight,
+									  m_smoothcost(beta_label,beta_label)*weight);
 				}
 				else
 					e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-					              m_smoothcost(beta_label,m_labeling[nPix])*weight);
+								  m_smoothcost(beta_label,m_labeling[nPix])*weight);
 			}
 		}
 	}
@@ -685,7 +686,7 @@ void Swap::set_up_swap_energy_NG_ARRAY(int size,LabelType alpha_label,LabelType 
 /**************************************************************************************/
 
 void Swap::set_up_swap_energy_NG_FnPix(int size,LabelType alpha_label,LabelType beta_label,
-                                       PixelType *pixels,Energy* e, Energy::Var *variables)
+									   PixelType *pixels,Energy* e, Energy::Var *variables)
 {
 	PixelType nPix,pix,i;
 	Neighbor *tmp;
@@ -707,14 +708,14 @@ void Swap::set_up_swap_energy_NG_FnPix(int size,LabelType alpha_label,LabelType 
 				{
 					if ( pix < nPix )
 						e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-						              m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
-						              m_smoothFnPix(pix,nPix,alpha_label,beta_label),
-						              m_smoothFnPix(pix,nPix,beta_label,alpha_label),
-						              m_smoothFnPix(pix,nPix,beta_label,beta_label) );
+									  m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
+									  m_smoothFnPix(pix,nPix,alpha_label,beta_label),
+									  m_smoothFnPix(pix,nPix,beta_label,alpha_label),
+									  m_smoothFnPix(pix,nPix,beta_label,beta_label) );
 				}
 				else
 					e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-					              m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
+								  m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
 			}
 		}
 	}
@@ -723,7 +724,7 @@ void Swap::set_up_swap_energy_NG_FnPix(int size,LabelType alpha_label,LabelType 
 /**************************************************************************************/
 
 void Swap::set_up_swap_energy_G_FnPix(int size,LabelType alpha_label,LabelType beta_label,
-                                      PixelType *pixels,Energy* e, Energy::Var *variables)
+									  PixelType *pixels,Energy* e, Energy::Var *variables)
 {
 	PixelType nPix,pix,i,x,y;
 
@@ -740,14 +741,14 @@ void Swap::set_up_swap_energy_G_FnPix(int size,LabelType alpha_label,LabelType b
 
 			if ( m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label)
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
-				              m_smoothFnPix(pix,nPix,alpha_label,beta_label),
-				              m_smoothFnPix(pix,nPix,beta_label,alpha_label),
-				              m_smoothFnPix(pix,nPix,beta_label,beta_label) );
+							  m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
+							  m_smoothFnPix(pix,nPix,alpha_label,beta_label),
+							  m_smoothFnPix(pix,nPix,beta_label,alpha_label),
+							  m_smoothFnPix(pix,nPix,beta_label,beta_label) );
 
 			else
 				e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
+							  m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
 
 		}
 		if ( y > 0 )
@@ -755,14 +756,14 @@ void Swap::set_up_swap_energy_G_FnPix(int size,LabelType alpha_label,LabelType b
 			nPix = pix - m_width;
 			if ( m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label)
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
-				              m_smoothFnPix(pix,nPix,alpha_label,beta_label),
-				              m_smoothFnPix(pix,nPix,beta_label,alpha_label),
-				              m_smoothFnPix(pix,nPix,beta_label,beta_label) );
+							  m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
+							  m_smoothFnPix(pix,nPix,alpha_label,beta_label),
+							  m_smoothFnPix(pix,nPix,beta_label,alpha_label),
+							  m_smoothFnPix(pix,nPix,beta_label,beta_label) );
 
 			else
 				e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
+							  m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
 		}
 
 		if ( x < m_width - 1 )
@@ -771,7 +772,7 @@ void Swap::set_up_swap_energy_G_FnPix(int size,LabelType alpha_label,LabelType b
 
 			if ( !(m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label) )
 				e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
+							  m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
 		}
 
 		if ( y < m_height - 1 )
@@ -780,7 +781,7 @@ void Swap::set_up_swap_energy_G_FnPix(int size,LabelType alpha_label,LabelType b
 
 			if ( !(m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label) )
 				e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
+							  m_smoothFnPix(pix,nPix,beta_label,m_labeling[nPix]));
 
 		}
 	}
@@ -790,7 +791,7 @@ void Swap::set_up_swap_energy_G_FnPix(int size,LabelType alpha_label,LabelType b
 /**************************************************************************************/
 
 void Swap::set_up_swap_energy_G_ARRAY_VW(int size,LabelType alpha_label,LabelType beta_label,
-                                         PixelType *pixels,Energy* e, Energy::Var *variables)
+										 PixelType *pixels,Energy* e, Energy::Var *variables)
 {
 	PixelType nPix,pix,i,x,y;
 	EnergyTermType weight;
@@ -810,14 +811,14 @@ void Swap::set_up_swap_energy_G_ARRAY_VW(int size,LabelType alpha_label,LabelTyp
 
 			if ( m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label)
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label)*weight,
-				              m_smoothcost(alpha_label,beta_label)*weight,
-				              m_smoothcost(beta_label,alpha_label)*weight,
-				              m_smoothcost(beta_label,beta_label)*weight );
+							  m_smoothcost(alpha_label,alpha_label)*weight,
+							  m_smoothcost(alpha_label,beta_label)*weight,
+							  m_smoothcost(beta_label,alpha_label)*weight,
+							  m_smoothcost(beta_label,beta_label)*weight );
 
 			else
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-				              m_smoothcost(beta_label,m_labeling[nPix])*weight);
+							  m_smoothcost(beta_label,m_labeling[nPix])*weight);
 
 		}
 		if ( y > 0 )
@@ -827,14 +828,14 @@ void Swap::set_up_swap_energy_G_ARRAY_VW(int size,LabelType alpha_label,LabelTyp
 
 			if ( m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label)
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label)*weight,
-				              m_smoothcost(alpha_label,beta_label)*weight,
-				              m_smoothcost(beta_label,alpha_label)*weight,
-				              m_smoothcost(beta_label,beta_label)*weight );
+							  m_smoothcost(alpha_label,alpha_label)*weight,
+							  m_smoothcost(alpha_label,beta_label)*weight,
+							  m_smoothcost(beta_label,alpha_label)*weight,
+							  m_smoothcost(beta_label,beta_label)*weight );
 
 			else
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-				              m_smoothcost(beta_label,m_labeling[nPix])*weight);
+							  m_smoothcost(beta_label,m_labeling[nPix])*weight);
 		}
 
 		if ( x < m_width - 1 )
@@ -843,7 +844,7 @@ void Swap::set_up_swap_energy_G_ARRAY_VW(int size,LabelType alpha_label,LabelTyp
 
 			if ( !(m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label) )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*m_horizWeights[pix],
-				              m_smoothcost(beta_label,m_labeling[nPix])*m_horizWeights[pix]);
+							  m_smoothcost(beta_label,m_labeling[nPix])*m_horizWeights[pix]);
 		}
 
 		if ( y < m_height - 1 )
@@ -852,7 +853,7 @@ void Swap::set_up_swap_energy_G_ARRAY_VW(int size,LabelType alpha_label,LabelTyp
 
 			if ( !(m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label) )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*m_vertWeights[pix],
-				              m_smoothcost(beta_label,m_labeling[nPix])*m_vertWeights[pix]);
+							  m_smoothcost(beta_label,m_labeling[nPix])*m_vertWeights[pix]);
 
 		}
 	}
@@ -861,7 +862,7 @@ void Swap::set_up_swap_energy_G_ARRAY_VW(int size,LabelType alpha_label,LabelTyp
 /**************************************************************************************/
 
 void Swap::set_up_swap_energy_G_ARRAY(int size,LabelType alpha_label,LabelType beta_label,
-                                      PixelType *pixels,Energy* e, Energy::Var *variables)
+									  PixelType *pixels,Energy* e, Energy::Var *variables)
 
 {
 	PixelType nPix,pix,i,x,y;
@@ -881,14 +882,14 @@ void Swap::set_up_swap_energy_G_ARRAY(int size,LabelType alpha_label,LabelType b
 
 			if ( m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label)
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label),
-				              m_smoothcost(alpha_label,beta_label),
-				              m_smoothcost(beta_label,alpha_label),
-				              m_smoothcost(beta_label,beta_label) );
+							  m_smoothcost(alpha_label,alpha_label),
+							  m_smoothcost(alpha_label,beta_label),
+							  m_smoothcost(beta_label,alpha_label),
+							  m_smoothcost(beta_label,beta_label) );
 
 			else
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(beta_label,m_labeling[nPix]));
+							  m_smoothcost(beta_label,m_labeling[nPix]));
 
 		}
 		if ( y > 0 )
@@ -897,14 +898,14 @@ void Swap::set_up_swap_energy_G_ARRAY(int size,LabelType alpha_label,LabelType b
 
 			if ( m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label)
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label),
-				              m_smoothcost(alpha_label,beta_label),
-				              m_smoothcost(beta_label,alpha_label),
-				              m_smoothcost(beta_label,beta_label) );
+							  m_smoothcost(alpha_label,alpha_label),
+							  m_smoothcost(alpha_label,beta_label),
+							  m_smoothcost(beta_label,alpha_label),
+							  m_smoothcost(beta_label,beta_label) );
 
 			else
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(beta_label,m_labeling[nPix]));
+							  m_smoothcost(beta_label,m_labeling[nPix]));
 		}
 
 		if ( x < m_width - 1 )
@@ -913,7 +914,7 @@ void Swap::set_up_swap_energy_G_ARRAY(int size,LabelType alpha_label,LabelType b
 
 			if ( !(m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label) )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(beta_label,m_labeling[nPix]));
+							  m_smoothcost(beta_label,m_labeling[nPix]));
 		}
 
 		if ( y < m_height - 1 )
@@ -922,7 +923,7 @@ void Swap::set_up_swap_energy_G_ARRAY(int size,LabelType alpha_label,LabelType b
 
 			if ( !(m_labeling[nPix] == alpha_label || m_labeling[nPix] == beta_label))
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(beta_label,m_labeling[nPix]));
+							  m_smoothcost(beta_label,m_labeling[nPix]));
 
 		}
 	}
@@ -983,6 +984,7 @@ GCoptimization::EnergyType Expansion::start_expansion(int max_num_iterations )
 
 GCoptimization::EnergyType Expansion::alpha_expansion(LabelType label)
 {
+	using namespace std;
 	terminateOnError( label < 0 || label >= m_nLabels,"Illegal Label to Expand On");
 	perform_alpha_expansion(label);
 	return(dataEnergy()+smoothnessEnergy());
@@ -1081,14 +1083,14 @@ void Expansion::set_up_expansion_energy_NG_ARRAY(int size, LabelType alpha_label
 				{
 					if ( pix < nPix )
 						e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-						              m_smoothcost(alpha_label,alpha_label)*weight,
-						              m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-						              m_smoothcost(m_labeling[pix],alpha_label)*weight,
-						              m_smoothcost(m_labeling[pix],m_labeling[nPix])*weight);
+									  m_smoothcost(alpha_label,alpha_label)*weight,
+									  m_smoothcost(alpha_label,m_labeling[nPix])*weight,
+									  m_smoothcost(m_labeling[pix],alpha_label)*weight,
+									  m_smoothcost(m_labeling[pix],m_labeling[nPix])*weight);
 				}
 				else
 					e ->add_term1(variables[i],m_smoothcost(alpha_label,alpha_label)*weight,
-					              m_smoothcost(m_labeling[pix],alpha_label)*weight);
+								  m_smoothcost(m_labeling[pix],alpha_label)*weight);
 
 			}
 		}
@@ -1127,14 +1129,14 @@ void Expansion::set_up_expansion_energy_NG_FnPix(int size, LabelType alpha_label
 				{
 					if ( pix < nPix )
 						e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-						              m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
-						              m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-						              m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label),
-						              m_smoothFnPix(pix,nPix,m_labeling[pix],m_labeling[nPix]));
+									  m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
+									  m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
+									  m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label),
+									  m_smoothFnPix(pix,nPix,m_labeling[pix],m_labeling[nPix]));
 				}
 				else
 					e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-					              m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
+								  m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
 
 			}
 		}
@@ -1145,7 +1147,7 @@ void Expansion::set_up_expansion_energy_NG_FnPix(int size, LabelType alpha_label
 /* Performs alpha-expansion for  regular grid graph for case when energy terms are NOT        */
 /* specified by a function */
 void Expansion::set_up_expansion_energy_G_ARRAY_VW(int size, LabelType alpha_label,Energy *e,
-                                                   Energy::Var *variables )
+												   Energy::Var *variables )
 {
 	int i,nPix,pix,x,y;
 	EnergyTermType weight;
@@ -1165,12 +1167,12 @@ void Expansion::set_up_expansion_energy_G_ARRAY_VW(int size, LabelType alpha_lab
 			weight = m_horizWeights[pix];
 			if ( m_labeling[nPix] != alpha_label )
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label)*weight,
-				              m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-				              m_smoothcost(m_labeling[pix],alpha_label)*weight,
-				              m_smoothcost(m_labeling[pix],m_labeling[nPix])*weight);
+							  m_smoothcost(alpha_label,alpha_label)*weight,
+							  m_smoothcost(alpha_label,m_labeling[nPix])*weight,
+							  m_smoothcost(m_labeling[pix],alpha_label)*weight,
+							  m_smoothcost(m_labeling[pix],m_labeling[nPix])*weight);
 			else   e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-			                     m_smoothcost(m_labeling[pix],alpha_label)*weight);
+								 m_smoothcost(m_labeling[pix],alpha_label)*weight);
 		}
 
 		if ( y < m_height - 1 )
@@ -1179,12 +1181,12 @@ void Expansion::set_up_expansion_energy_G_ARRAY_VW(int size, LabelType alpha_lab
 			weight = m_vertWeights[pix];
 			if ( m_labeling[nPix] != alpha_label )
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label)*weight ,
-				              m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-				              m_smoothcost(m_labeling[pix],alpha_label)*weight ,
-				              m_smoothcost(m_labeling[pix],m_labeling[nPix])*weight );
+							  m_smoothcost(alpha_label,alpha_label)*weight ,
+							  m_smoothcost(alpha_label,m_labeling[nPix])*weight,
+							  m_smoothcost(m_labeling[pix],alpha_label)*weight ,
+							  m_smoothcost(m_labeling[pix],m_labeling[nPix])*weight );
 			else   e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*weight,
-			                     m_smoothcost(m_labeling[pix],alpha_label)*weight);
+								 m_smoothcost(m_labeling[pix],alpha_label)*weight);
 		}
 		if ( x > 0 )
 		{
@@ -1192,7 +1194,7 @@ void Expansion::set_up_expansion_energy_G_ARRAY_VW(int size, LabelType alpha_lab
 
 			if ( m_labeling[nPix] == alpha_label )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix])*m_horizWeights[nPix],
-				              m_smoothcost(m_labeling[pix],alpha_label)*m_horizWeights[nPix]);
+							  m_smoothcost(m_labeling[pix],alpha_label)*m_horizWeights[nPix]);
 		}
 
 		if ( y > 0 )
@@ -1201,7 +1203,7 @@ void Expansion::set_up_expansion_energy_G_ARRAY_VW(int size, LabelType alpha_lab
 
 			if ( m_labeling[nPix] == alpha_label )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,alpha_label)*m_vertWeights[nPix],
-				              m_smoothcost(m_labeling[pix],alpha_label)*m_vertWeights[nPix]);
+							  m_smoothcost(m_labeling[pix],alpha_label)*m_vertWeights[nPix]);
 		}
 
 	}
@@ -1212,7 +1214,7 @@ void Expansion::set_up_expansion_energy_G_ARRAY_VW(int size, LabelType alpha_lab
 /* Performs alpha-expansion for  regular grid graph for case when energy terms are NOT        */
 /* specified by a function */
 void Expansion::set_up_expansion_energy_G_ARRAY(int size, LabelType alpha_label,Energy *e,
-                                                Energy::Var *variables )
+												Energy::Var *variables )
 {
 	int i,nPix,pix,x,y;
 
@@ -1231,12 +1233,12 @@ void Expansion::set_up_expansion_energy_G_ARRAY(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] != alpha_label )
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label),
-				              m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(m_labeling[pix],alpha_label),
-				              m_smoothcost(m_labeling[pix],m_labeling[nPix]));
+							  m_smoothcost(alpha_label,alpha_label),
+							  m_smoothcost(alpha_label,m_labeling[nPix]),
+							  m_smoothcost(m_labeling[pix],alpha_label),
+							  m_smoothcost(m_labeling[pix],m_labeling[nPix]));
 			else   e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-			                     m_smoothcost(m_labeling[pix],alpha_label));
+								 m_smoothcost(m_labeling[pix],alpha_label));
 		}
 
 		if ( y < m_height - 1 )
@@ -1245,12 +1247,12 @@ void Expansion::set_up_expansion_energy_G_ARRAY(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] != alpha_label )
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothcost(alpha_label,alpha_label) ,
-				              m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(m_labeling[pix],alpha_label) ,
-				              m_smoothcost(m_labeling[pix],m_labeling[nPix]) );
+							  m_smoothcost(alpha_label,alpha_label) ,
+							  m_smoothcost(alpha_label,m_labeling[nPix]),
+							  m_smoothcost(m_labeling[pix],alpha_label) ,
+							  m_smoothcost(m_labeling[pix],m_labeling[nPix]) );
 			else   e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-			                     m_smoothcost(m_labeling[pix],alpha_label));
+								 m_smoothcost(m_labeling[pix],alpha_label));
 		}
 		if ( x > 0 )
 		{
@@ -1258,7 +1260,7 @@ void Expansion::set_up_expansion_energy_G_ARRAY(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] == alpha_label )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,m_labeling[nPix]),
-				              m_smoothcost(m_labeling[pix],alpha_label) );
+							  m_smoothcost(m_labeling[pix],alpha_label) );
 		}
 
 		if ( y > 0 )
@@ -1267,7 +1269,7 @@ void Expansion::set_up_expansion_energy_G_ARRAY(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] == alpha_label )
 				e ->add_term1(variables[i],m_smoothcost(alpha_label,alpha_label),
-				              m_smoothcost(m_labeling[pix],alpha_label));
+							  m_smoothcost(m_labeling[pix],alpha_label));
 		}
 
 	}
@@ -1279,7 +1281,7 @@ void Expansion::set_up_expansion_energy_G_ARRAY(int size, LabelType alpha_label,
 /* Performs alpha-expansion for  regular grid graph for case when energy terms are NOT        */
 /* specified by a function */
 void Expansion::set_up_expansion_energy_G_FnPix(int size, LabelType alpha_label,Energy *e,
-                                                Energy::Var *variables )
+												Energy::Var *variables )
 {
 	int i,nPix,pix,x,y;
 
@@ -1298,12 +1300,12 @@ void Expansion::set_up_expansion_energy_G_FnPix(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] != alpha_label )
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
-				              m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label),
-				              m_smoothFnPix(pix,nPix,m_labeling[pix],m_labeling[nPix]));
+							  m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
+							  m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
+							  m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label),
+							  m_smoothFnPix(pix,nPix,m_labeling[pix],m_labeling[nPix]));
 			else   e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-			                     m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
+								 m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
 		}
 
 		if ( y < m_height - 1 )
@@ -1312,12 +1314,12 @@ void Expansion::set_up_expansion_energy_G_FnPix(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] != alpha_label )
 				e ->add_term2(variables[i],variables[m_lookupPixVar[nPix]],
-				              m_smoothFnPix(pix,nPix,alpha_label,alpha_label) ,
-				              m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label) ,
-				              m_smoothFnPix(pix,nPix,m_labeling[pix],m_labeling[nPix]) );
+							  m_smoothFnPix(pix,nPix,alpha_label,alpha_label) ,
+							  m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
+							  m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label) ,
+							  m_smoothFnPix(pix,nPix,m_labeling[pix],m_labeling[nPix]) );
 			else   e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-			                     m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
+								 m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
 		}
 		if ( x > 0 )
 		{
@@ -1325,7 +1327,7 @@ void Expansion::set_up_expansion_energy_G_FnPix(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] == alpha_label )
 				e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,m_labeling[nPix]),
-				              m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label) );
+							  m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label) );
 		}
 
 		if ( y > 0 )
@@ -1334,7 +1336,7 @@ void Expansion::set_up_expansion_energy_G_FnPix(int size, LabelType alpha_label,
 
 			if ( m_labeling[nPix] == alpha_label )
 				e ->add_term1(variables[i],m_smoothFnPix(pix,nPix,alpha_label,alpha_label),
-				              m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
+							  m_smoothFnPix(pix,nPix,m_labeling[pix],alpha_label));
 		}
 
 	}
