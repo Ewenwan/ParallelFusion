@@ -21,8 +21,6 @@
 
 
 namespace ParallelFusion {
-    template<class LABELSPACE>
-    using SolutionType = std::pair<double,  LABELSPACE>;
 
     //synchronized solution type
     template<class LABELSPACE>
@@ -194,6 +192,7 @@ namespace ParallelFusion {
             current_solution.first = solver->evaluateEnergy(initial);
             current_solution.second.appendSpace(initial);
             bestSolutions[id]->set(current_solution);
+
             double lastEnergy = current_solution.first;
 
             for (auto iter = 0; iter < option.max_iteration; ++iter) {
@@ -236,7 +235,8 @@ namespace ParallelFusion {
                 //solve
                 SolutionType<LABELSPACE> curSolution;
                 printf("Solving...\n");
-                curSolution.first = solver->solve(proposals, curSolution.second);
+                solver->solve(proposals, current_solution, curSolution);
+                current_solution = curSolution;
 
                 //set the current best solution. It will be visible from other threads
                 bestSolutions[id]->set(curSolution);

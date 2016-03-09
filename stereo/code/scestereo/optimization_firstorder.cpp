@@ -31,7 +31,7 @@ namespace sce_stereo{
         std::default_random_engine generator;
         std::uniform_int_distribution<int> distribution(0, nLabel - 1);
         for (auto i = 0; i < width * height; ++i)
-            mrf->setLabel(i, distribution(generator));
+            mrf->setLabel(i, 0);
 
         float initDataEnergy = (float) mrf->dataEnergy() / MRFRatio;
         float initSmoothEnergy = (float) mrf->smoothnessEnergy() / MRFRatio;

@@ -7,12 +7,15 @@
 
 namespace ParallelFusion {
 
+    template<class LABELSPACE>
+    using SolutionType = std::pair<double,  LABELSPACE>;
+
     //FusionSolver class represents both energy definition and solving procedure.
     template<class LABELSPACE>
     class FusionSolver {
     public:
         //take initial value, run optimization and store solution in 'solution', return error
-        virtual double solve(const LABELSPACE &proposals, LABELSPACE &solution) = 0;
+        virtual void solve(const LABELSPACE &proposals, const SolutionType<LABELSPACE>& current_solution, SolutionType<LABELSPACE> &solution) = 0;
 
         //initialize solver with an initial solution, will be called automatically
         virtual void initSolver(const LABELSPACE & initial){}
