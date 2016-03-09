@@ -134,6 +134,7 @@ private:
     /* node structure */
     typedef struct node_st
     {
+        node_st(): first_out(NULL), first_in(NULL), parent(NULL), next(NULL){}
         /*
             Usually i->first_out is the first outgoing
             arc, and (i+1)->first_out-1 is the last outgoing arc.

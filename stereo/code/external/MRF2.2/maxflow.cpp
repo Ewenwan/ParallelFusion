@@ -653,14 +653,15 @@ void Graph::process_sink_orphan(node *i)
 Graph::flowtype Graph::maxflow()
 {
     using namespace std;
-    node *i, *j, *current_node = NULL, *s_start, *t_start = NULL;
+    node *i = NULL, *j = NULL, *current_node = NULL, *s_start, *t_start = NULL;
     captype *cap_middle = NULL, *rev_cap_middle = NULL;
-    arc_forward *a_for, *a_for_first, *a_for_last;
-    arc_reverse *a_rev, *a_rev_first, *a_rev_last;
-    nodeptr *np, *np_next;
+    arc_forward *a_for = NULL, *a_for_first = NULL, *a_for_last = NULL;
+    arc_reverse *a_rev = NULL, *a_rev_first = NULL, *a_rev_last = NULL;
+    nodeptr *np = NULL, *np_next = NULL;
 
     prepare_graph();
     maxflow_init();
+
     nodeptr_block = new DBlock<nodeptr>(NODEPTR_BLOCK_SIZE, error_function);
 
     while ( 1 )
@@ -722,6 +723,7 @@ Graph::flowtype Graph::maxflow()
                     }
                 }
             }
+
             if (!s_start) {
                 for (a_rev = a_rev_first; a_rev < a_rev_last; a_rev++) {
                     a_for = a_rev->sister;
@@ -851,6 +853,7 @@ Graph::flowtype Graph::maxflow()
             /* adoption end */
         }
         else current_node = NULL;
+
     }
 
     delete nodeptr_block;

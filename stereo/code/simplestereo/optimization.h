@@ -25,15 +25,31 @@
 namespace simple_stereo {
     template<typename T>
     struct MRFModel{
-        MRFModel(): width(0), height(0), MRFRatio(100.0){}
+        MRFModel(): MRF_data(NULL), hCue(NULL), vCue(NULL), width(0), height(0), MRFRatio(100.0){}
+        ~MRFModel(){
+            clear();
+        }
+
         int width;
         int height;
         int nLabel;
-        std::vector<T> MRF_data;
-        std::vector<T> hCue;
-        std::vector<T> vCue;
+        T* MRF_data;
+        T* hCue;
+        T* vCue;
         T weight_smooth;
-        const double MRFRatio;
+        double MRFRatio;
+
+        inline void clear(){
+            delete MRF_data;
+            delete hCue;
+            delete vCue;
+            MRF_data = NULL;
+            hCue = NULL;
+            vCue = NULL;
+            width = 0;
+            height = 0;
+            nLabel = 0;
+        }
 
         T operator()(int pixId, int l) const{
             CHECK_LT(pixId, width * height);
@@ -41,20 +57,21 @@ namespace simple_stereo {
             return MRF_data[pixId * nLabel + l];
         }
         void init(const int w, const int h, const int n, const double wei){
-            MRF_data.resize((size_t)w * h * n, (T)0);
-            hCue.resize((size_t)w * h, (T)0);
-            vCue.resize((size_t)w * h), (T)0;
+            MRF_data = new T[w * h * n];
+            hCue = new T[w * h];
+            vCue = new T[w * h];
             width = w;
             height = h;
             nLabel = n;
             weight_smooth = (T)(wei * MRFRatio);
+            MRFRatio = 100.0;
         }
     };
 
     class StereoOptimizer{
     public:
-        StereoOptimizer(const stereo_base::FileIO& file_io_, const MRFModel<int>& model_): file_io(file_io_), model(model_),
-                                                                                      width(model_.width), height(model_.height), nLabel(model_.nLabel){}
+        StereoOptimizer(const stereo_base::FileIO& file_io_, const MRFModel<int>* model_): file_io(file_io_), model(model_),
+                                                                                      width(model_->width), height(model_->height), nLabel(model_->nLabel){}
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const = 0;
         double evaluateEnergy(const std::vector<int>& labeling) const{
             return 0;
@@ -65,7 +82,7 @@ namespace simple_stereo {
 
     protected:
         const stereo_base::FileIO& file_io;
-        const MRFModel<int>& model;
+        const MRFModel<int>* model;
         const int width;
         const int height;
         const int nLabel;
@@ -73,13 +90,13 @@ namespace simple_stereo {
 
     class FirstOrderOptimize: public StereoOptimizer{
     public:
-        FirstOrderOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>& model_): StereoOptimizer(file_io_, model_){}
+        FirstOrderOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>* model_): StereoOptimizer(file_io_, model_){}
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     };
 
     class ParallelOptimize: public StereoOptimizer{
     public:
-        ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>& model_, const int num_threads_):
+        ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>* model_, const int num_threads_):
                 StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     private:
@@ -131,10 +148,11 @@ namespace simple_stereo {
     public:
         SimpleStereoSolver(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
         ~SimpleStereoSolver(){
-            //delete mrf;
+            delete mrf;
         }
         virtual void initSolver(const CompactLabelSpace& initial);
-        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution, ParallelFusion::SolutionType<CompactLabelSpace>& solution);
+        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
+                           ParallelFusion::SolutionType<CompactLabelSpace>& solution);
         virtual double evaluateEnergy(const CompactLabelSpace& solution) const;
 
     private:
@@ -144,7 +162,7 @@ namespace simple_stereo {
         }
         const MRFModel<int>* model;
         const int kPix;
-        std::shared_ptr<Expansion> mrf;
+        Expansion* mrf;
     };
 
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{

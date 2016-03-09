@@ -268,9 +268,10 @@ namespace ParallelFusion {
 		} else if (option.selectionMethod == ParallelFusionOption::RANDOM) {
 		  for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                   //TODO: better thread selecting
-                    int tid = distribution(seed);
-                    while (tid == id)
-                        tid = distribution(seed);
+                    /* int tid = distribution(seed); */
+                    /* while (tid == id) */
+                    /*     tid = distribution(seed); */
+		    int tid = (id + pid) % option.num_threads;
                     SolutionType<LABELSPACE> s;
                     //bestSolutions[tid]->get(s);
                     bestSolutions[tid].get(s);
@@ -296,6 +297,7 @@ namespace ParallelFusion {
                 solver->solve(proposals, current_solution, curSolution);
                 printf("Done. Energy: %.5f\n", curSolution.first);
                 current_solution = curSolution;
+
                 generator->writeSolution(curSolution, id, iter);
 
                 //if synchronization is needed, thread won't submit solution unless

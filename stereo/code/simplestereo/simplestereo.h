@@ -21,7 +21,10 @@ namespace simple_stereo {
 
     class SimpleStereo{
     public:
-        SimpleStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int dispResolution_, const double weight_smooth_);
+        SimpleStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int dispResolution_, const int downsample_, const double weight_smooth_);
+        ~SimpleStereo(){
+            model->clear();
+        }
         void initMRF();
         void computeMatchingCost();
         void assignSmoothWeight();
@@ -36,9 +39,10 @@ namespace simple_stereo {
 
         const stereo_base::FileIO& file_io;
         const int anchor;
+        const int downsample;
         std::vector<cv::Mat> images;
 
-        MRFModel<int> model;
+        MRFModel<int>* model;
 
         stereo_base::Depth unaryDisp;
         int width;
