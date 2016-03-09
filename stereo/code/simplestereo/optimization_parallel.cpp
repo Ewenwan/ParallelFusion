@@ -45,12 +45,12 @@ namespace simple_stereo {
 
         SolutionType<Space > solution;
         parallelFusionPipeline.getBestLabeling(solution);
-        printf("Done! Final energy: %.5f\n", solution.first);
+        printf("Done! Final energy: %.5f, running time: %.3f\n", solution.first, t);
 
         for(auto i=0; i<model.width * model.height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
         }
-        return 0.0;
+        return solution;
     }
 
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
@@ -69,21 +69,28 @@ namespace simple_stereo {
                                                              new SmoothnessCost(1, 4, model.weight_smooth,
                                                                                 const_cast<int *>(model.hCue.data()),
                                                                                 const_cast<int *>(model.vCue.data())));
-        mrf = shared_ptr<Expansion>(new Expansion(model.width, model.height, energy_function));
+        mrf = shared_ptr<Expansion>(new Expansion(model.width, model.height, model.nLabel, energy_function));
+        mrf->initialize();
+        mrf->clearAnswer();
+        for(auto i=0; i<kPix; ++i)
+            mrf->setLabel(i, initial(i,0));
     }
 
     double SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
-                                     CompactLabelSpace& solution) const {
+                                     CompactLabelSpace& solution){
         CHECK(!proposals.empty());
-        CHECK_EQ(proposals.getNumNode(), kPix);
-        const int kFullProposal = (int) proposals.getLabelOfNode(0).size();
+        int kFullProposal;
+        if(proposals.getLabelSpace().empty())
+            kFullProposal = 0;
+        else
+            kFullProposal = (int) proposals.getLabelOfNode(0).size();
+
         const vector<int> &singleLabel = proposals.getSingleLabel();
         for (auto i = 0; i < singleLabel.size(); ++i) {
             printf("Fusing proposal with graph cut%d\n", i);
             mrf->alpha_expansion(singleLabel[i]);
             cout << "done" << endl << flush;
         }
-
         for (auto i = 0; i < kFullProposal; ++i) {
             //run QPBO
             kolmogorov::qpbo::QPBO<int> qpbo(kPix, 4 * kPix);
@@ -125,6 +132,6 @@ namespace simple_stereo {
         for (auto i = 0; i < kPix; ++i) {
             solution.getLabelOfNode(i)[0] = mrf->getLabel(i);
         }
-        return 0;
+        return (double)mrf->totalEnergy() / model.MRFRatio;
     }
 }

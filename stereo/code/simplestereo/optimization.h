@@ -107,7 +107,7 @@ namespace simple_stereo {
             }
             CHECK_EQ(rhs.getNumNode(), getNumNode());
             for(auto i=0; i<label_space_.size(); ++i){
-                for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++i)
+                for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
                     label_space_[i].push_back(rhs(i,j));
             }
             for(auto i=0; i<rhs.getSingleLabel().size(); ++i)
@@ -130,7 +130,7 @@ namespace simple_stereo {
     public:
         SimpleStereoSolver(const MRFModel<int>& model_): model(model_), kPix(model.width * model.height){}
         virtual void initSolver(const CompactLabelSpace& initial);
-        virtual double solve(const CompactLabelSpace &proposals, CompactLabelSpace &solution) const;
+        virtual double solve(const CompactLabelSpace &proposals, CompactLabelSpace &solution);
         virtual double evaluateEnergy(const CompactLabelSpace& solution) const{
             return (double)mrf->totalEnergy();
         }
