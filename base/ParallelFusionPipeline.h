@@ -70,7 +70,7 @@ namespace ParallelFusion {
         int max_iteration;
         int num_threads;
         int fuseSize;
-        ProposalAddition addMethod;
+      ProposalAddition addMethod;
     };
 
     template<class LABELSPACE>
