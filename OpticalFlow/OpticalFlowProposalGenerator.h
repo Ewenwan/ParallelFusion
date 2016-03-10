@@ -7,23 +7,19 @@
 #include "../base/ProposalGenerator.h"
 
 namespace flow_fusion {
-    class OpticalFlowProposalGenerator : public ParallelFusion::ProposalGenerator<std::pair<double, double> > {
+  class OpticalFlowProposalGenerator : public ParallelFusion::ProposalGenerator<ParallelFusion::LabelSpace<std::pair<double, double> > > {
+
+    typedef ParallelFusion::LabelSpace<std::pair<double, double> > LABELSPACE;
     public:
-        OpticalFlowProposalGenerator(const cv::Mat &image_1, const cv::Mat &image_2,
-                                     const int NUM_PROPOSAL_SOLUTIONS_THRESHOLD,
-                                     const std::vector<std::pair<double, double> > &ground_truth_solution) : image_1_(
-                image_1.clone()), image_2_(image_2.clone()), IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows),
-                                                                                                             NUM_PROPOSAL_SOLUTIONS_THRESHOLD_(
-                                                                                                                     NUM_PROPOSAL_SOLUTIONS_THRESHOLD),
-                                                                                                             ground_truth_flows_(
-                                                                                                                     ground_truth_solution) { };
+    OpticalFlowProposalGenerator(const cv::Mat &image_1, const cv::Mat &image_2) : image_1_(
+											    image_1.clone()), image_2_(image_2.clone()), IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows) {};
+	
+    void getProposals(LABELSPACE& proposal_label_space, const LABELSPACE& current_solution, const int N);
+        
+      std::vector<std::pair<double, double> > getInitialSolution() const;
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> getProposal();
-
-        std::vector<std::pair<double, double> > getInitialSolution() const;
-
-        void writeSolution(const std::vector<std::pair<double, double> > &solution, const int iteration,
-                           const int thread_index) const;
+      void writeSolution(const std::pair<double, LABELSPACE> &solution, const int thread_index, const int iteration) const;
+        
         //void setGroundTruthSolution(const std::vector<std::pair<double, double> > &ground_truth_solution) { ground_truth_flows_ = ground_truth_solution; };
 
     private:
@@ -32,29 +28,30 @@ namespace flow_fusion {
         const int IMAGE_WIDTH_;
         const int IMAGE_HEIGHT_;
 
-        const int NUM_PROPOSAL_SOLUTIONS_THRESHOLD_;
-
         int num_proposed_solutions_;
         std::string proposal_name_;
 
-        std::vector<std::pair<double, double> > ground_truth_flows_;
+	
+	std::vector<std::pair<double, double> > current_solution_;
 
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalPyrLK();
+	  void setCurrentSolution(const LABELSPACE &current_solution_label_space);
+        
+        void generateProposalPyrLK(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalFarneback();
+        void generateProposalFarneback(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalLayerWise();
+        void generateProposalLayerWise(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalNearestNeighbor();
+        void generateProposalNearestNeighbor(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalMoveAround();
+        void generateProposalMoveAround(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalShift();
+        void generateProposalShift(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalCluster();
+        void generateProposalCluster(LABELSPACE& proposal_label_space);
 
-        ParallelFusion::LabelSpace <std::pair<double, double>> generateProposalDisturb();
+        void generateProposalDisturb(LABELSPACE& proposal_label_space);
     };
 }
 

@@ -55,7 +55,7 @@ namespace ParallelFusion {
         }
 
         void assign(const int NUM_NODES, const std::vector<LabelType> &node_labels = std::vector<LabelType>()) {
-            num_nodes_ = NUM_NODES;
+	  num_nodes_ = NUM_NODES;
             label_space_.assign(NUM_NODES, node_labels);
         };
 

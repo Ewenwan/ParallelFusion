@@ -18,8 +18,8 @@ using namespace cv_utils;
 using namespace ParallelFusion;
 
 namespace flow_fusion {
-    OpticalFlowFusionSolver::OpticalFlowFusionSolver(const cv::Mat &image_1, const cv::Mat &image_2) : image_1_(
-            image_1.clone()), image_2_(image_2.clone()), IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows) {
+  OpticalFlowFusionSolver::OpticalFlowFusionSolver(const cv::Mat &image_1, const cv::Mat &image_2) : image_1_(
+													      image_1.clone()), image_2_(image_2.clone()), IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows) {
       calcNeighborInfo();
 
       Mat blurred_image_1, blurred_image_2;
@@ -135,13 +135,14 @@ namespace flow_fusion {
       return smoothness_cost;
     }
 
-    vector<pair<double, double> > OpticalFlowFusionSolver::solve(const LabelSpace <pair<double, double>> &label_space,
-                                                                 double &energy) const {
+  
+  void OpticalFlowFusionSolver::solve(const LABELSPACE &proposals, const ParallelFusion::SolutionType<LABELSPACE>& current_solution, ParallelFusion::SolutionType<LABELSPACE>& solution)
+  {
       const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
 
       typedef opengm::GraphicalModel<float, opengm::Adder> Model;
       vector<size_t> pixel_num_labels(NUM_PIXELS);
-      vector<vector<pair<double, double> > > label_space_vec = label_space.getLabelSpace();
+      vector<vector<pair<double, double> > > label_space_vec = proposals.getLabelSpace();
 
       for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
         pixel_num_labels[pixel] = label_space_vec[pixel].size();
@@ -244,10 +245,13 @@ namespace flow_fusion {
         solver.arg(selected_proposal_indices);
         cout << "energy: " << solver.value() << " lower bound: " << solver.bound() << endl;
 
-        energy = solver.value();
+        double energy = solver.value();
 
         for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
           fused_solution[pixel] = label_space_vec[pixel][selected_proposal_indices[pixel]];
+
+	LABELSPACE solution_label_space(fused_solution);
+        solution = make_pair(energy, solution_label_space);
       }
 
       if (true) {
@@ -262,76 +266,18 @@ namespace flow_fusion {
         //energy->AddRandomMessages(0, 0, 0.001);
 
         double lower_bound;
+	double energy;
         energy_function->Minimize_TRW_S(options, lower_bound, energy);
         for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
           fused_solution[pixel] = label_space_vec[pixel][energy_function->GetSolution(nodes[pixel])];
+
+	LABELSPACE solution_label_space(fused_solution);
+        solution = make_pair(energy, solution_label_space);
+
       }
 
-      return fused_solution;
     }
 
-    double OpticalFlowFusionSolver::checkSolutionEnergy(const vector<pair<double, double> > &solution) {
-      const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
-      double data_energy = 0;
-      for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
-        if (onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
-          continue;
-        pair<double, double> label = solution[pixel];
-        data_energy += calcDataCost(pixel, label);
-      }
-
-      Mat smoothness_energy_image = Mat::zeros(IMAGE_HEIGHT_, IMAGE_WIDTH_, CV_8UC1);
-      double smoothness_energy = 0;
-      for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
-        if (onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
-          continue;
-        // vector<int> neighbor_pixels = findNeighbors(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_);
-        // for (vector<int>::const_iterator neighbor_pixel_it = neighbor_pixels.begin(); neighbor_pixel_it != neighbor_pixels.end(); neighbor_pixel_it++) {
-        //   if (*neighbor_pixel_it < pixel)
-        //     continue;
-        //   if (onBorder(*neighbor_pixel_it, IMAGE_WIDTH_, IMAGE_HEIGHT_))
-        //     continue;
-        //   pair<double, double> label = solution[pixel];
-        //   pair<double, double> neighbor_label = solution[*neighbor_pixel_it];
-        //   smoothness_energy += calcSmoothnessCost(pixel, *neighbor_pixel_it, label, neighbor_label) * SMOOTHNESS_TERM_WEIGHT_;
-        //   smoothness_energy_image.at<uchar>(pixel / IMAGE_WIDTH_, pixel % IMAGE_WIDTH_) = min(calcSmoothnessCost(pixel, *neighbor_pixel_it, label, neighbor_label) * SMOOTHNESS_TERM_WEIGHT_ / 3.0 * 255, 255.0);
-        // }
-
-        double pixel_smoothness_cost_sum = 0;
-        for (map<int, double>::const_iterator neighbor_pixel_it = pixel_neighbor_weights_[pixel].begin();
-             neighbor_pixel_it != pixel_neighbor_weights_[pixel].end(); neighbor_pixel_it++) {
-          int neighbor_pixel = neighbor_pixel_it->first;
-          if (onBorder(neighbor_pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
-            continue;
-          if (neighbor_pixel < pixel)
-            continue;
-          pair<double, double> label = solution[pixel];
-          pair<double, double> neighbor_label = solution[neighbor_pixel];
-          double smoothness_cost = calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) *
-                                   max(neighbor_pixel_it->second, 0.0) * SMOOTHNESS_TERM_WEIGHT_;
-          smoothness_energy += smoothness_cost;
-          pixel_smoothness_cost_sum += smoothness_cost;
-          double cost_temp = calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label);
-          // if (pixel == 231 * IMAGE_WIDTH_ + 244 && neighbor_pixel == 231 * IMAGE_WIDTH_ + 245) {
-          // 	cout << cost_temp << '\t' << neighbor_pixel_it->second << endl;
-          // 	exit(1);
-          // }
-          //if (energy_temp > 0.2)
-          //cout << energy_temp << '\t' << neighbor_pixel_it->second << endl;
-          //cout << calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) * neighbor_pixel_it->second * SMOOTHNESS_TERM_WEIGHT_ / 0.3 * 255 << endl;
-          //if (calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) > 0.1)
-          //cout << pixel % IMAGE_WIDTH_ << '\t' << pixel / IMAGE_WIDTH_ << '\t' << neighbor_pixel % IMAGE_WIDTH_ << '\t' << neighbor_pixel / IMAGE_WIDTH_ << '\t' << neighbor_pixel_it->second << endl;
-          // if (cost_temp > 3) {
-          // 	smoothness_energy_image.at<uchar>(pixel / IMAGE_WIDTH_, pixel % IMAGE_WIDTH_) = min(cost_temp / 0.2 * 255, 255.0);
-          // 	smoothness_energy_image.at<uchar>(neighbor_pixel / IMAGE_WIDTH_, neighbor_pixel % IMAGE_WIDTH_) = min(cost_temp / 0.2 * 255, 255.0);
-          // }
-        }
-        //cout << pixel_smoothness_cost_sum << endl;
-      }
-      //  imwrite("Test/smoothness_energy_image.png", smoothness_energy_image);
-      cout << "data energy: " << data_energy << '\t' << "smoothness energy: " << smoothness_energy << endl;
-      return data_energy + smoothness_energy;
-    }
 
     void OpticalFlowFusionSolver::calcNeighborInfo() {
       Mat color_image;
@@ -395,4 +341,72 @@ namespace flow_fusion {
         }
       }
     }
+
+  double OpticalFlowFusionSolver::evaluateEnergy(const LABELSPACE & solution) const{
+    const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
+    vector<pair<double, double> > solution_labels(NUM_PIXELS);
+    for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
+      solution_labels[pixel] = solution.getLabelOfNode(pixel)[0];
+    }
+    
+    double data_energy = 0;
+    for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
+      if (onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
+	continue;
+      pair<double, double> label = solution_labels[pixel];
+      data_energy += calcDataCost(pixel, label);
+    }
+
+    Mat smoothness_energy_image = Mat::zeros(IMAGE_HEIGHT_, IMAGE_WIDTH_, CV_8UC1);
+    double smoothness_energy = 0;
+    for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
+      if (onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
+	continue;
+      // vector<int> neighbor_pixels = findNeighbors(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_);
+      // for (vector<int>::const_iterator neighbor_pixel_it = neighbor_pixels.begin(); neighbor_pixel_it != neighbor_pixels.end(); neighbor_pixel_it++) {
+      //   if (*neighbor_pixel_it < pixel)
+      //     continue;
+      //   if (onBorder(*neighbor_pixel_it, IMAGE_WIDTH_, IMAGE_HEIGHT_))
+      //     continue;
+      //   pair<double, double> label = solution[pixel];
+      //   pair<double, double> neighbor_label = solution[*neighbor_pixel_it];
+      //   smoothness_energy += calcSmoothnessCost(pixel, *neighbor_pixel_it, label, neighbor_label) * SMOOTHNESS_TERM_WEIGHT_;
+      //   smoothness_energy_image.at<uchar>(pixel / IMAGE_WIDTH_, pixel % IMAGE_WIDTH_) = min(calcSmoothnessCost(pixel, *neighbor_pixel_it, label, neighbor_label) * SMOOTHNESS_TERM_WEIGHT_ / 3.0 * 255, 255.0);
+      // }
+
+      double pixel_smoothness_cost_sum = 0;
+      for (map<int, double>::const_iterator neighbor_pixel_it = pixel_neighbor_weights_[pixel].begin();
+	   neighbor_pixel_it != pixel_neighbor_weights_[pixel].end(); neighbor_pixel_it++) {
+	int neighbor_pixel = neighbor_pixel_it->first;
+	if (onBorder(neighbor_pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
+	  continue;
+	if (neighbor_pixel < pixel)
+	  continue;
+	pair<double, double> label = solution_labels[pixel];
+	pair<double, double> neighbor_label = solution_labels[neighbor_pixel];
+	double smoothness_cost = calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) *
+	  max(neighbor_pixel_it->second, 0.0) * SMOOTHNESS_TERM_WEIGHT_;
+	smoothness_energy += smoothness_cost;
+	pixel_smoothness_cost_sum += smoothness_cost;
+	double cost_temp = calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label);
+	// if (pixel == 231 * IMAGE_WIDTH_ + 244 && neighbor_pixel == 231 * IMAGE_WIDTH_ + 245) {
+	// 	cout << cost_temp << '\t' << neighbor_pixel_it->second << endl;
+	// 	exit(1);
+	// }
+	//if (energy_temp > 0.2)
+	//cout << energy_temp << '\t' << neighbor_pixel_it->second << endl;
+	//cout << calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) * neighbor_pixel_it->second * SMOOTHNESS_TERM_WEIGHT_ / 0.3 * 255 << endl;
+	//if (calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) > 0.1)
+	//cout << pixel % IMAGE_WIDTH_ << '\t' << pixel / IMAGE_WIDTH_ << '\t' << neighbor_pixel % IMAGE_WIDTH_ << '\t' << neighbor_pixel / IMAGE_WIDTH_ << '\t' << neighbor_pixel_it->second << endl;
+	// if (cost_temp > 3) {
+	// 	smoothness_energy_image.at<uchar>(pixel / IMAGE_WIDTH_, pixel % IMAGE_WIDTH_) = min(cost_temp / 0.2 * 255, 255.0);
+	// 	smoothness_energy_image.at<uchar>(neighbor_pixel / IMAGE_WIDTH_, neighbor_pixel % IMAGE_WIDTH_) = min(cost_temp / 0.2 * 255, 255.0);
+	// }
+      }
+      //cout << pixel_smoothness_cost_sum << endl;
+    }
+    //  imwrite("Test/smoothness_energy_image.png", smoothness_energy_image);
+    cout << "data energy: " << data_energy << '\t' << "smoothness energy: " << smoothness_energy << endl;
+    return data_energy + smoothness_energy;
+  }
 }

@@ -9,14 +9,19 @@
 #include "../base/FusionSolver.h"
 
 namespace flow_fusion {
-    class OpticalFlowFusionSolver : public ParallelFusion::FusionSolver<std::pair<double, double> > {
-    public:
+  typedef ParallelFusion::LabelSpace<std::pair<double, double> > LABELSPACE;
+  
+  class OpticalFlowFusionSolver : public ParallelFusion::FusionSolver<LABELSPACE> {
+  public:
+
+    
         OpticalFlowFusionSolver(const cv::Mat &image_1, const cv::Mat &image_2);
 
-        std::vector<std::pair<double, double> > solve(const ParallelFusion::LabelSpace <std::pair<double, double>> &label_space,
-                                                      double &energy) const;
+	void solve(const LABELSPACE &proposals, const ParallelFusion::SolutionType<LABELSPACE>& current_solution, ParallelFusion::SolutionType<LABELSPACE>& solution);
 
-        double checkSolutionEnergy(const std::vector<std::pair<double, double> > &solution);
+	//given a solution, evaluate energy
+	double evaluateEnergy(const LABELSPACE & solution) const;
+        
 
     private:
         cv::Mat image_1_;

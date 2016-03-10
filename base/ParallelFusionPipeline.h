@@ -79,14 +79,17 @@ namespace ParallelFusion {
 //    };
 
     struct ParallelFusionOption {
-        ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), synchronize(false), selectionMethod(RANDOM) { }
-        //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
+    ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), synchronize(false), selectionMethod(RANDOM), current_solution_source{FUSED_FROM_SELF}{ }
+      //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
         double convergeThreshold;
         int max_iteration;
         int num_threads;
-        bool synchronize;
+      bool synchronize;
 
-        enum SolutionSelection{RANDOM, BEST};
+      enum CurrentSolutionSource{FUSED_FROM_SELF, BEST_FROM_POOL, RANDOM_FROM_POOL};
+      CurrentSolutionSource current_solution_source;
+
+      enum SolutionSelection{RANDOM, BEST};
         SolutionSelection selectionMethod;
     };
 
@@ -122,7 +125,6 @@ namespace ParallelFusion {
                                  const std::vector<ThreadOption> &thread_options);
 
         double getBestLabeling(SolutionType<LABELSPACE>& solution) const;
-        void getAllResult(LABELSPACE& solutions) const;
 
         //slave threads
         void workerThread(const int id,
@@ -243,7 +245,7 @@ namespace ParallelFusion {
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
         try {
-            printf("Thread %d lauched\n", id);
+	  printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);
             bool converge = false;
@@ -277,11 +279,11 @@ namespace ParallelFusion {
                         bestSolutions[tid].get(s);
                         proposals.appendSpace(s.second);
                     }
-                } else if (option.selectionMethod == ParallelFusionOption::BEST) {
+                } else if (option.selectionMethod == ParallelFusionOption::BEST) { //
                     std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size());
                     for(auto tid=0; tid < slaveThreadIds.size(); ++tid)
-                        solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
-                    sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
+		      solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
+		    sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
                     for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                         int tid = solution_energy_index_pairs[pid].second;
                         SolutionType<LABELSPACE> s;
@@ -294,8 +296,21 @@ namespace ParallelFusion {
                 SolutionType<LABELSPACE> curSolution;
                 solver->solve(proposals, current_solution, curSolution);
                 //printf("Done. Energy: %.5f\n", curSolution.first);
-                current_solution = curSolution;
 
+		if (option.current_solution_source == ParallelFusionOption::FUSED_FROM_SELF)
+		  current_solution = curSolution;
+		else if (option.current_solution_source == ParallelFusionOption::BEST_FROM_POOL) {
+                  std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size());
+                  for(auto tid=0; tid < slaveThreadIds.size(); ++tid)
+                    solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
+		  std::vector<std::pair<double, int> >::const_iterator min_it = min_element(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
+		  int min_energy_thread_id = min_it->second;
+		  bestSolutions[min_energy_thread_id].get(current_solution);
+                } else if (option.current_solution_source == ParallelFusionOption::RANDOM_FROM_POOL) {
+                  int selected_thread_id = rand() % slaveThreadIds.size();
+                  bestSolutions[selected_thread_id].get(current_solution);
+		}
+		
                 generator->writeSolution(curSolution, id, iter);
 
                 //if synchronization is needed, thread won't submit solution unless
@@ -351,15 +366,6 @@ namespace ParallelFusion {
             terminate.store(true);
             printf("Thread %d throws and exception: %s\n", id, e.what());
             return;
-        }
-    }
-
-    template<class LABELSPACE>
-    void ParallelFusionPipeline<LABELSPACE>::getAllResult(LABELSPACE& solutions) const {
-        for(auto i=0; i<slaveThreadIds.size(); ++i){
-            SolutionType<LABELSPACE> s;
-            bestSolutions[i].get(s);
-            solutions.appendSpace(s.second);
         }
     }
 
