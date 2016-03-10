@@ -13,98 +13,20 @@
 
 //#include "FusionThread.h"
 //#include "cv_utils/cv_utils.h"
-#include "FusionSolver.h"
-#include "thread_guard.h"
-#include <mutex>
-#include "LabelSpace.h"
-#include "ProposalGenerator.h"
+#include "pipeline_util.h"
+
 
 
 namespace ParallelFusion {
 
-    //synchronized solution type
-  template<class LABELSPACE>
-    class SynSolution {
-    public:
-        SynSolution(): solution(SolutionType<LABELSPACE>(-1, LABELSPACE())){}
-        void set(const SolutionType<LABELSPACE> &l) {
-	  std::lock_guard<std::mutex> lock(mt);
-            solution = l;
-        }
 
-        void get(SolutionType<LABELSPACE> &v) const {
-            std::lock_guard<std::mutex> lock(mt);
-            v = solution;
-        }
-
-        double getEnergy() const{
-            std::lock_guard<std::mutex> lock(mt);
-            return solution.first;
-        }
-
-        //the following two method can only be called from single thread!!!
-        inline SolutionType<LABELSPACE>& getSolution(){
-            return solution;
-        }
-        inline const SolutionType<LABELSPACE>& getSolution() const{
-            return solution;
-        }
-
-        SynSolution &operator=(const SynSolution &) = delete;
-
-        SynSolution(SynSolution & rhs) = delete;
-
-    private:
-        SolutionType<LABELSPACE> solution;
-        mutable std::mutex mt;
-    };
-
-//    template<typename T>
-//    class SynVector{
-//    public:
-//        SynVector(const size_t size):data.resize(size){}
-//        const T get(int id) const{
-//            CHECK_LT(id, data.size());
-//            std::lock_guard<std::mutex> lock(mt);
-//            return data[id];
-//        }
-//        void set(int id, const T& v){
-//            CHECK_LT(id, data.size());
-//            std::lock_guard<std::mutex> lock(mt);
-//            data[id] = v;
-//        }
-//    private:
-//        std::vector<T> data;
-//        mutable std::mutex mt;
-//    };
-
-    struct ParallelFusionOption {
-    ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), synchronize(false), selectionMethod(RANDOM){ }
-      //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
-        double convergeThreshold;
-        int max_iteration;
-        int num_threads;
-      bool synchronize;
-
-      
-      enum SolutionSelection{RANDOM, BEST};
-        SolutionSelection selectionMethod;
-    };
-
-    struct ThreadOption {
-    ThreadOption() : kTotal(1), kOtherThread(0), solution_exchange_interval(1), is_monitor(false) { }
-        int kTotal;
-      int kOtherThread;
-      int solution_exchange_interval;
-        bool is_monitor;
-    };
 
     template<class LABELSPACE>
-      class ParallelFusionPipeline {
+    class ParallelFusionPipeline {
     public:
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
-	terminate(false), write_flag((size_t)option_.num_threads){ }
+                                                                      terminate(false), write_flag((size_t)option_.num_threads), threadProfile((size_t)option_.num_threads){ }
 
         typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
@@ -124,6 +46,13 @@ namespace ParallelFusion {
                                  const std::vector<ThreadOption> &thread_options);
 
         double getBestLabeling(SolutionType<LABELSPACE>& solution) const;
+        void getAllResult(LABELSPACE& solutions) const;
+        inline const GlobalTimeEnergyProfile& getGlobalProfile() const{
+            return globalProfile;
+        }
+        inline const std::vector<std::list<Observation> >& getAllThreadProfiles() const{
+            return threadProfile;
+        }
 
         //slave threads
         void workerThread(const int id,
@@ -136,7 +65,6 @@ namespace ParallelFusion {
         inline const ParallelFusionOption &getOption() const { return option; }
 
         inline ParallelFusionOption &getOption() { return option; }
-
 
         ParallelFusionPipeline(ParallelFusionPipeline &) = delete;
 
@@ -155,6 +83,14 @@ namespace ParallelFusion {
 
         std::vector<int> slaveThreadIds;
         std::vector<int> monitorThreadIds;
+
+        //keep tracking of <time, energy> of each thread
+        std::vector<std::list<Observation> > threadProfile;
+
+        //global time-energy profile
+        GlobalTimeEnergyProfile globalProfile;
+
+        float start_time;
     };
 
 
@@ -177,14 +113,14 @@ namespace ParallelFusion {
         for(auto i=0; i<option.num_threads; ++i){
             if(thread_options[i].is_monitor){
                 monitor_exists = true;
-                CHECK_EQ(thread_options[i].kTotal, 0) << "Monitor thread can not generate proposal";
+                CHECK_EQ(thread_options[i].kTotal, thread_options[i].kOtherThread) << "Monitor thread can not generate proposal";
                 monitorThreadIds.push_back(i);
             }else{
                 slaveThreadIds.push_back(i);
             }
             CHECK_GE(thread_options[i].kTotal, 0) << "Negative number of proposals from self.";
-	    CHECK_GE(thread_options[i].kOtherThread, 0) << "Negative number of proposals from others.";
-	    CHECK_GE(thread_options[i].solution_exchange_interval, 1) << "Solution exchange interval should be a positive number.";
+            CHECK_GE(thread_options[i].kOtherThread, 0) << "Negative number of proposals from others.";
+            CHECK_GE(thread_options[i].solution_exchange_interval, 1) << "Solution exchange interval should be a positive number.";
         }
         //if synchronization is needed, there must be an monitor thread
         if(option.synchronize)
@@ -197,6 +133,9 @@ namespace ParallelFusion {
             write_flag[i].store(true);
         }
 
+
+        //GO!
+        start_time = (float)cv::getTickCount();
         //launch slave threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves(slaveThreadIds.size());
         for(auto tid=0; tid<slaves.size(); ++tid){
@@ -239,13 +178,13 @@ namespace ParallelFusion {
     }
 
     template<class LABELSPACE>
-      void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
+    void ParallelFusionPipeline<LABELSPACE>::workerThread(const int id,
                                                           const LABELSPACE& initial,
                                                           GeneratorPtr generator,
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
         try {
-	  printf("Thread %d lauched\n", id);
+            printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);
             bool converge = false;
@@ -268,13 +207,13 @@ namespace ParallelFusion {
                 //generate proposal by own generator
                 LABELSPACE proposals_self;
                 //printf("Generating proposals...\n");
-		const int num_proposals_from_others = (iter + 1) % thread_option.solution_exchange_interval == 0 ? thread_option.kOtherThread : 0;
-		printf("In iteration %d, thread %d generates %d proposals and grab %d solutions (from best solutions = %d)\n", iter, id, thread_option.kTotal - num_proposals_from_others, num_proposals_from_others, option.selectionMethod == ParallelFusionOption::BEST);
+                const int num_proposals_from_others = (iter + 1) % thread_option.solution_exchange_interval == 0 ? thread_option.kOtherThread : 0;
+                printf("In iteration %d, thread %d generates %d proposals and grab %d solutions (from best solutions = %d)\n", iter, id, thread_option.kTotal - num_proposals_from_others, num_proposals_from_others, option.selectionMethod == ParallelFusionOption::BEST);
                 generator->getProposals(proposals_self, current_solution.second, thread_option.kTotal - num_proposals_from_others);
                 proposals.appendSpace(proposals_self);
 
                 if (option.selectionMethod == ParallelFusionOption::RANDOM) {
-		  for(auto pid=0; pid < num_proposals_from_others; ++pid) {
+                    for(auto pid=0; pid < num_proposals_from_others; ++pid) {
                         int idshift = distribution(seed);
                         int tid = (id + idshift) % (int)slaveThreadIds.size();
                         SolutionType<LABELSPACE> s;
@@ -284,8 +223,8 @@ namespace ParallelFusion {
                 } else if (option.selectionMethod == ParallelFusionOption::BEST) { //
                     std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size());
                     for(auto tid=0; tid < slaveThreadIds.size(); ++tid)
-		      solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
-		    sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
+                        solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
+                    sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
                     for(auto pid=0; pid < num_proposals_from_others; ++pid) {
                         int tid = solution_energy_index_pairs[pid].second;
                         SolutionType<LABELSPACE> s;
@@ -299,23 +238,29 @@ namespace ParallelFusion {
                 solver->solve(proposals, current_solution, curSolution);
                 //printf("Done. Energy: %.5f\n", curSolution.first);
 
-		current_solution = curSolution;
 
-		//Where current solution comes from might need considering.
-		/* if (option.current_solution_source == ParallelFusionOption::CURRENT_SOLUTION_FROM_SELF) */
-		/*   current_solution = curSolution; */
-		/* else if (option.current_solution_source == ParallelFusionOption::CURRENT_SOLUTION_FROM_BEST) { */
+                //write thread profile, update global profile
+                float dt = ((float)cv::getTickCount() - start_time) / (float)cv::getTickFrequency();
+                threadProfile[slaveThreadIds[id]].push_back(Observation(dt, curSolution.first));
+                globalProfile.addObservation(dt, curSolution.first);
+
+                current_solution = curSolution;
+
+                //Where current solution comes from might need considering.
+                /* if (option.current_solution_source == ParallelFusionOption::CURRENT_SOLUTION_FROM_SELF) */
+                /*   current_solution = curSolution; */
+                /* else if (option.current_solution_source == ParallelFusionOption::CURRENT_SOLUTION_FROM_BEST) { */
                 /*   std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size()); */
                 /*   for(auto tid=0; tid < slaveThreadIds.size(); ++tid) */
                 /*     solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid); */
-		/*   std::vector<std::pair<double, int> >::const_iterator min_it = min_element(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end()); */
-		/*   int min_energy_thread_id = min_it->second; */
-		/*   bestSolutions[min_energy_thread_id].get(current_solution); */
+                /*   std::vector<std::pair<double, int> >::const_iterator min_it = min_element(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end()); */
+                /*   int min_energy_thread_id = min_it->second; */
+                /*   bestSolutions[min_energy_thread_id].get(current_solution); */
                 /* } else if (option.current_solution_source == ParallelFusionOption::CURRENT_SOLUTION_FROM_RANDOM) { */
                 /*   int selected_thread_id = rand() % slaveThreadIds.size(); */
                 /*   bestSolutions[selected_thread_id].get(current_solution); */
-		/* } */
-		
+                /* } */
+
                 generator->writeSolution(curSolution, id, iter);
 
                 //if synchronization is needed, thread won't submit solution unless
@@ -341,7 +286,7 @@ namespace ParallelFusion {
     }
 
     template<class LABELSPACE>
-      void ParallelFusionPipeline<LABELSPACE>::monitorThread(const int id, SolverPtr solver) {
+    void ParallelFusionPipeline<LABELSPACE>::monitorThread(const int id, SolverPtr solver) {
         try{
             printf("Monitor thread launched\n");
             solver->initSolver(LABELSPACE());
@@ -371,6 +316,15 @@ namespace ParallelFusion {
             terminate.store(true);
             printf("Thread %d throws and exception: %s\n", id, e.what());
             return;
+        }
+    }
+
+    template<class LABELSPACE>
+    void ParallelFusionPipeline<LABELSPACE>::getAllResult(LABELSPACE& solutions) const {
+        for(auto i=0; i<slaveThreadIds.size(); ++i){
+            SolutionType<LABELSPACE> s;
+            bestSolutions[i].get(s);
+            solutions.appendSpace(s.second);
         }
     }
 
