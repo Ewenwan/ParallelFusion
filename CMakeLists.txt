@@ -11,4 +11,4 @@ add_subdirectory(base)
 add_subdirectory(stereo)
 
 #uncomment this line one we have something in opticalflow
-#add_subdirectory(opticalflow)
+add_subdirectory(OpticalFlow)
