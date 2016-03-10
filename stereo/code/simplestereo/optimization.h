@@ -12,6 +12,7 @@
 #include <random>
 #include <opencv2/opencv.hpp>
 #include <Eigen/Eigen>
+#include <ctime>
 
 #include "../stereo_base/depth.h"
 #include "../stereo_base/file_io.h"
@@ -165,6 +166,37 @@ namespace simple_stereo {
         const int kPix;
         Expansion* mrf;
         //kolmogorov::qpbo::QPBO<int>* qpbo;
+    };
+
+    class SimpleStereoMonitor: public ParallelFusion::FusionSolver<CompactLabelSpace>{
+    public:
+        typedef std::pair<double, double> Observation;
+
+        SimpleStereoMonitor(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
+
+        virtual void initSolver(const CompactLabelSpace & initial){
+            observations.clear();
+            std::time(&start_time);
+        }
+        virtual double evaluateEnergy(const CompactLabelSpace & solution) const;
+
+        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
+                           ParallelFusion::SolutionType<CompactLabelSpace>& solution){
+            time_t current_t;
+            std::time(&current_t);
+            observations.push_back(Observation(std::difftime(current_t, start_time), evaluateEnergy(proposals)));
+        }
+        void writePlot(const std::string& path) const;
+    private:
+        inline int smoothnessCost(int pix, int l1, int l2, bool xDirection) const{
+            double cue = xDirection ? model->hCue[pix] : model->vCue[pix];
+            return (int)((double)model->weight_smooth * (std::min(4, std::abs(l1-l2))) * cue);
+        }
+
+        const MRFModel<int>* model;
+        const int kPix;
+        std::time_t start_time;
+        std::vector<Observation> observations;
     };
 
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{

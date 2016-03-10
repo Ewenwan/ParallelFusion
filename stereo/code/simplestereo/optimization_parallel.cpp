@@ -186,4 +186,32 @@ namespace simple_stereo {
         }
         return e;
     }
+
+
+    double SimpleStereoMonitor::evaluateEnergy(const CompactLabelSpace &solution) const {
+        CHECK_EQ(solution.getNumNode(), kPix);
+        double e = 0;
+        const int w = model->width;
+        const int h = model->height;
+        const double r = model->MRFRatio;
+        for(auto i=0; i<kPix; ++i) {
+            e += model->MRF_data[i * model->nLabel + solution(i, 0)] / model->MRFRatio;
+        }
+        for(auto x=0; x<w - 1; ++x) {
+            for (auto y = 0; y < h - 1; ++y) {
+                int sc = smoothnessCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
+                         smoothnessCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
+                e += (double) sc / r;
+            }
+        }
+        return e;
+    }
+    void SimpleStereoMonitor::writePlot(const std::string &path) const {
+        ofstream fout(path.c_str());
+        CHECK(fout.is_open());
+        fout << "Time\nEnergy" << endl;
+        for(const auto& ob: observations)
+            fout << ob.first << '\t' << ob.second << endl;
+        fout.close();
+    }
 }
