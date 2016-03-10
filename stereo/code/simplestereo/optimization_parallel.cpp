@@ -33,7 +33,7 @@ namespace simple_stereo {
             const int startid = i;
             const int interval = pipelineOption.num_threads;
             initials[i].init(kPix, vector<int>(1, startid));
-            threadOptions[i].kOtherThread = 0;
+            threadOptions[i].kOtherThread = 1;
             threadOptions[i].kSelfThread = 4;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
@@ -52,13 +52,15 @@ namespace simple_stereo {
 
         time_t start_t, end_t;
         time(&start_t);
+        float t = (float)getTickCount();
         printf("Start runing parallel optimization\n");
         parallelFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);
         time(&end_t);
+        t = ((float)getTickCount() - t) / (float)getTickFrequency();
 
         SolutionType<Space > solution;
         parallelFusionPipeline.getBestLabeling(solution);
-        printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, difftime(end_t, start_t));
+        printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
 
         char buffer[1024] = {};
         sprintf(buffer, "%s/temp/plot.txt", file_io.getDirectory().c_str());
@@ -206,6 +208,7 @@ namespace simple_stereo {
         CHECK(!proposals.getLabelSpace().empty());
         time_t current_t;
         std::time(&current_t);
+        float difft = ((float)getTickCount() - t) / (float)getTickFrequency();
         const size_t nSolution = proposals.getLabelSpace()[0].size();
         double min_energy = numeric_limits<double>::max();
         for(auto i=0; i<nSolution; ++i){
@@ -218,7 +221,8 @@ namespace simple_stereo {
                 min_energy = curE;
         }
 
-        observations.push_back(Observation(std::difftime(current_t, start_time), min_energy));
+        //observations.push_back(Observation(std::difftime(current_t, start_time), min_energy));
+        observations.push_back(Observation(difft, min_energy));
     }
 
     double SimpleStereoMonitor::evaluateEnergy(const CompactLabelSpace &solution) const {
@@ -243,8 +247,12 @@ namespace simple_stereo {
         ofstream fout(path.c_str());
         CHECK(fout.is_open());
         fout << "Time\tEnergy" << endl;
-        for(const auto& ob: observations)
-            fout << ob.first << '\t' << ob.second << endl;
+        char buffer[1024] = {};
+        for(const auto& ob: observations){
+            sprintf(buffer, "%.3f\t%.5f\n", ob.first, ob.second);
+            fout << buffer;
+        }
+
         fout.close();
     }
 }

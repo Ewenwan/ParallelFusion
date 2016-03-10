@@ -24,7 +24,7 @@ namespace ParallelFusion {
             num_nodes_ = 0;
         }
 
-        inline void init(const int NUM_NODE, std::vector<int> v = std::vector<int>()){
+        inline void init(const int NUM_NODE, std::vector<LabelType> v = std::vector<LabelType>()){
             num_nodes_ = NUM_NODE;
             label_space_.resize((size_t)NUM_NODE, v);
         }

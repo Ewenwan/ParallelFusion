@@ -182,6 +182,7 @@ namespace simple_stereo {
         virtual void initSolver(const CompactLabelSpace & initial){
             observations.clear();
             std::time(&start_time);
+            t = cv::getTickCount();
         }
         virtual double evaluateEnergy(const CompactLabelSpace & solution) const;
 
@@ -198,6 +199,7 @@ namespace simple_stereo {
         const MRFModel<int>* model;
         const int kPix;
         std::time_t start_time;
+        float t;
         std::vector<Observation> observations;
     };
 
