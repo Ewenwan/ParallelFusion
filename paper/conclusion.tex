@@ -1,1 +1,27 @@
-\section{Conclusion}
+\section{Conclusion and future direction}
+We have proposed a novel MAP inference framework, Swarm Fusion, for MRF
+problems in parallel computing environments. The framework is general,
+and we showed that most popular inference techniques such as
+alpha-expansion, Fusion Move, parallel alpha-expansion, or hierarchical
+fusion, are its special cases. Our experiments have revealed that the
+framework exploits parallel computational resources and achieves faster
+convergence, epseically for challenging problems.  Our first future work
+is to conduct experiments on cloud computing environments, in
+particular, the MapReduce programming model, where the roles of mappers
+and reducers exactly correspond to the processes of parallel multi-way
+fusion and solution exchanges, respectively.  Another future work is the
+automatic configuration of the Swarm Fusion architecture. Due to its
+vast degrees of freedom, one needs to currently hand-tune the
+architecture for the optical performance. An interesting direction is to
+adaptively change its architecture during the computation, for example,
+switching to simple parallel alpha-expansion for easy problems, or
+increasing the rate of solution exchanges when solutions vary
+significantly across threads.
+%
+Parallel MAP inference has been a relatively under-explored topic in
+Computer Vsion. Our idea is very simple and adapting the Swarm Fusion
+framework require minimal coding. We believe that this paper has a
+potential to immediately benefit tens of thousands of Computer Vision
+researchers or engineers in the world, who currently solve MRF problems
+with conventional solvers. We will share our source code and the
+datasets with the community.
