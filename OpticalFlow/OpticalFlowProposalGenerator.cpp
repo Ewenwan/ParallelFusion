@@ -55,12 +55,12 @@ namespace flow_fusion {
       //index++;
       LABELSPACE label_space;
       switch (proposal_type) {
-      case 0:
-        generateProposalPyrLK(label_space);
-        break;
-      case 1:
-        generateProposalFarneback(label_space);
-        break;
+      // case 0:
+      //   generateProposalPyrLK(label_space);
+      //   break;
+      // case 1:
+      //   generateProposalFarneback(label_space);
+      //   break;
       case 2:
         generateProposalMoveAround(label_space);
         break;
