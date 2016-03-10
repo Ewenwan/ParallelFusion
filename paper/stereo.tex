@@ -54,12 +54,24 @@ with graph-cuts optimization as the competing methods.
 
 \mysubsubsection{Swarm fusion architectures}
 
-\noindent To make the comparison simple, we restrict our proposal
-generation to be constant-label proposals, and limit to binary fusion
-(i.e., without multi-way fusion). Graph-cuts is used in fusing a
-constant-label proposal as the energy is submodular. QPBO is used in
+\noindent The three swarm architectures in Fig.~\ref{fig:model} have
+been evaluated: SFWSS (SF without solution sharing), SFWMF (SF without
+multi-way fusion), and the standard SF.
+%
+For SFWSS, we have chosen $\alpha=2$ ($\beta=0$). For SFWMF, each thread
+iterates the step of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so
+that it can take a solution proposal in one step and a neighboring
+solution in the next. For the standard SF, we have used ($\alpha=1, \beta=1$).
+%
+%
+%
+%
+To make the comparison simple, we restrict our proposal
+generation to be constant-label proposals. Graph-cuts is used in fusing
+a constant-label proposal as the energy is submodular. QPBO is used in
 fusing a different solution from another thread as the energy is
-non-submodular.  Due to the lack of multi-way fusion, the swarm fusion
-architecture for the stereo problem is represented by the middle
-example at the bottom of Fig.~\ref{fig:model}.
-\yasu{talk about our parameters $\alpha,\beta$}
+non-submodular.
+%
+% Due to the lack of multi-way fusion, the swarm fusion architecture for
+% the stereo problem is represented by the middle example at the bottom of
+% Fig.~\ref{fig:model}.
