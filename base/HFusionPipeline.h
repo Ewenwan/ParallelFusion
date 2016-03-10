@@ -7,8 +7,14 @@
 #include "LabelSpace.h"
 #include "ProposalGenerator.h"
 #include "FusionSolver.h"
-
 namespace ParallelFusion{
+
+    template<typename T>
+    class BinaryTree{
+    private:
+
+    };
+
 
     struct HFusionPipelineOption{
     public:
