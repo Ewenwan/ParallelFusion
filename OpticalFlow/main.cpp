@@ -20,7 +20,7 @@
 // DEFINE_int32(num_threads, 1, "The number of threads.");
 
 //DEFINE_string(dataset_name, "other-data/Dimetrodon", "The dataset image name.");
-DEFINE_string(dataset_name, "eval-data/Backyard", "The dataset image name.");
+DEFINE_string(dataset_name, "other-data/Dimetrodon", "The dataset image name.");
 DEFINE_int32(num_proposed_solutions, 4, "The number of proposed solution for each thread.");
 DEFINE_bool(write_log, true, "Write log file or not.");
 DEFINE_bool(evaluation, false, "Write log file or not.");
@@ -32,6 +32,8 @@ DEFINE_int32(num_iterations, 30, "The number of iterations.");
 DEFINE_int32(num_proposals_in_total, 1, "The number of proposals in total.");
 DEFINE_int32(num_proposals_from_others, 0, "The number of proposals from others.");
 DEFINE_int32(solution_exchange_interval, 3, "The number of iterations between consecutive solution exchanges.");
+DEFINE_int32(result_index, 0, "The index of the result.");
+DEFINE_bool(use_monitor_thread, false, "Whether monitor object is used.");
 
 using namespace std;
 using namespace cv;
@@ -55,7 +57,7 @@ int main(int argc, char *argv[])
   today.tm_year = 116;
   LOG(INFO) << difftime(timer, mktime(&today)) << '\t' << -1 << '\t' << -1 << '\t' << 0 << endl;
   
-  srand(time(0));
+  srand(0);
   //  PipelineParams pipeline_params(FLAGS_num_threads, FLAGS_num_fusion_iterations);
 
   Mat image_1 = imread(FLAGS_dataset_name + "/frame10.png");
@@ -102,11 +104,12 @@ int main(int argc, char *argv[])
     thread_options[i].kOtherThread = FLAGS_num_proposals_from_others;
     thread_options[i].solution_exchange_interval = FLAGS_solution_exchange_interval;
     
-    // if (i == option.num_threads - 1 && false) {
-    //   thread_options[i].kSelfThread = 0;
-    //   thread_options[i].kOtherThread = 4;
-    //   thread_options[i].is_monitor = true;
-    // }
+    if (i == option.num_threads - 1 && FLAGS_use_monitor_thread) {
+      thread_options[i].kTotal = 2;
+      //thread_options[i].kOtherThread = 2;
+      //thread_options[i].solution_exchange_interval = 1;
+      thread_options[i].is_monitor = true;
+    }
   }
   
   ParallelFusion::ParallelFusionPipeline<LABELSPACE> parallelFusionPipeline(option);
@@ -122,7 +125,14 @@ int main(int argc, char *argv[])
   parallelFusionPipeline.getBestLabeling(solution);
   printf("Done! Final energy: %.5f\n", solution.first);
   LABELSPACE solution_label_space = solution.second;
+  
+  const int NUM_PIXELS = IMAGE_WIDTH * IMAGE_HEIGHT;
+  vector<pair<double, double> > solution_labels(NUM_PIXELS);
+  for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
+    solution_labels[pixel] = solution_label_space.getLabelOfNode(pixel)[0];
 
+  imwrite("Results/flow_image_" + to_string(FLAGS_result_index) + ".png", drawFlows(solution_labels, IMAGE_WIDTH, IMAGE_HEIGHT)); 
+  writeFlows(solution_labels, IMAGE_WIDTH, IMAGE_HEIGHT, "Results/flow_" + to_string(FLAGS_result_index) + ".flo");
 
   // {
   //   vector<pair<double, double> > flows = readFlows(FLAGS_dataset_name + "/flow10.flo");
