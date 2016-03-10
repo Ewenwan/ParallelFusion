@@ -6,8 +6,9 @@ potential of parallel computation, where one can easily launch a
 processing job using hundreds or even thousands of computational nodes
 in a cloud.
 %
-In the recent work on Go (AlphaGo from DeepMind), parallelization plays
-a key role in the Monte-Carlo tree search~\cite{nature_alpha_go}.
+In the recent work on the AI program playing the ancient Chinese board
+game of {\it Go} (AlphaGo from DeepMind), parallelization plays a key
+role in the Monte-Carlo tree search~\cite{nature_alpha_go}.
 
 
 Parallel computation offers tremendous potential for Computer Vision. As
@@ -21,11 +22,10 @@ voxels~\cite{Joint3DSceneReconstructionandclassSegmentation}.
 %
 %
 However, state-of-the-art algorithms are still inherently sequential in
-many Computer Vision problems. Take a Fusion-Move algorithm
-(FM)~\cite{viktor,second_order_stereo,else} for Markov Random Field
-inference, for example. FM has been one of the most effective techniques
-in solving the above
-problems~\cite{fusion_moves_for_markov_random_field_optimization}.
+many Computer Vision problems. Take a Fusion Move method
+(FM)~\cite{viktor,second_order_stereo,else}, which has been one of the
+most effective techniques for the Markov Random Field (MRF) inference,
+for example~\cite{fusion_moves}.
 %
 It sequentially improves solution by fusing the current solution with a
 solution proposal. Its successful applications range from optical flow,
@@ -33,7 +33,7 @@ stereo, image denoising, image inpainting, to image
 segmentation~\cite{fusion_moves_for_markov_random_field_optimization}.
 
 
-Unleashing the power of parallel computation in FM
+Unleashing the power of parallel computation for effective MRF inference
 % Breaking the sequential nature of FM
 would then bring fundamental contributions to Computer
 Vision. Currently, FM suffers from a few vital limitations due to its
@@ -56,11 +56,14 @@ solutions in the other threads, to be fused with the current solution.
 %
 
 
-We have evaluated our ideas on three problems in Computer Vision,
-stereo, optical flow, and layered depthmap estimation. Our approach
-outperforms all the other competing methods, especially for challenging
-problems with a large label space.  Our approach is extremely simple in
-concept, and is easily reproducible by standard Computer Vision engineers.
+We have evaluated the effectiveness of our approach over three problems
+in Computer Vision, stereo, optical flow, and layered
+depthmap estimation.
+%
+%Our approach outperforms all the other competing methods, especially for
+%challenging problems with a large label space.
+Our idea is very simple and the method is easily reproducible with
+minimal coding.
 % will instantly benefit every Computer Vision researcher or
 % engineer, who currently uses fusion move algorithm on multi-core
 % environments to solve challenging problems.
