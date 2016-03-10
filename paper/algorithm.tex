@@ -99,7 +99,7 @@ with a (read-write) lock on the data in the two pools (See Algorithm~\ref{algori
   \State Pick $\beta$ solutions $\mathcal{S} \subset \mathcal{S_{\mbox{pool}}}$
   \State $S_i \leftarrow \mbox{Fuse}(S_i, \mathcal{P}, \mathcal{S})$
   \State Replaces the solution in $\mathcal{S}_{pool}$ with $S_i$
-  \State [ Generates proposals and update $\mathcal{P}_{pool}$ ]
+  \State [ Generates proposals and update $\mathcal{P}_{pool}$, if necessary ]
   \EndFor
   \EndProcedure
  \end{algorithmic}

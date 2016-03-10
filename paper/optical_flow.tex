@@ -1,23 +1,37 @@
 \subsection{Swarm Fusion optical flow}
 
-The second problem is an optical flow problem, where Lempitsky
-introduced the fusion move algorithm~\cite{viktor}. We have used the
-energy definitions and proposals generation schemes as described in the
-paper. We again use test datasets from
-Middlebury~\cite{middlebury_optical_flow}.
+Fusion Move was first introduced by Lempitsky et al.~\cite{viktor} to
+solve optical flow problem.
+%Optical flow was the problem, in which the Fusion Move method was first
+%introduced by Lempitsky et al.~\cite{viktor}.
+We copy their problem setting and fusion proposal schemes for our second
+problem.  We again use test images in the Middlebury optical flow
+benchmark~\cite{middlebury_optical_flow}.
 
-\mysubsubsection{Competing methods} The first baseline is the FM
-algorithm exactly as given in the paper.  Although their paper did not
-consider parallel implementation, it is straightfoward to apply the
-concept of parallel alpha-expansion. Therefore, the second baseline is
-the ``parallel fusion move'' method (replacing constant label solutions
-with proposals inside ``parallel alpha-expansion'' in
-Fig.~\ref{fig:model}).
+\mysubsubsection{Competing methods} Fusion Move method in their paper is
+the first natural contender. While they did not consider parallel
+implementation, it is straightforward to combine the idea of parallel
+alpha-expansion and Fusion Move. Then, the second competing method is
+``parallel fusion move'', where each thread repeats generating a
+solution proposal and fusing it to the current solution. Final solutions
+from all the results are sequentially fused to obtain the final solution
+as in the parallel alpha-expansion method. In Fig.~\ref{fig:model}, this
+computational framework corresponds to ``parallel alpha-expansion'' with
+the label solutions replaced by solution proposals. The last contender
+is the mix of the hierarchical fusion and the fusion move method, dubbed
+``hierarchical fusion method'', where they start from solution proposals
+as opposed to constant labels.
+%
+The fusions are binary, for which we use QPBO.
 
 \mysubsubsection{Swarm fusion architecture}
 %The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
 %are used to evaluate the effectiveness of our method.
-The full swarm fusion model (at the bottom right in
-Fig.~\ref{fig:model}) will be used to evaluate the effectiveness of our
-method. We will also try the other two Swarm fusion variants in
-Fig.~\ref{fig:model} with restrictions.
+The three swarm architectures in Fig.~\ref{fig:model} will be evaluated
+against the competing methods. Note that we use the same set of proposal
+generation schemes. The fusions are multi-way, for which we ues TRW-S.
+
+% The full swarm fusion model (at the bottom right in
+% Fig.~\ref{fig:model}) will be used to evaluate the effectiveness of our
+% method. We will also try the other two Swarm fusion variants in
+% Fig.~\ref{fig:model} with restrictions.
