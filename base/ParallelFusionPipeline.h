@@ -23,7 +23,7 @@
 namespace ParallelFusion {
 
     //synchronized solution type
-    template<class LABELSPACE>
+  template<class LABELSPACE>
     class SynSolution {
     public:
         SynSolution(): solution(SolutionType<LABELSPACE>(-1, LABELSPACE())){}
@@ -263,7 +263,7 @@ namespace ParallelFusion {
                         bestSolutions[tid].get(s);
                         proposals.appendSpace(s.second);
 
-                        write_flag[tid].store(true);
+                        //write_flag[tid].store(true);
                     }
                 } else if (option.selectionMethod == ParallelFusionOption::RANDOM) {
                     for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
@@ -304,7 +304,7 @@ namespace ParallelFusion {
                 //set the current best solution. It will be visible from other threads
                 bestSolutions[id].set(curSolution);
 
-                if(!thread_option.is_monitor && option.synchronize)
+                if(!thread_option.is_monitor)
                     write_flag[id].store(false);
 
                 //double diffE =  lastEnergy - curSolution.first;
