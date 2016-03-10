@@ -17,6 +17,7 @@
 #include "../stereo_base/file_io.h"
 
 #include "../external/MRF2.2/GCoptimization.h"
+#include "../external/QPBO1.4/QPBO.h"
 #include "../../../base/LabelSpace.h"
 #include "../../../base/FusionSolver.h"
 #include "../../../base/ParallelFusionPipeline.h"
@@ -148,6 +149,7 @@ namespace simple_stereo {
         SimpleStereoSolver(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
         ~SimpleStereoSolver(){
             delete mrf;
+//            delete qpbo;
         }
         virtual void initSolver(const CompactLabelSpace& initial);
         virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
@@ -162,6 +164,7 @@ namespace simple_stereo {
         const MRFModel<int>* model;
         const int kPix;
         Expansion* mrf;
+        //kolmogorov::qpbo::QPBO<int>* qpbo;
     };
 
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{

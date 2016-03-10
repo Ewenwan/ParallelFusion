@@ -221,7 +221,7 @@ namespace ParallelFusion {
         try {
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
-            std::uniform_int_distribution<int> distribution(0, option.num_threads-2);
+            std::uniform_int_distribution<int> distribution(1, option.num_threads-1);
             bool converge = false;
 
             solver->initSolver(initial);
