@@ -17,8 +17,8 @@ namespace simple_stereo {
         result.initialize(width, height, -1);
         //configure as sequential fusion
         ParallelFusionOption pipelineOption;
-        pipelineOption.num_threads = 5;
-        pipelineOption.max_iteration = 16;
+        pipelineOption.num_threads = 2;
+        pipelineOption.max_iteration = 512;
         const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)pipelineOption.num_threads);
@@ -33,8 +33,8 @@ namespace simple_stereo {
             const int startid = i;
             const int interval = pipelineOption.num_threads;
             initials[i].init(kPix, vector<int>(1, startid));
-            threadOptions[i].kOtherThread = 1;
-            threadOptions[i].kSelfThread = 4;
+            threadOptions[i].kOtherThread = 0;
+            threadOptions[i].kSelfThread = 1;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));

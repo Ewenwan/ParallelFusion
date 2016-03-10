@@ -16,9 +16,6 @@
 
 
 namespace simple_stereo {
-
-
-
     class SimpleStereo{
     public:
         SimpleStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int dispResolution_, const int downsample_, const double weight_smooth_);
