@@ -77,8 +77,8 @@ namespace simple_stereo {
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            double distance = (double) (v - anchor) * (double)d / downsample;
-                            Vector2d imgpt(x - distance, y);
+                            double distance = (double) (v - anchor) * (double)d / downsample / 5;
+                            Vector2d imgpt(x + distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
                         double mCost = local_matcher::sumMatchingCost(patches, anchor);

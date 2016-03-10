@@ -86,6 +86,9 @@ namespace simple_stereo {
                                                                                 const_cast<int*>(model->vCue)));
         mrf = new Expansion(model->width, model->height, model->nLabel, energy_function);
         mrf->initialize();
+
+//        qpbo = new kolmogorov::qpbo::QPBO<int>(kPix, 2 * kPix);
+//        qpbo->AddNode(kPix);
     }
 
     void SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
@@ -114,9 +117,8 @@ namespace simple_stereo {
         for (auto i = 0; i < kFullProposal; ++i) {
             //run QPBO
             //printf("Running QPBO...\n");
-            kolmogorov::qpbo::QPBO<int> qpbo(kPix, 2 * kPix);
+            kolmogorov::qpbo::QPBO<int> qpbo(kPix, kPix*2);
             qpbo.AddNode(kPix);
-
             for (auto j = 0; j < kPix; ++j) {
                 qpbo.AddUnaryTerm(j, model->operator()(j, solution.second(j, 0)),
                                   model->operator()(j, proposals(j, i)));
