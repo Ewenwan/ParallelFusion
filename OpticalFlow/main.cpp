@@ -27,9 +27,11 @@ DEFINE_bool(evaluation, false, "Write log file or not.");
 //DEFINE_string(dataset_category, "other-data", "The dataset image category.");
 
 DEFINE_int32(num_threads, 2, "The number of threads.");
-DEFINE_int32(num_iterations, 10, "The number of iterations.");
-DEFINE_int32(num_proposals_from_self, 1, "The number of proposals from self.");
-DEFINE_int32(num_proposals_from_others, 1, "The number of proposals from others.");
+DEFINE_int32(num_iterations, 30, "The number of iterations.");
+
+DEFINE_int32(num_proposals_in_total, 1, "The number of proposals in total.");
+DEFINE_int32(num_proposals_from_others, 0, "The number of proposals from others.");
+DEFINE_int32(solution_exchange_interval, 3, "The number of iterations between consecutive solution exchanges.");
 
 using namespace std;
 using namespace cv;
@@ -96,8 +98,10 @@ int main(int argc, char *argv[])
     solvers[i] = shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> >(new OpticalFlowFusionSolver(image_1, image_2));
     initials[i].setSingleLabels(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT));
     
-    thread_options[i].kSelfThread = FLAGS_num_proposals_from_self;
+    thread_options[i].kTotal = FLAGS_num_proposals_in_total;
     thread_options[i].kOtherThread = FLAGS_num_proposals_from_others;
+    thread_options[i].solution_exchange_interval = FLAGS_solution_exchange_interval;
+    
     // if (i == option.num_threads - 1 && false) {
     //   thread_options[i].kSelfThread = 0;
     //   thread_options[i].kOtherThread = 4;
