@@ -102,7 +102,7 @@ namespace ParallelFusion {
     public:
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
-                                                                      terminate(false), write_flag((size_t)option_.num_threads) { }
+                                                                      terminate(false), write_flag((size_t)option_.num_threads){ }
 
         typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
@@ -129,6 +129,7 @@ namespace ParallelFusion {
                           GeneratorPtr generator,
                           SolverPtr solver,
                           const ThreadOption &thread_option);
+        void monitorThread(const int id, SolverPtr solver);
 
         inline const ParallelFusionOption &getOption() const { return option; }
 
@@ -150,8 +151,8 @@ namespace ParallelFusion {
         //In the presence of monitor thread, all threads might need to be synchronized.
         std::vector<std::atomic<bool> > write_flag;
 
-        //To avoid grabbing solutions from monitor thread
         std::vector<int> slaveThreadIds;
+        std::vector<int> monitorThreadIds;
     };
 
 
@@ -169,37 +170,61 @@ namespace ParallelFusion {
         CHECK_EQ(option.num_threads, thread_options.size());
 
         bool monitor_exists = false;
+
+        //sanity checks
         for(auto i=0; i<option.num_threads; ++i){
-            bestSolutions[i].set(SolutionType<LABELSPACE>(-1, initials[i]));
-            write_flag[i].store(true);
             if(thread_options[i].is_monitor){
                 monitor_exists = true;
                 CHECK_EQ(thread_options[i].kSelfThread, 0) << "Monitor thread can not generate proposal";
-                CHECK_GE(thread_options[i].kOtherThread, option.num_threads - 1) << "Monitor thread mush access all other thread in each iteration";
+                monitorThreadIds.push_back(i);
             }else{
                 slaveThreadIds.push_back(i);
             }
             CHECK_GE(thread_options[i].kSelfThread, 0) << "Negative number of proposals from self.";
             CHECK_GE(thread_options[i].kOtherThread, 0) << "Negative number of proposals from others.";
         }
-
         //if synchronization is needed, there must be an monitor thread
         if(option.synchronize)
             CHECK(monitor_exists);
 
-        //launch threads. Join method is called from the destructor of thread_guard
-        std::vector<thread_guard> slaves(option.num_threads);
+        //initialize arrays. Slave threads are store in 0..slaveThreadIds.size() elements
+        for(auto i=0; i<slaveThreadIds.size(); ++i){
+            const int& idx = slaveThreadIds[i];
+            bestSolutions[i].set(SolutionType<LABELSPACE>(-1, initials[idx]));
+            write_flag[i].store(true);
+        }
+
+        //launch slave threads. Join method is called from the destructor of thread_guard
+        std::vector<thread_guard> slaves(slaveThreadIds.size());
         for(auto tid=0; tid<slaves.size(); ++tid){
-            printf("Lauching threads %d...\n", tid);
-            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[tid]), generators[tid], solvers[tid], thread_options[tid]);
+            printf("Lauching slave threads %d...\n", tid);
+            const int& idx = slaveThreadIds[tid];
+            std::thread t(&ParallelFusionPipeline::workerThread, this, tid, std::ref(initials[idx]), generators[idx],
+                          solvers[idx], thread_options[idx]);
             slaves[tid].bind(t);
         }
+
+        //launch monitor threads
+        std::vector<thread_guard> monitors(monitorThreadIds.size());
+        for(auto tid=0; tid<monitorThreadIds.size(); ++tid){
+            printf("Lauching monitor threads %d...\n", tid);
+            const int& idx = monitorThreadIds[tid];
+            std::thread t(&ParallelFusionPipeline::monitorThread, this, tid, solvers[idx]);
+            monitors[tid].bind(t);
+        }
+
+        //wait for all slave threads to finish job
+        for(auto i=0; i<slaves.size(); ++i)
+            slaves[i].join();
+
+        //quit monitor thread
+        terminate.store(true);
     }
 
     template<class LABELSPACE>
     double ParallelFusionPipeline<LABELSPACE>::getBestLabeling(SolutionType<LABELSPACE> &solution) const {
         double minE = std::numeric_limits<double>::max();
-        for(auto i=0; i<bestSolutions.size(); ++i){
+        for(auto i=0; i<slaveThreadIds.size(); ++i){
             if(bestSolutions[i].getSolution().first < minE){
                 solution.second.clear();
                 solution.second.appendSpace(bestSolutions[i].getSolution().second);
@@ -219,7 +244,7 @@ namespace ParallelFusion {
         try {
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
-            std::uniform_int_distribution<int> distribution(0, (int)slaveThreadIds.size() - 1);
+            std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);
             bool converge = false;
 
             solver->initSolver(initial);
@@ -229,10 +254,9 @@ namespace ParallelFusion {
             current_solution.second = initial;
             bestSolutions[id].set(current_solution);
 
-
             double lastEnergy = current_solution.first;
 
-            for (auto iter = 0; iter < option.max_iteration; ++iter) {
+            for(int iter=0; iter < option.max_iteration; ++iter) {
                 if(terminate.load()){
                     printf("Thread %d quited\n", id);
                     return;
@@ -244,21 +268,10 @@ namespace ParallelFusion {
                 generator->getProposals(proposals_self, current_solution.second, thread_option.kSelfThread);
                 proposals.appendSpace(proposals_self);
 
-                if(thread_option.is_monitor) {
-                    for(auto tid=0; tid < slaveThreadIds.size(); ++tid) {
-                        if(option.synchronize) {
-                            while (write_flag[slaveThreadIds[tid]].load())
-                                std::this_thread::yield();
-                        }
-                        SolutionType<LABELSPACE> s;
-                        bestSolutions[slaveThreadIds[tid]].get(s);
-                        proposals.appendSpace(s.second);
-                    }
-                } else if (option.selectionMethod == ParallelFusionOption::RANDOM) {
+                if (option.selectionMethod == ParallelFusionOption::RANDOM) {
                     for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
-                        int tid = slaveThreadIds[distribution(seed)];
-                        while(tid == id)
-                            tid = slaveThreadIds[distribution(seed)];
+                        int idshift = distribution(seed);
+                        int tid = (id + idshift) % (int)slaveThreadIds.size();
                         SolutionType<LABELSPACE> s;
                         bestSolutions[tid].get(s);
                         proposals.appendSpace(s.second);
@@ -266,7 +279,7 @@ namespace ParallelFusion {
                 } else if (option.selectionMethod == ParallelFusionOption::BEST) {
                     std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size());
                     for(auto tid=0; tid < slaveThreadIds.size(); ++tid)
-                        solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[slaveThreadIds[tid]].getEnergy(), slaveThreadIds[tid]);
+                        solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
                     sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
                     for(auto pid=0; pid < thread_option.kOtherThread; ++pid) {
                         int tid = solution_energy_index_pairs[pid].second;
@@ -286,7 +299,7 @@ namespace ParallelFusion {
 
                 //if synchronization is needed, thread won't submit solution unless
                 //last submitted solution is read by the monitor thread.
-                if(!thread_option.is_monitor && option.synchronize){
+                if(option.synchronize){
                     while(!write_flag[id].load())
                         std::this_thread::yield();
                 }
@@ -294,10 +307,44 @@ namespace ParallelFusion {
                 //set the current best solution. It will be visible from other threads
                 bestSolutions[id].set(curSolution);
 
-                if(!thread_option.is_monitor)
+                if(option.synchronize)
                     write_flag[id].store(false);
 
                 //double diffE =  lastEnergy - curSolution.first;
+            }
+        }catch(const std::exception& e){
+            terminate.store(true);
+            printf("Thread %d throws and exception: %s\n", id, e.what());
+            return;
+        }
+    }
+
+    template<class LABELSPACE>
+    void ParallelFusionPipeline<LABELSPACE>::monitorThread(const int id, SolverPtr solver) {
+        try{
+            printf("Monitor thread launched\n");
+            solver->initSolver(LABELSPACE());
+            while(true) {
+                if(terminate.load()) {
+                    printf("Monitor thread quited\n");
+                    break;
+                }
+                std::this_thread::yield();
+                LABELSPACE proposals;
+                SolutionType<LABELSPACE> current_solution;
+                SolutionType<LABELSPACE> curSolution;
+                for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
+                    if (option.synchronize) {
+                        while (write_flag[tid].load())
+                            std::this_thread::yield();
+                    }
+                    SolutionType<LABELSPACE> s;
+                    bestSolutions[tid].get(s);
+                    proposals.appendSpace(s.second);
+                    if (option.synchronize)
+                        write_flag[tid].store(true);
+                }
+                solver->solve(proposals, current_solution, curSolution);
             }
         }catch(const std::exception& e){
             terminate.store(true);

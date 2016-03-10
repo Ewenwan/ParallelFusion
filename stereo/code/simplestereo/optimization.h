@@ -145,6 +145,11 @@ namespace simple_stereo {
         std::vector<int> singleLabel;
     };
 
+    class DummyGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
+    public:
+        virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N){}
+    };
+
     class SimpleStereoSolver : public ParallelFusion::FusionSolver<CompactLabelSpace> {
     public:
         SimpleStereoSolver(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
@@ -181,11 +186,8 @@ namespace simple_stereo {
         virtual double evaluateEnergy(const CompactLabelSpace & solution) const;
 
         virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
-                           ParallelFusion::SolutionType<CompactLabelSpace>& solution){
-            time_t current_t;
-            std::time(&current_t);
-            observations.push_back(Observation(std::difftime(current_t, start_time), evaluateEnergy(proposals)));
-        }
+                           ParallelFusion::SolutionType<CompactLabelSpace>& solution);
+
         void writePlot(const std::string& path) const;
     private:
         inline int smoothnessCost(int pix, int l1, int l2, bool xDirection) const{
