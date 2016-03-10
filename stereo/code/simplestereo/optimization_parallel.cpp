@@ -14,11 +14,12 @@ namespace simple_stereo {
         typedef CompactLabelSpace Space;
         typedef ParallelFusionPipeline<Space> Pipeline;
 
+        bool victorMethod = true;
         result.initialize(width, height, -1);
         //configure as sequential fusion
         ParallelFusionOption pipelineOption;
-        pipelineOption.num_threads = 2;
-        pipelineOption.max_iteration = 512;
+        pipelineOption.num_threads = 5;
+        pipelineOption.max_iteration = 8;
         const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)pipelineOption.num_threads);
@@ -33,8 +34,11 @@ namespace simple_stereo {
             const int startid = i;
             const int interval = pipelineOption.num_threads;
             initials[i].init(kPix, vector<int>(1, startid));
-            threadOptions[i].kOtherThread = 0;
-            threadOptions[i].kSelfThread = 1;
+            if(victorMethod)
+                threadOptions[i].kOtherThread = 0;
+            else
+                threadOptions[i].kOtherThread = 1;
+            threadOptions[i].kSelfThread = 8;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
@@ -46,7 +50,10 @@ namespace simple_stereo {
         threadOptions.back().is_monitor = true;
         threadOptions.back().kSelfThread = 0;
         generators.back() = shared_ptr<ProposalGenerator<Space> >(new DummyGenerator());
-        solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitor(model));
+        if(victorMethod)
+            solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitorFusion(model));
+        else
+            solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitor(model));
 
         Pipeline parallelFusionPipeline(pipelineOption);
 
@@ -59,13 +66,39 @@ namespace simple_stereo {
         t = ((float)getTickCount() - t) / (float)getTickFrequency();
 
         SolutionType<Space > solution;
-        parallelFusionPipeline.getBestLabeling(solution);
+        if(victorMethod){
+            CompactLabelSpace all_solution;
+            parallelFusionPipeline.getAllResult(all_solution);
+            if(all_solution.getLabelSpace()[0].size() == 1)
+                parallelFusionPipeline.getBestLabeling(solution);
+            else{
+                printf("Performing final fusion...\n");
+                CompactLabelSpace fusedSolution;
+                fusedSolution.init(kPix, vector<int>(1,0));
+                for(auto i=0; i<kPix; ++i)
+                    fusedSolution(i,0) = all_solution(i,0);
+                for(auto i=1; i<all_solution.getLabelSpace()[0].size(); ++i)
+                    fuseTwoSolution(fusedSolution, all_solution, i, model);
+                solution.second =fusedSolution;
+                solution.first = solvers[0]->evaluateEnergy(solution.second);
+            }
+        }else
+            parallelFusionPipeline.getBestLabeling(solution);
+
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
 
         char buffer[1024] = {};
-        sprintf(buffer, "%s/temp/plot.txt", file_io.getDirectory().c_str());
-        const SimpleStereoMonitor* monitorPtr = dynamic_cast<SimpleStereoMonitor*>(solvers.back().get());
-        monitorPtr->writePlot(string(buffer));
+
+        if(victorMethod) {
+            sprintf(buffer, "%s/temp/plot_victor.txt", file_io.getDirectory().c_str());
+            const SimpleStereoMonitorFusion *monitorPtr = dynamic_cast<SimpleStereoMonitorFusion *>(solvers.back().get());
+            monitorPtr->writePlot(string(buffer));
+        }
+        else{
+            sprintf(buffer, "%s/temp/plot_share.txt", file_io.getDirectory().c_str());
+            const SimpleStereoMonitor *monitorPtr = dynamic_cast<SimpleStereoMonitor *>(solvers.back().get());
+            monitorPtr->writePlot(string(buffer));
+        }
 
         for(auto i=0; i<model->width * model->height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
@@ -73,6 +106,10 @@ namespace simple_stereo {
         return solution.first;
     }
 
+    void ParallelOptimize::finalFuse(const std::vector<ParallelFusion::SolutionType<CompactLabelSpace> > &solutions,
+                                     ParallelFusion::SolutionType<CompactLabelSpace> &result) {
+
+    }
 
     SimpleStereoGenerator::SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_):
             nPix(nPix_), randomOrder(randomOrder_), nextLabel(0){
@@ -132,50 +169,7 @@ namespace simple_stereo {
         for (auto i = 0; i < kFullProposal; ++i) {
             //run QPBO
             //printf("Running QPBO...\n");
-            kolmogorov::qpbo::QPBO<int> qpbo(kPix, kPix*2);
-            qpbo.AddNode(kPix);
-            for (auto j = 0; j < kPix; ++j) {
-                qpbo.AddUnaryTerm(j, model->operator()(j, solution.second(j, 0)),
-                                  model->operator()(j, proposals(j, i)));
-            }
-
-            for (auto y = 0; y < model->height - 1; ++y) {
-                for (auto x = 0; x < model->width - 1; ++x) {
-                    int e00, e01, e10, e11;
-                    int pix1 = y * model->width + x, pix2 = y * model->width + x + 1, pix3 =
-                            (y + 1) * model->width + x;
-                    int l10, l11, l12;
-                    l10 = proposals(pix1, i);
-                    l11 = proposals(pix2, i);
-                    l12 = proposals(pix3, i);
-                    //x direction
-                    e00 = smoothnessCost(pix1, solution.second(pix1, 0), solution.second(pix2, 0), true);
-                    e01 = smoothnessCost(pix1, solution.second(pix1, 0), l11, true);
-                    e10 = smoothnessCost(pix1, l10, solution.second(pix2, 0), true);
-                    e11 = smoothnessCost(pix1, l10, l11, true);
-                    qpbo.AddPairwiseTerm(pix1, pix2, e00, e01, e10, e11);
-
-                    //y direction
-                    e00 = smoothnessCost(pix1, solution.second(pix1, 0), solution.second(pix3, 0), false);
-                    e01 = smoothnessCost(pix1, solution.second(pix1, 0), l12, false);
-                    e10 = smoothnessCost(pix1, l10, solution.second(pix3, 0), false);
-                    e11 = smoothnessCost(pix1, l10, l12, false);
-                    qpbo.AddPairwiseTerm(pix1, pix3, e00, e01, e10, e11);
-                }
-            }
-            qpbo.MergeParallelEdges();
-            qpbo.Solve();
-            qpbo.ComputeWeakPersistencies();
-//          float unlabeled = 0;
-//            float changed = 0;
-            for (auto pix = 0; pix < kPix; ++pix) {
-                if (qpbo.GetLabel(pix) == 1) {
-                    solution.second(pix, 0) = proposals(pix, i);
-//                    changed += 1.0;
-                }
-//                if(qpbo.GetLabel(pix) == -1)
-//                    unlabeled += 1.0;
-            }
+            fuseTwoSolution(solution.second, proposals,i,model);
             //printf("Done. Unlabeled:%.3f, label changed:%.3f\n", unlabeled / (float)kPix, changed / (float)kPix);
         }
 
@@ -194,8 +188,8 @@ namespace simple_stereo {
         }
         for(auto x=0; x<w - 1; ++x) {
             for (auto y = 0; y < h - 1; ++y) {
-                int sc = smoothnessCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
-                         smoothnessCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
+                int sc = model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
+                         model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
                 e += (double) sc / r;
             }
         }
@@ -206,8 +200,6 @@ namespace simple_stereo {
     void SimpleStereoMonitor::solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
                        ParallelFusion::SolutionType<CompactLabelSpace>& solution){
         CHECK(!proposals.getLabelSpace().empty());
-        time_t current_t;
-        std::time(&current_t);
         float difft = ((float)getTickCount() - t) / (float)getTickFrequency();
         const size_t nSolution = proposals.getLabelSpace()[0].size();
         double min_energy = numeric_limits<double>::max();
@@ -220,8 +212,6 @@ namespace simple_stereo {
             if(curE < min_energy)
                 min_energy = curE;
         }
-
-        //observations.push_back(Observation(std::difftime(current_t, start_time), min_energy));
         observations.push_back(Observation(difft, min_energy));
     }
 
@@ -236,8 +226,8 @@ namespace simple_stereo {
         }
         for(auto x=0; x<w - 1; ++x) {
             for (auto y = 0; y < h - 1; ++y) {
-                int sc = smoothnessCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
-                         smoothnessCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
+                int sc = model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
+                         model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
                 e += (double) sc / r;
             }
         }
@@ -254,5 +244,71 @@ namespace simple_stereo {
         }
 
         fout.close();
+    }
+
+    void SimpleStereoMonitorFusion::solve(const CompactLabelSpace &proposals,
+                                          const ParallelFusion::SolutionType<CompactLabelSpace> &current_solution,
+                                          ParallelFusion::SolutionType<CompactLabelSpace> &solution) {
+        //fuse all solutions together
+        CHECK(!proposals.getLabelSpace().empty());
+        const size_t nSolution = proposals.getLabelSpace()[0].size();
+        CompactLabelSpace fusedSolution;
+        fusedSolution.init(kPix, vector<int>(1,0));
+        for(auto i=0; i<kPix; ++i)
+            fusedSolution(i,0) = proposals(i,0);
+
+        for(auto pid=1; pid<nSolution; ++pid){
+           fuseTwoSolution(fusedSolution, proposals, pid, model);
+        }
+
+        double e = evaluateEnergy(fusedSolution);
+        float difft = ((float)getTickCount() - t) / (float)getTickFrequency();
+        observations.push_back(Observation(difft, e));
+    }
+
+
+    double fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model){
+//        CHECK_EQ(s1.getNumNode(), s2.getNumNode());
+//        CHECK_GT(s1.getNumNode(), 0);
+//        CHECK_LT(pid, s2.getLabelSpace()[0].size());
+
+        const int kPix = s1.getNumNode();
+        kolmogorov::qpbo::QPBO<int> qpbo(kPix, kPix*2);
+        qpbo.AddNode(kPix);
+        for(auto i=0; i<kPix; ++i)
+            qpbo.AddUnaryTerm(i, model->operator()(i, s1(i,0)), model->operator()(i,s2(i, pid)));
+        for(auto x=0; x<model->width-1; ++x){
+            for(auto y=0; y<model->height-1; ++y){
+                int e00, e01, e10, e11;
+                int pix1 = y * model->width + x, pix2 = y * model->width + x + 1, pix3 =
+                        (y + 1) * model->width + x;
+                int l10, l11, l12;
+                l10 = s2(pix1, pid);
+                l11 = s2(pix2, pid);
+                l12 = s2(pix3, pid);
+                //x direction
+                e00 = model->computeSmoothCost(pix1, s1(pix1, 0), s1(pix2, 0), true);
+                e01 = model->computeSmoothCost(pix1, s1(pix1, 0), l11, true);
+                e10 = model->computeSmoothCost(pix1, l10, s1(pix2, 0), true);
+                e11 = model->computeSmoothCost(pix1, l10, l11, true);
+                qpbo.AddPairwiseTerm(pix1, pix2, e00, e01, e10, e11);
+
+                //y direction
+                e00 = model->computeSmoothCost(pix1, s1(pix1, 0), s1(pix3, 0), false);
+                e01 = model->computeSmoothCost(pix1, s1(pix1, 0), l12, false);
+                e10 = model->computeSmoothCost(pix1, l10, s1(pix3, 0), false);
+                e11 = model->computeSmoothCost(pix1, l10, l12, false);
+                qpbo.AddPairwiseTerm(pix1, pix3, e00, e01, e10, e11);
+            }
+        }
+
+        qpbo.MergeParallelEdges();
+        qpbo.Solve();
+        qpbo.ComputeWeakPersistencies();
+
+        for(auto i=0; i<kPix; ++i){
+            if(qpbo.GetLabel(i) == 1)
+                s1(i,0) = s2(i,pid);
+        }
     }
 }

@@ -47,4 +47,5 @@ namespace simple_stereo{
                     result.setDepthAtInd(i, mrf->getLabel(i));
     }
 
+
 }//namespace dynamic_stereo

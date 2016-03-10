@@ -122,6 +122,7 @@ namespace ParallelFusion {
                                  const std::vector<ThreadOption> &thread_options);
 
         double getBestLabeling(SolutionType<LABELSPACE>& solution) const;
+        void getAllResult(LABELSPACE& solutions) const;
 
         //slave threads
         void workerThread(const int id,
@@ -350,6 +351,15 @@ namespace ParallelFusion {
             terminate.store(true);
             printf("Thread %d throws and exception: %s\n", id, e.what());
             return;
+        }
+    }
+
+    template<class LABELSPACE>
+    void ParallelFusionPipeline<LABELSPACE>::getAllResult(LABELSPACE& solutions) const {
+        for(auto i=0; i<slaveThreadIds.size(); ++i){
+            SolutionType<LABELSPACE> s;
+            bestSolutions[i].get(s);
+            solutions.appendSpace(s.second);
         }
     }
 
