@@ -1,27 +1,40 @@
-\section{Swarm Fusion implementations} \yasu{this section is very rough
-at the moment. requires polishing. but algorithms might change as we run
-experiments.}
-We now explain detailed implementation of the Swarm Fusion method for
-three problems in Computer Vision (See Fig.~\ref{fig:problem}).
-5
+\section{Swarm Fusion implementations}
+We compare our Swarm fusion methods against competing approaches over three
+problems in Computer Vision. The SF architecture has high degrees of
+freedom and the challenge is to properly quantity the contribution of
+various algorithmic aspects. For this purpose, we carefully design the
+SF architecture for each problem independently, sometimes limiting the
+capabilities on purpose, to enable effective and fair comparative evaluation.
+We now explain the details of the three problems.
+
+% We pick three representative problems in Computer Vision to evaluate the
+% effectiveness of the Fusion swarm methods against existing methods. We
+% control the SF architectures for each problem independently to make
+% compa
+%
+%\yasu{this section is very rough at the moment. requires polishing. but
+%algorithms might change as we run experiments.}  We now explain detailed
+%implementation of the Swarm Fusion method for three problems in Computer
+%Vision (See Fig.~\ref{fig:problem}).  5
 \begin{figure}[tb]
- \includegraphics[width=\columnwidth]{figure/problem.pdf}
- \caption{We compare our Swarm Fusion methods against various baselines
- on the three problems in Computer Vision.}\label{fig:problem}
+ \includegraphics[width=\columnwidth]{figure/problem.pdf} \caption{We
+ compare our Swarm Fusion methods against various baselines on a
+ depthmap stereo~\cite{middle_bury_stereo}, an optical
+ flow~\cite{middlebury_optical_flow}, or a layered depthmap
+ estimation~\cite{layered_depthmap} problem.  }\label{fig:problem}
 \end{figure}
 
 
 
 \subsection{Swarm Fusion stereo}
-We start with a relatively ``easy'' problem, a depthmap stereo problem
-with unary and submodular pairwise terms.
+We start with a simple depthmap stereo problem with standard unary and
+submodular pairwise terms. Unary terms are computed as the average
+Normalized Cross Correlation score between the reference image and the
+others inside a $7\times 7$ pixels window. Pairwise terms are simple
+Pottz model. The total energy is defined by the sum of the two, while
+the pairwise term is scaled by a factor of \yasu{X value}.
 %
-We use Middlebury stereo datasets for the experiments. Unary terms are
-computed as the average Normalized Cross Correlation score between the
-reference image and the others inside a $7\times 7$ pixels
-window. Pairwise terms are simple Pottz model. Unary terms are rescaled
-by a factor of \yasu{X value?} to define the total energy.
-
+We use Middlebury stereo datasets for the experiments.
 
 \mysubsubsection{Baseline methods}
 
