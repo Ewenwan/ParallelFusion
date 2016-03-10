@@ -30,8 +30,7 @@ experiments in this paper.}
 Solution proposals depend heavily on the current solution, eliminating
 the possibility of using hierarchical approach, which needs to enumerate
 all the proposals to start. Therefore, the only viable competing method
-is Parallel Fusion Move, that replaces constant label solutions by
-solution proposals in parallel alpha-expansion framework. We will also
+is Parallel Fusion Move as in the optical flow problem. We will also
 evaluate the standard Fusion Move method.
 %
 The fusions are binary, for which we use QPBO.
@@ -44,6 +43,10 @@ The fusions are binary, for which we use QPBO.
 
 
 \mysubsubsection{Swarm fusion architectures}
-The three swarm architectures in Fig.~\ref{fig:model} are evaluated. The
-fusions are multi-way, for which we use TRW-S.
-\yasu{talk about our parameters $\alpha,\beta$}
+The three swarm architectures in Fig.~\ref{fig:model} are evaluated.
+The architecture parameters are exactly the same as in the optical flow problem:
+$\alpha=2$ ($\beta=0$) in SFWSS, the iteration of
+($\alpha=1, \beta=0$) and ($\alpha=0, \beta=1$) in SFWMF, and
+($\alpha=1, \beta=1$) for the standard SF.
+%
+The fusions are multi-way, for which we use TRW-S.

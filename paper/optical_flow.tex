@@ -1,37 +1,54 @@
 \subsection{Swarm Fusion optical flow}
 
 Fusion Move was first introduced by Lempitsky et al.~\cite{viktor} to
-solve optical flow problem.
+solve the optical flow problem.
 %Optical flow was the problem, in which the Fusion Move method was first
 %introduced by Lempitsky et al.~\cite{viktor}.
-We copy their problem setting and fusion proposal schemes for our second
-problem.  We again use test images in the Middlebury optical flow
+We copy their problem setting and proposal generation schemes for our
+second problem.  We use test images in the Middlebury optical flow
 benchmark~\cite{middlebury_optical_flow}.
 
-\mysubsubsection{Competing methods} Fusion Move method in their paper is
-the first natural contender. While they did not consider parallel
-implementation, it is straightforward to combine the idea of parallel
-alpha-expansion and Fusion Move. Then, the second competing method is
-``parallel fusion move'', where each thread repeats generating a
-solution proposal and fusing it to the current solution. Final solutions
-from all the results are sequentially fused to obtain the final solution
-as in the parallel alpha-expansion method. In Fig.~\ref{fig:model}, this
-computational framework corresponds to ``parallel alpha-expansion'' with
-the label solutions replaced by solution proposals. The last contender
-is the mix of the hierarchical fusion and the fusion move method, dubbed
-``hierarchical fusion method'', where they start from solution proposals
-as opposed to constant labels.
+\mysubsubsection{Competing methods} Fusion Move method in Lempitsky's
+paper is the first natural contender. While they did not consider
+parallel implementation, it is straightforward to combine the idea of
+Parallel Alpha-Expansion and Fusion Move. Therefore, the second competing
+method is ``Parallel Fusion Move (PFM)'', which is equivalent to
+Parallel Alpha-Expansion with the constant label solutions replaced by
+the solution proposals.
+%each thread repeats generating
+%a solution proposal and fusing it to the current solution. Solutions
+%from all the results are sequentially fused to obtain the final solution
+%as in the Parallel Alpha-Expansion method.
 %
-The fusions are binary, for which we use QPBO.
+One problem of PFM is that infinite number of solution proposals can be
+generated in their algorithm, and we do not know when we should stop and
+perform the final sequential fusion. In our experiments, we manually
+picked a time limit to initiate the final fusion.
+%In Fig.~\ref{fig:model}, this computational framework corresponds to
+%``parallel alpha-expansion'' with the label solutions replaced by
+%solution proposals.
+%
+The last contender is the mix of the Hierarchical Fusion and the Fusion
+Move method, dubbed ``Hierarchical Fusion Method'', where they start
+from solution proposals as opposed to constant labels. One problem is
+that we do not know how many solution proposals to generate to start
+with. We have manually picked a good number (X \yasu{how many Hang?})
+for the experiments.
+%
+The fusions are binary in these methods and we have used QPBO.
 
 \mysubsubsection{Swarm fusion architectures}
 %The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
 %are used to evaluate the effectiveness of our method.
-The three swarm architectures in Fig.~\ref{fig:model} will be evaluated
-against the competing methods. Note that we use the same set of proposal
-generation schemes. The fusions are multi-way, for which we ues TRW-S.
-\yasu{talk about our parameters $\alpha,\beta$}
+The three swarm architectures in Fig.~\ref{fig:model} (SFWSS, SFWMF, SF)
+have been evaluated against the competing methods. Note that we have
+used the same set of proposal generation schemes. The fusions are
+multi-way, for which we have used TRW-S.
 % The full swarm fusion model (at the bottom right in
 % Fig.~\ref{fig:model}) will be used to evaluate the effectiveness of our
 % method. We will also try the other two Swarm fusion variants in
 % Fig.~\ref{fig:model} with restrictions.
+We have chosen $\alpha=2$ ($\beta=0$) in SFWSS, the iteration of
+($\alpha=1, \beta=0$) and ($\alpha=0, \beta=1$) in SFWMF, and
+($\alpha=1, \beta=1$) for the standard SF.  The fusions are multi-way,
+for which we use TRW-S.
