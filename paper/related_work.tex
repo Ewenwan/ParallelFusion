@@ -39,6 +39,7 @@ many companies. In contrast, our idea is extremely simple and instantly
 reproducible by standard engineers.
 
 
+
 % \footnote{GPU speeds-up message-passing algorithms via parallel
 % computation. However, these algorithms need to store all the messages
 % and states and cannot handle problems with a large label
@@ -56,13 +57,16 @@ Stereo)~\cite{surface_stereo}, or multicut
 partitioning~\cite{fusionmovesforcorrelationclustering}.
 %
 FM has two main advantages over the other general inference
-techniques~\cite{trw,loopy_belief_propagation}. \yasu{Pushmeet, is this
-correct? Am not confident to say this?} First, FM allows us to exploit
-domain-specific knowledge in customizing proposal generation
-schemes. Second, FM can handle problems with very large label spaces,
-because the core optimization just solves a binary decision problem. In
-contrast, methods like message passing algorithms need to maintain
-messages and beliefs for the entire label space all the time. 
+techniques~\cite{trw,loopy_belief_propagation}. First, FM allows us to
+exploit domain-specific knowledge in customizing proposal generation
+schemes. Second, FM can handle problems with very large label spaces
+(and even real-values variables), because the core optimization just
+solves a binary decision problem.
+
+
+
+In contrast, methods like message passing algorithms need to maintain
+messages and beliefs for the entire label space all the time.
 %
 Although conceptually straightforward, we are not aware of {\it parallel
 fusion move} algorithms that fuses solution proposals, as opposed to
@@ -70,7 +74,7 @@ labels, in parallel. This paper seeks to fully unleash the power of
 parallel computation in FM via more general framework.
 
 
-\mysubsubsection{Genetic algorithms and Particle Swarm Optimization}
+\mysubsubsection{Evolutionary algorithms and Particle Swarm Optimization}
 
 \noindent
 Genetic algorithms (GA)~\cite{ga} and Particle Swarm
