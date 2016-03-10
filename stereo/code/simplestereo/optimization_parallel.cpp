@@ -38,7 +38,7 @@ namespace simple_stereo {
                 threadOptions[i].kOtherThread = 0;
             else
                 threadOptions[i].kOtherThread = 1;
-            threadOptions[i].kSelfThread = 8;
+            //threadOptions[i].kSelfThread = 8;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
@@ -48,7 +48,7 @@ namespace simple_stereo {
         //monitor thread
         initials.back().init(0);
         threadOptions.back().is_monitor = true;
-        threadOptions.back().kSelfThread = 0;
+        //threadOptions.back().kSelfThread = 0;
         generators.back() = shared_ptr<ProposalGenerator<Space> >(new DummyGenerator());
         if(victorMethod)
             solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitorFusion(model));
