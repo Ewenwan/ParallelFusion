@@ -25,7 +25,7 @@ namespace ParallelFusion {
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
                                                                       terminate(false), write_flag((size_t)option_.num_threads),
-                                                                      threadProfile((size_t)option_.num_threads){ }
+	threadProfile((size_t)option_.num_threads){ }
 
         typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;

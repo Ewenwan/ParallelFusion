@@ -906,7 +906,7 @@ void TRWSFusion::solve(const LayerLabelSpace &proposal_label_space, const Parall
   
   
   MRFEnergy<TypeGeneral>::Options options;
-  options.m_iterMax = 200;
+  options.m_iterMax = 2000;
   options.m_printIter = 200;
   options.m_printMinIter = 100;
   options.m_eps = 0.1;
