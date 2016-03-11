@@ -20,7 +20,7 @@ namespace simple_stereo {
         //configure as sequential fusion
         ParallelFusionOption pipelineOption;
         pipelineOption.num_threads = num_threads;
-        pipelineOption.max_iteration = model->nLabel / num_threads / kFusionSize;
+        pipelineOption.max_iteration = model->nLabel / num_threads / kFusionSize * max_iter;
         const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)pipelineOption.num_threads);

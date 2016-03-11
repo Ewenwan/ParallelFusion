@@ -31,10 +31,10 @@ namespace simple_stereo{
         for(auto i=0; i<pipelineOption.num_threads; ++i){
             const int startid = i;
             const int interval = pipelineOption.num_threads;
-            initials[i].init(kPix, vector<int>(1, startid));
             threadOptions[i].kTotal = kFusionSize;
             threadOptions[i].kOtherThread = 0;
             threadOptions[i].solution_exchange_interval = 1;
+            initials[i].init(kPix, vector<int>(1, startid));
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
             solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
@@ -43,23 +43,33 @@ namespace simple_stereo{
 
         Pipeline victorFusionPipeline(pipelineOption);
         float t = (float)getTickCount();
-        victorFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);
 
         SolutionType<Space> solution;
-        CompactLabelSpace all_solution;
-        victorFusionPipeline.getAllResult(all_solution);
-        if(all_solution.getLabelSpace()[0].size() == 1)
-            victorFusionPipeline.getBestLabeling(solution);
-        else{
-            printf("Performing final fusion...\n");
-            CompactLabelSpace fusedSolution;
-            fusedSolution.init(kPix, vector<int>(1,0));
-            for(auto i=0; i<kPix; ++i)
-                fusedSolution(i,0) = all_solution(i,0);
-            for(auto i=1; i<all_solution.getLabelSpace()[0].size(); ++i)
-                fuseTwoSolution(fusedSolution, all_solution, i, model);
-            solution.second =fusedSolution;
-            solution.first = solvers[0]->evaluateEnergy(solution.second);
+        for(auto iter=0; iter < max_iter; ++iter) {
+            if(iter > 0){
+                for(auto i=0; i<initials.size(); ++i)
+                    initials[i] = solution.second;
+            }
+            victorFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);
+
+            CompactLabelSpace all_solution;
+            victorFusionPipeline.getAllResult(all_solution);
+            if(all_solution.getLabelSpace()[0].size() == 1)
+                victorFusionPipeline.getBestLabeling(solution);
+            else{
+                printf("Performing final fusion...\n");
+                CompactLabelSpace fusedSolution;
+                fusedSolution.init(kPix, vector<int>(1,0));
+                for(auto i=0; i<kPix; ++i)
+                    fusedSolution(i,0) = all_solution(i,0);
+                for(auto i=1; i<all_solution.getLabelSpace()[0].size(); ++i) {
+                    cout << i << ' ' << flush;
+                    fuseTwoSolution(fusedSolution, all_solution, i, model);
+                }
+                cout << endl;
+                solution.second =fusedSolution;
+                solution.first = solvers[0]->evaluateEnergy(solution.second);
+            }
         }
 
         t = ((float)getTickCount() - t) / (float)getTickFrequency();

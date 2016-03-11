@@ -155,7 +155,7 @@ namespace simple_stereo {
 //        cout << "Runing parallel method with solution sharing" << endl;
 //        ParallelOptimize optimize_parallel(file_io, model, 4);
 //        Depth result_parallel;
-//        optimize_parallel.optimize(result_parallel, 1);
+//        optimize_parallel.optimize(result_parallel, 2);
 //        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
 //        result_parallel.saveImage(buffer);
 
@@ -163,7 +163,7 @@ namespace simple_stereo {
         cout << "Runing Victor's method" << endl;
         VictorOptimize optimize_victor(file_io, model, 4);
         Depth result_victor;
-        optimize_victor.optimize(result_victor, 1);
+        optimize_victor.optimize(result_victor, 2);
         sprintf(buffer, "%s/temp/result_victor.jpg", file_io.getDirectory().c_str());
         result_victor.saveImage(buffer);
 
