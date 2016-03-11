@@ -151,11 +151,21 @@ namespace simple_stereo {
         sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
         unaryDisp.saveImage(buffer, 256.0 / (double)model->nLabel);
 
-        ParallelOptimize optimize_parallel(file_io, model, 1);
-        Depth result_parallel;
-        optimize_parallel.optimize(result_parallel, 1);
-        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
-        result_parallel.saveImage(buffer);
+//        cout << "========================================" << endl;
+//        cout << "Runing parallel method with solution sharing" << endl;
+//        ParallelOptimize optimize_parallel(file_io, model, 4);
+//        Depth result_parallel;
+//        optimize_parallel.optimize(result_parallel, 1);
+//        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
+//        result_parallel.saveImage(buffer);
+
+        cout << "========================================" << endl;
+        cout << "Runing Victor's method" << endl;
+        VictorOptimize optimize_victor(file_io, model, 4);
+        Depth result_victor;
+        optimize_victor.optimize(result_victor, 1);
+        sprintf(buffer, "%s/temp/result_victor.jpg", file_io.getDirectory().c_str());
+        result_victor.saveImage(buffer);
 
 //        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
 //        Depth result_hierarchy;

@@ -48,6 +48,9 @@ namespace ParallelFusion {
         inline const GlobalTimeEnergyProfile& getGlobalProfile() const{
             return globalProfile;
         }
+        inline GlobalTimeEnergyProfile& getGlobalProfile(){
+            return globalProfile;
+        }
         inline const std::vector<std::list<Observation> >& getAllThreadProfiles() const{
             return threadProfile;
         }
@@ -238,7 +241,7 @@ namespace ParallelFusion {
                 generator->getProposals(proposals_self, current_solution.second, num_proposals_from_self);
                 proposals.appendSpace(proposals_self);
 
-                printf("In iteration %d, thread %d generates %d proposals and grab %d solutions\n", iter, id, num_proposals_from_self, num_proposals_from_others);
+                //printf("In iteration %d, thread %d generates %d proposals and grab %d solutions\n", iter, id, num_proposals_from_self, num_proposals_from_others);
 
 
                 //printf("Solving...\n");

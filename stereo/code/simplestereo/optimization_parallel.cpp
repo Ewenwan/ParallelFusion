@@ -16,10 +16,11 @@ namespace simple_stereo {
 
         bool victorMethod = true;
         result.initialize(width, height, -1);
+        const int kFusionSize = 4;
         //configure as sequential fusion
         ParallelFusionOption pipelineOption;
-        pipelineOption.num_threads = 4;
-        pipelineOption.max_iteration = 16;
+        pipelineOption.num_threads = num_threads;
+        pipelineOption.max_iteration = model->nLabel / num_threads / kFusionSize;
         const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
 
         Pipeline::GeneratorSet generators((size_t)pipelineOption.num_threads);
@@ -34,7 +35,7 @@ namespace simple_stereo {
             const int startid = i;
             const int interval = pipelineOption.num_threads;
             initials[i].init(kPix, vector<int>(1, startid));
-            threadOptions[i].kTotal = 5;
+            threadOptions[i].kTotal = kFusionSize + 1;
             threadOptions[i].kOtherThread = 1;
             threadOptions[i].solution_exchange_interval = 1;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);

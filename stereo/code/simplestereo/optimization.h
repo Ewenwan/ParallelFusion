@@ -164,6 +164,7 @@ namespace simple_stereo {
     };
 
     class VictorOptimize: public StereoOptimizer{
+    public:
         VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_):
                 StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
