@@ -13,9 +13,9 @@ find_package(OpenCV REQUIRED)
 #find_package(GLOG REQUIRED)
 find_package(gflags REQUIRED)
 
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../base ${CMAKE_CURRENT_SOURCE_DIR}/../base/cv_utils ${CMAKE_CURRENT_SOURCE_DIR}/lib/OpticalFlow)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../base ${CMAKE_CURRENT_SOURCE_DIR}/../base/cv_utils)
 include_directories(/opt/gurobi650/linux64/include)
-set(PROJECT_LINK_LIBS cv_utils.so ParallelFusion_base.so OpticalFlow.a)
+set(PROJECT_LINK_LIBS cv_utils.so ParallelFusion_base.so)
 
 #include_directories(../base/cv_utils /opt/gurobi650/linux64/include)
 file(GLOB SOURCES "*.cpp")

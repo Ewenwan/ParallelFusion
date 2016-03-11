@@ -6,8 +6,8 @@
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudaoptflow.hpp>
 
-#include "lib/OpticalFlow/OpticalFlow.h"
-#include "lib/OpticalFlow/GaussianPyramid.h"
+// #include "lib/OpticalFlow/OpticalFlow.h"
+// #include "lib/OpticalFlow/GaussianPyramid.h"
 
 using namespace std;
 using namespace cv;
@@ -72,45 +72,45 @@ std::vector<std::pair<double, double> > calcFlowsFarneback(const cv::Mat &image_
 
 std::vector<std::pair<double, double> > calcFlowsLayerWise(const cv::Mat &image_1, const cv::Mat &image_2, const double ALPHA, const double RATIO)
 {
-  const int IMAGE_WIDTH = image_1.cols;
-  const int IMAGE_HEIGHT = image_1.rows;
+//   const int IMAGE_WIDTH = image_1.cols;
+//   const int IMAGE_HEIGHT = image_1.rows;
 
-  // Mat image_1_small, image_2_small;
-  // downSample(img1, img1_small, nLevel);
-  // downSample(img2, img2_small, nLevel);
-  DImage d_image_1, d_image_2, d_flow_image;
-  //copy image data to DImage
-  d_image_1.allocate(image_1.cols, image_1.rows, image_1.channels());
-  d_image_2.allocate(image_2.cols, image_2.rows, image_2.channels());
-  for (int pixel = 0; pixel < IMAGE_WIDTH * IMAGE_HEIGHT; pixel++) {
-    Vec3b color_1 = image_1.at<Vec3b>(pixel / IMAGE_WIDTH, pixel % IMAGE_WIDTH);
-    for (int c = 0; c < 3; c++)
-      d_image_1[pixel * 3 + c] = 1.0 * color_1[c] / 255;
-    Vec3b color_2 = image_2.at<Vec3b>(pixel / IMAGE_WIDTH, pixel % IMAGE_WIDTH);
-    for (int c = 0; c < 3; c++)
-      d_image_2[pixel * 3 + c] = 1.0 * color_2[c] / 255;
-  }
+//   // Mat image_1_small, image_2_small;
+//   // downSample(img1, img1_small, nLevel);
+//   // downSample(img2, img2_small, nLevel);
+//   DImage d_image_1, d_image_2, d_flow_image;
+//   //copy image data to DImage
+//   d_image_1.allocate(image_1.cols, image_1.rows, image_1.channels());
+//   d_image_2.allocate(image_2.cols, image_2.rows, image_2.channels());
+//   for (int pixel = 0; pixel < IMAGE_WIDTH * IMAGE_HEIGHT; pixel++) {
+//     Vec3b color_1 = image_1.at<Vec3b>(pixel / IMAGE_WIDTH, pixel % IMAGE_WIDTH);
+//     for (int c = 0; c < 3; c++)
+//       d_image_1[pixel * 3 + c] = 1.0 * color_1[c] / 255;
+//     Vec3b color_2 = image_2.at<Vec3b>(pixel / IMAGE_WIDTH, pixel % IMAGE_WIDTH);
+//     for (int c = 0; c < 3; c++)
+//       d_image_2[pixel * 3 + c] = 1.0 * color_2[c] / 255;
+//   }
   
-  d_flow_image.allocate(d_image_1.width(), d_image_1.height(), 2);
+//   d_flow_image.allocate(d_image_1.width(), d_image_1.height(), 2);
 
-  const int MIN_WIDTH = 30;
-  const int NUM_OUTER_FP_ITERATIONS = 10;
-  const int NUM_INNER_FP_ITERATIONS = 1;
-  const int NUM_CG_ITERATIONS = 30;
+//   const int MIN_WIDTH = 30;
+//   const int NUM_OUTER_FP_ITERATIONS = 10;
+//   const int NUM_INNER_FP_ITERATIONS = 1;
+//   const int NUM_CG_ITERATIONS = 30;
 
-  DImage weight_image;
-  weight_image.allocate(d_image_1.width(), d_image_1.height(), 1);
-  weight_image.setValue(1);
+//   DImage weight_image;
+//   weight_image.allocate(d_image_1.width(), d_image_1.height(), 1);
+//   weight_image.setValue(1);
 
-  DImage vx, vy, warped_image;
-  OpticalFlow::Coarse2FineFlow(vx, vy, warped_image, d_image_1, d_image_2, weight_image, ALPHA, RATIO, MIN_WIDTH, NUM_OUTER_FP_ITERATIONS, NUM_INNER_FP_ITERATIONS, NUM_CG_ITERATIONS);
+//   DImage vx, vy, warped_image;
+//   OpticalFlow::Coarse2FineFlow(vx, vy, warped_image, d_image_1, d_image_2, weight_image, ALPHA, RATIO, MIN_WIDTH, NUM_OUTER_FP_ITERATIONS, NUM_INNER_FP_ITERATIONS, NUM_CG_ITERATIONS);
 
-  vector<pair<double, double> > flows(IMAGE_WIDTH * IMAGE_HEIGHT);
-  for (int pixel = 0; pixel < IMAGE_WIDTH * IMAGE_HEIGHT; pixel++) {
-    flows[pixel].first = vx[pixel];
-    flows[pixel].second = vy[pixel];
-  }
-  return flows;
+//   vector<pair<double, double> > flows(IMAGE_WIDTH * IMAGE_HEIGHT);
+//   for (int pixel = 0; pixel < IMAGE_WIDTH * IMAGE_HEIGHT; pixel++) {
+//     flows[pixel].first = vx[pixel];
+//     flows[pixel].second = vy[pixel];
+//   }
+//   return flows;
 }
 
 std::vector<std::pair<double, double> > calcFlowsBrox(const cv::Mat &image_1, const cv::Mat &image_2, const double ALPHA, const double RATIO)
