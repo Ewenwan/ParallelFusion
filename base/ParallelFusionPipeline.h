@@ -25,7 +25,9 @@ namespace ParallelFusion {
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
                                                                       terminate(false), write_flag((size_t)option_.num_threads),
-                                                                      threadProfile((size_t)option_.num_threads){ }
+                                                                      threadProfile((size_t)option_.num_threads){
+            start_time = (float)cv::getTickCount();
+        }
 
         typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
@@ -42,7 +44,8 @@ namespace ParallelFusion {
         double runParallelFusion(const std::vector<LABELSPACE> &initials,
                                  const GeneratorSet& generators,
                                  const SolverSet& solvers,
-                                 const std::vector<ThreadOption> &thread_options);
+                                 const std::vector<ThreadOption> &thread_options,
+                                 const bool reset_time = true);
 
         double getBestLabeling(SolutionType<LABELSPACE>& solution) const;
         void getAllResult(LABELSPACE& solutions) const;
@@ -102,7 +105,8 @@ namespace ParallelFusion {
     double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(const std::vector<LABELSPACE> &initials,
                                                                  const GeneratorSet& generators,
                                                                  const SolverSet& solvers,
-                                                                 const std::vector<ThreadOption> &thread_options){
+                                                                 const std::vector<ThreadOption> &thread_options,
+                                                                 const bool reset_time){
 
         CHECK_EQ(option.num_threads, initials.size());
         CHECK_EQ(option.num_threads, generators.size());
@@ -140,7 +144,8 @@ namespace ParallelFusion {
             write_flag[i].store(true);
         }
 
-        start_time = (float) cv::getTickCount();
+        if(reset_time)
+            start_time = (float) cv::getTickCount();
 
         //launch slave threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves(slaveThreadIds.size());
