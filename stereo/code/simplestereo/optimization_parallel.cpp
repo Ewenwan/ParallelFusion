@@ -106,11 +106,6 @@ namespace simple_stereo {
         return solution.first;
     }
 
-    void ParallelOptimize::finalFuse(const std::vector<ParallelFusion::SolutionType<CompactLabelSpace> > &solutions,
-                                     ParallelFusion::SolutionType<CompactLabelSpace> &result) {
-
-    }
-
     SimpleStereoGenerator::SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_):
             nPix(nPix_), randomOrder(randomOrder_), nextLabel(0){
         labelTable.resize((size_t)num_);
@@ -123,7 +118,7 @@ namespace simple_stereo {
     }
 
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
-                                            const CompactLabelSpace &current_solution, const int N) {
+                                             const CompactLabelSpace &current_solution, const int N) {
         for(auto i=0; i<N; ++i){
             proposals.getSingleLabel().push_back(labelTable[nextLabel]);
             nextLabel = (nextLabel + 1) % (int)labelTable.size();
@@ -141,8 +136,8 @@ namespace simple_stereo {
     }
 
     void SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
-                                     const SolutionType<CompactLabelSpace>& current_solution,
-                                     SolutionType<CompactLabelSpace>& solution){
+                                   const SolutionType<CompactLabelSpace>& current_solution,
+                                   SolutionType<CompactLabelSpace>& solution){
         CHECK(!proposals.empty());
         int kFullProposal;
         if(proposals.getLabelSpace().empty())
@@ -194,7 +189,7 @@ namespace simple_stereo {
 
 
     void SimpleStereoMonitor::solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
-                       ParallelFusion::SolutionType<CompactLabelSpace>& solution){
+                                    ParallelFusion::SolutionType<CompactLabelSpace>& solution){
         CHECK(!proposals.getLabelSpace().empty());
         float difft = ((float)getTickCount() - t) / (float)getTickFrequency();
         const size_t nSolution = proposals.getLabelSpace()[0].size();
@@ -254,7 +249,7 @@ namespace simple_stereo {
             fusedSolution(i,0) = proposals(i,0);
 
         for(auto pid=1; pid<nSolution; ++pid){
-           fuseTwoSolution(fusedSolution, proposals, pid, model);
+            fuseTwoSolution(fusedSolution, proposals, pid, model);
         }
 
         double e = evaluateEnergy(fusedSolution);

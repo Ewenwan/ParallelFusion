@@ -147,7 +147,6 @@ namespace simple_stereo {
                 StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     private:
-        void finalFuse(const std::vector<ParallelFusion::SolutionType<CompactLabelSpace> >& solutions, ParallelFusion::SolutionType<CompactLabelSpace>& result);
         const int num_threads;
     };
 
@@ -177,11 +176,18 @@ namespace simple_stereo {
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
         virtual double evaluateEnergy(const CompactLabelSpace& solution) const;
 
-    private:
+    protected:
         const MRFModel<int>* model;
         const int kPix;
         Expansion* mrf;
         //kolmogorov::qpbo::QPBO<int>* qpbo;
+    };
+
+    class HierarchyStereoSolver: public SimpleStereoSolver{
+    public:
+        HierarchyStereoSolver(const MRFModel<int>* model_): SimpleStereoSolver(model_){}
+        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
+                           ParallelFusion::SolutionType<CompactLabelSpace>& solution);
     };
 
     class SimpleStereoMonitor: public ParallelFusion::FusionSolver<CompactLabelSpace>{

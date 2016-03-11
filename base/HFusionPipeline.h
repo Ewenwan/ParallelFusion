@@ -129,10 +129,16 @@ namespace ParallelFusion {
                 task_queue.pop();
                 lock.unlock();
 
-                LABELSPACE p1 = *(t->lchild->data);
-                p1.appendSpace(*(t->rchild->data));
                 SolutionType<LABELSPACE> solution;
                 SolutionType<LABELSPACE> current_solution;
+                LABELSPACE p1 = *(t->lchild->data);
+                p1.appendSpace(*(t->rchild->data));
+
+                ////////////////////////////////////
+                //Note!!!!!!
+                //Be careful of "current_solution". The one passed into the solver is the best solutions so far.
+                //However, typically you want to fuse left child with right child.
+                ///////////////////////////////////
                 bestSolution->get(current_solution);
                 solver->solve(p1, current_solution, solution);
                 t->data = std::make_shared<LABELSPACE>(solution.second);
@@ -144,7 +150,7 @@ namespace ParallelFusion {
                 float difft = ((float) cv::getTickCount() - start_time) / (float) cv::getTickFrequency();
                 Observation ob(difft, solution.first);
                 profile->addObservation(ob);
-                printf("Node: (%d,%d) fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
+                printf("Node %d and %d are fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
                 //if current solution is better, update best soltuion
                 if (ob.second < current_solution.first)
                     bestSolution->set(solution);
