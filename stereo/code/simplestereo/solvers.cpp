@@ -2,7 +2,11 @@
 // Created by yanhang on 3/10/16.
 //
 
+
 #include "optimization.h"
+#include "../external/TRW_S/MRFEnergy.h"
+#include "../external/TRW_S/typeGeneral.h"
+#include "../external/QPBO1.4/QPBO.h"
 
 using namespace std;
 using namespace cv;
@@ -30,11 +34,11 @@ namespace simple_stereo{
 
     void SimpleStereoSolver::initSolver(const CompactLabelSpace &initial) {
         CHECK_EQ(initial.getNumNode(), model->width * model->height);
-        EnergyFunction *energy_function = new EnergyFunction(new DataCost(const_cast<int*>(model->MRF_data)),
+        energy_function = shared_ptr<EnergyFunction>(new EnergyFunction(new DataCost(const_cast<int*>(model->MRF_data)),
                                                              new SmoothnessCost(1, 4, model->weight_smooth,
                                                                                 const_cast<int*>(model->hCue),
-                                                                                const_cast<int*>(model->vCue)));
-        mrf = new Expansion(model->width, model->height, model->nLabel, energy_function);
+                                                                                const_cast<int*>(model->vCue))));
+        mrf = shared_ptr<Expansion>(new Expansion(model->width, model->height, model->nLabel, energy_function.get()));
         mrf->initialize();
     }
 
@@ -91,7 +95,7 @@ namespace simple_stereo{
     }
 
 
-    double fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model){
+    void fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model){
 //        CHECK_EQ(s1.getNumNode(), s2.getNumNode());
 //        CHECK_GT(s1.getNumNode(), 0);
 //        CHECK_LT(pid, s2.getLabelSpace()[0].size());
@@ -133,6 +137,93 @@ namespace simple_stereo{
         for(auto i=0; i<kPix; ++i){
             if(qpbo.GetLabel(i) == 1)
                 s1(i,0) = s2(i,pid);
+        }
+    }
+
+    void multiwayFusionByTRWS(const CompactLabelSpace& proposals, const MRFModel<int>*model, CompactLabelSpace& solution){
+        CHECK(!proposals.empty());
+        const int singleLabelSize = (int)proposals.getSingleLabel().size();
+        int fullLabelSize = 0;
+        if(!proposals.getLabelSpace().empty())
+            fullLabelSize += (int)proposals.getLabelSpace()[0].size();
+        const int nLabel = singleLabelSize + fullLabelSize;
+
+        const int& width = model->width;
+        const int& height = model->height;
+
+        typedef TypeGeneral SmoothT;
+        typedef MRFEnergy<SmoothT> TRWS;
+
+        const int kPix = model->width * model->height;
+        TRWS::Options option;
+        SmoothT::REAL energy, lowerBound;
+
+        shared_ptr<TRWS> mrf(new TRWS(SmoothT::GlobalSize()));
+        shared_ptr<TRWS::NodeId> nodes(new TRWS::NodeId[kPix]);
+
+        //constructing energy function
+        //data cost
+        vector<vector<SmoothT::REAL> > dataCost((size_t)kPix);
+        for(auto i=0; i<kPix; ++i)
+            dataCost[i].resize((size_t)nLabel, 0);
+
+        for(auto i=0; i<kPix; ++i) {
+            for (auto l = 0; l < singleLabelSize; ++l)
+                dataCost[i][l] = model->operator()(i, proposals[l]) / model->MRFRatio;
+            for(auto l=0; l<fullLabelSize; ++l)
+                dataCost[i][l+singleLabelSize] = model->operator()(i, proposals(i, l)) / model->MRFRatio;
+            nodes.get()[i] = mrf->AddNode(SmoothT::LocalSize(nLabel), SmoothT::NodeData(dataCost[i].data()));
+        }
+
+        //smoothness cost
+        vector<vector<SmoothT::REAL> > smoothCost((size_t)2 * kPix);
+        for(auto& sc: smoothCost)
+            sc.resize((size_t)(nLabel * nLabel));
+
+        auto computeSmoothCost = [&](const int pix1, bool direction){
+            const int pix2 = direction ? pix1 + 1 : pix1 + width;
+            const int offset = direction ? 0 : kPix;
+            for(int l1=0; l1<nLabel; ++l1){
+                for(int l2=0; l2<nLabel; ++l2 ){
+                    int ll1, ll2;
+                    if(l1 < singleLabelSize)
+                        ll1 = proposals[l1];
+                    else
+                        ll1 = proposals(pix1, l1-singleLabelSize);
+                    if(l2 < singleLabelSize)
+                        ll2 = proposals[l2];
+                    else
+                        ll2 = proposals(pix1, l2-singleLabelSize);
+                    smoothCost[pix1 + offset][l1 + l2 * nLabel] = model->computeSmoothCost(pix1, ll1, ll2, direction) / model->MRFRatio;
+                }
+            }
+        };
+
+        for(auto y=0; y<model->height-1; ++y) {
+            for (auto x = 0; x < model->width - 1; ++x) {
+                const int pix1 = y * width + x;
+                const int pix2 = y * width + x + 1;
+                const int pix3 = (y + 1) * width + x;
+                computeSmoothCost(pix1, true);
+                computeSmoothCost(pix1, false);
+                mrf->AddEdge(nodes.get()[pix1], nodes.get()[pix2], SmoothT::EdgeData(SmoothT::GENERAL, smoothCost[pix1].data()));
+                mrf->AddEdge(nodes.get()[pix1], nodes.get()[pix3], SmoothT::EdgeData(SmoothT::GENERAL, smoothCost[pix1+kPix].data()));
+            }
+        }
+
+        //solve
+        option.m_iterMax = 30;
+        mrf->Minimize_TRW_S(option, lowerBound, energy);
+
+        //copy result
+        if(solution.getNumNode() < kPix)
+            solution.init(kPix, vector<int>(1,0));
+        for(auto i=0; i<kPix; ++i) {
+            const int l = mrf->GetSolution(nodes.get()[i]);
+            if(l < singleLabelSize)
+                solution(i, 0) = proposals[l];
+            else
+                solution(i, 0) = proposals(i, l-singleLabelSize);
         }
     }
 

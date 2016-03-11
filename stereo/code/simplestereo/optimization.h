@@ -18,7 +18,6 @@
 #include "../stereo_base/file_io.h"
 
 #include "../external/MRF2.2/GCoptimization.h"
-#include "../external/QPBO1.4/QPBO.h"
 #include "../../../base/LabelSpace.h"
 #include "../../../base/FusionSolver.h"
 #include "../../../base/ParallelFusionPipeline.h"
@@ -27,7 +26,7 @@
 namespace simple_stereo {
     template<typename T>
     struct MRFModel{
-        MRFModel(): MRF_data(NULL), hCue(NULL), vCue(NULL), width(0), height(0), MRFRatio(100.0){}
+        MRFModel(): MRF_data(NULL), hCue(NULL), vCue(NULL), width(0), height(0), MRFRatio(1000.0){}
         ~MRFModel(){
             clear();
         }
@@ -66,7 +65,6 @@ namespace simple_stereo {
             height = h;
             nLabel = n;
             weight_smooth = (T)(wei * MRFRatio);
-            MRFRatio = 100.0;
         }
 
         inline T computeSmoothCost(const int pix, const int l1, const int l2, bool direction) const{
@@ -87,6 +85,11 @@ namespace simple_stereo {
 
         const std::vector<int>& getSingleLabel() const{
             return singleLabel;
+        }
+
+        inline int operator[](const int id) const{
+            CHECK_LT(id, singleLabel.size());
+            return singleLabel[id];
         }
 
         const void appendSpace(const CompactLabelSpace& rhs){
@@ -147,11 +150,12 @@ namespace simple_stereo {
 
     class ParallelOptimize: public StereoOptimizer{
     public:
-        ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>* model_, const int num_threads_):
-                StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
+        ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>* model_, const int num_threads_, const bool multiway_ = false):
+                StereoOptimizer(file_io_, model_), num_threads(num_threads_), multiway(multiway_){}
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     private:
         const int num_threads;
+        const bool multiway;
     };
 
     class HierarchyOptimize: public StereoOptimizer {
@@ -165,20 +169,21 @@ namespace simple_stereo {
 
     class VictorOptimize: public StereoOptimizer{
     public:
-        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_):
-                StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
+        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_, const bool multiway_ = false):
+                StereoOptimizer(file_io_, model_), num_threads(num_threads_), multiway(multiway_){}
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
     private:
         const int num_threads;
+        const bool multiway;
     };
 
+
+    /////////////////////////////////////////////////////////////////////////
+    //Solvers
+    /////////////////////////////////////////////////////////////////////////
     class SimpleStereoSolver : public ParallelFusion::FusionSolver<CompactLabelSpace> {
     public:
         SimpleStereoSolver(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
-        ~SimpleStereoSolver(){
-            delete mrf;
-//            delete qpbo;
-        }
         virtual void initSolver(const CompactLabelSpace& initial);
         virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
@@ -187,8 +192,8 @@ namespace simple_stereo {
     protected:
         const MRFModel<int>* model;
         const int kPix;
-        Expansion* mrf;
-        //kolmogorov::qpbo::QPBO<int>* qpbo;
+        std::shared_ptr<Expansion> mrf;
+        std::shared_ptr<EnergyFunction> energy_function;
     };
 
     class HierarchyStereoSolver: public SimpleStereoSolver{
@@ -205,18 +210,31 @@ namespace simple_stereo {
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
     };
 
+
+
+    /////////////////////////////////////////////////////////////////////////
+    //Proposal Generatos
+    /////////////////////////////////////////////////////////////////////////
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
     public:
         SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_ = true);
         virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
-    private:
+    protected:
         const int nPix;
         const bool randomOrder;
         std::vector<int> labelTable;
         int nextLabel;
     };
 
-    double fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model);
+    class MultiwayStereoGenerator: public SimpleStereoGenerator{
+    public:
+        MultiwayStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_ = true):
+                SimpleStereoGenerator(nPix_, startid_, interval_, num_, randomOrder_){}
+        virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
+    };
+
+    void fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model);
+    void multiwayFusionByTRWS(const CompactLabelSpace& proposals, const MRFModel<int>* model, CompactLabelSpace& solution);
     void dumpOutData(const ParallelFusion::ParallelFusionPipeline<CompactLabelSpace>& pipeline, const std::string& prefix);
 }//namespace dynamic_stereo
 

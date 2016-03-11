@@ -122,7 +122,7 @@ private:
 public:
 	typedef enum
 	{
-	  GENERAL, // edge information is stored as Ki*Kj matrix. Inefficient!
+		GENERAL, // edge information is stored as Ki*Kj matrix. Inefficient!
 		POTTS    // edge information is stored as one number (lambdaPotts).
 	} Type;
 
@@ -142,31 +142,31 @@ public:
 	struct LocalSize // number of labels is stored at MRFEnergy::m_Kglobal
 	{
 		LocalSize(int K);
-          int           m_K; // number of labels
+		int           m_K; // number of labels
 	private:
-	friend struct Vector;
-	friend struct Edge;
+		friend struct Vector;
+		friend struct Edge;
 	};
 
 	struct NodeData
 	{
-	  NodeData(REAL* data); // data = pointer to array of size MRFEnergy::m_Kglobal
+		NodeData(REAL* data); // data = pointer to array of size MRFEnergy::m_Kglobal
 
 	private:
-	friend struct Vector;
-	friend struct Edge;
+		friend struct Vector;
+		friend struct Edge;
 		REAL*		m_data;
 	};
 
 	struct EdgeData
 	{
-	  EdgeData(Type type, REAL lambdaPotts); // type must be POTTS
+		EdgeData(Type type, REAL lambdaPotts); // type must be POTTS
 		EdgeData(Type type, REAL* data); // type must be GENERAL. data = pointer to array of size Ki*Kj
-		                                 // such that V(ki,kj) = data[ki + Ki*kj]
+		// such that V(ki,kj) = data[ki + Ki*kj]
 
 	private:
-	friend struct Vector;
-	friend struct Edge;
+		friend struct Vector;
+		friend struct Edge;
 		Type		m_type;
 		union
 		{
@@ -186,7 +186,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////
 
 private:
-friend class MRFEnergy<TypeGeneral>;
+	friend class MRFEnergy<TypeGeneral>;
 
 	struct Vector
 	{
@@ -196,31 +196,31 @@ friend class MRFEnergy<TypeGeneral>;
 
 		void SetZero(GlobalSize Kglobal, LocalSize K);                            // set this[k] = 0
 		void Copy(GlobalSize Kglobal, LocalSize K, Vector* V);                    // set this[k] = V[k]
-	  void Add(GlobalSize Kglobal, LocalSize K, Vector* V);                     // set this[k] = this[k] + V[k]
+		void Add(GlobalSize Kglobal, LocalSize K, Vector* V);                     // set this[k] = this[k] + V[k]
 		REAL GetValue(GlobalSize Kglobal, LocalSize K, Label k);                  // return this[k]
 		REAL ComputeMin(GlobalSize Kglobal, LocalSize K, Label& kMin);            // return min_k { this[k] }, set kMin
 		REAL ComputeAndSubtractMin(GlobalSize Kglobal, LocalSize K);              // same as previous, but additionally set this[k] -= vMin (and kMin is not returned)
 
-	  static int GetArraySize(GlobalSize Kglobal, LocalSize K);
+		static int GetArraySize(GlobalSize Kglobal, LocalSize K);
 		REAL GetArrayValue(GlobalSize Kglobal, LocalSize K, int k); // note: k is an integer in [0..GetArraySize()-1].
-		                                                            // For Potts functions GetArrayValue() and GetValue() are the same,
-		                                                            // but they are different for, say, 2-dimensional labels.
+		// For Potts functions GetArrayValue() and GetValue() are the same,
+		// but they are different for, say, 2-dimensional labels.
 		void SetArrayValue(GlobalSize Kglobal, LocalSize K, int k, REAL x);
 
 	private:
-	friend struct Edge;
+		friend struct Edge;
 		REAL		m_data[1]; // actual size is MRFEnergy::m_Kglobal
 	};
 
 	struct Edge
 	{
 		static int GetSizeInBytes(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj, EdgeData data); // returns -1 if invalid data
-	  static int GetBufSizeInBytes(int vectorMaxSizeInBytes); // returns size of buffer need for UpdateMessage()
+		static int GetBufSizeInBytes(int vectorMaxSizeInBytes); // returns size of buffer need for UpdateMessage()
 		void Initialize(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj, EdgeData data, Vector* Di, Vector* Dj); // called once when user adds an edge
-	  Vector* GetMessagePtr();
-	  Vector* GetReverseMessagePtr();
-          void Swap(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj); // if the client calls this function, then the meaning of 'dir'
-								                                               // in distance transform functions is swapped
+		Vector* GetMessagePtr();
+		Vector* GetReverseMessagePtr();
+		void Swap(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj); // if the client calls this function, then the meaning of 'dir'
+		// in distance transform functions is swapped
 
 		// When UpdateMessage() is called, edge contains message from dest to source.
 		// The function must replace it with the message from source to dest.
@@ -246,7 +246,7 @@ friend class MRFEnergy<TypeGeneral>;
 		// If Edge::Swap has been called odd number of times, then the meaning of dir is swapped.
 		//
 		// Vector 'source' must not be modified. Function may use 'buf' as a temporary storage.
-	  REAL UpdateMessage(GlobalSize Kglobal, LocalSize Ksource, LocalSize Kdest, Vector* source, REAL gamma, int dir, void* buf);
+		REAL UpdateMessage(GlobalSize Kglobal, LocalSize Ksource, LocalSize Kdest, Vector* source, REAL gamma, int dir, void* buf);
 
 		// If dir==0, then sets dest[kj] += V(ksource,kj).
 		// If dir==1, then sets dest[ki] += V(ki,ksource).
@@ -258,21 +258,21 @@ friend class MRFEnergy<TypeGeneral>;
 		Type		m_type;
 
 		// message
-	  Vector*		m_message;
-	  Vector* m_reverse_message;
+		Vector*		m_message;
+		Vector* m_reverse_message;
 	};
 
 	struct EdgePotts : Edge
 	{
 	private:
-	friend struct Edge;
-	REAL	m_lambdaPotts;
+		friend struct Edge;
+		REAL	m_lambdaPotts;
 	};
 
 	struct EdgeGeneral : Edge
 	{
 	private:
-	friend struct Edge;
+		friend struct Edge;
 		int		m_dir; // 0 if Swap() was called even number of times, 1 otherwise
 		REAL	m_data[1]; // array of size Ki*Kj
 	};
@@ -337,7 +337,7 @@ inline void TypeGeneral::Vector::Add(GlobalSize Kglobal, LocalSize K, NodeData d
 
 inline void TypeGeneral::Vector::SetZero(GlobalSize Kglobal, LocalSize K)
 {
-  memset(m_data, 0, K.m_K*sizeof(REAL));
+	memset(m_data, 0, K.m_K*sizeof(REAL));
 }
 
 inline void TypeGeneral::Vector::Copy(GlobalSize Kglobal, LocalSize K, Vector* V)
@@ -424,10 +424,10 @@ inline int TypeGeneral::Edge::GetSizeInBytes(GlobalSize Kglobal, LocalSize Ki, L
 				return -1;
 			}
 			return sizeof(EdgePotts) + messageSizeInBytes;
-	case GENERAL:
-	  //modified
-	  //return sizeof(EdgeGeneral) - sizeof(REAL) + Ki.m_K*Kj.m_K*sizeof(REAL) + messageSizeInBytes;
-	  return sizeof(EdgeGeneral) - sizeof(REAL) + Ki.m_K*Kj.m_K*sizeof(REAL) + messageSizeInBytes * 2;
+		case GENERAL:
+			//modified
+			//return sizeof(EdgeGeneral) - sizeof(REAL) + Ki.m_K*Kj.m_K*sizeof(REAL) + messageSizeInBytes;
+			return sizeof(EdgeGeneral) - sizeof(REAL) + Ki.m_K*Kj.m_K*sizeof(REAL) + messageSizeInBytes * 2;
 		default:
 			return -1;
 	}
@@ -448,14 +448,14 @@ inline void TypeGeneral::Edge::Initialize(GlobalSize Kglobal, LocalSize Ki, Loca
 			((EdgePotts*)this)->m_lambdaPotts = data.m_lambdaPotts;
 			m_message = (Vector*)((char*)this + sizeof(EdgePotts));
 			m_reverse_message = (Vector*)((char*)this + sizeof(EdgePotts) + 1); //modified
-                	break;
+			break;
 		case GENERAL:
 			((EdgeGeneral*)this)->m_dir = 0;
 			memcpy(((EdgeGeneral*)this)->m_data, data.m_dataGeneral, Ki.m_K*Kj.m_K*sizeof(REAL));
 			m_message = (Vector*)((char*)this + sizeof(EdgeGeneral) - sizeof(REAL) + Ki.m_K*Kj.m_K*sizeof(REAL));
-			
+
 			m_reverse_message = (Vector*)((char*)this + sizeof(EdgeGeneral) - sizeof(REAL) + Ki.m_K*Kj.m_K*sizeof(REAL) + ((Ki.m_K > Kj.m_K) ? Ki.m_K : Kj.m_K)*sizeof(REAL)); //modified
-                	break;
+			break;
 		default:
 			assert(0);
 	}
@@ -472,12 +472,12 @@ inline TypeGeneral::Vector* TypeGeneral::Edge::GetMessagePtr()
 //modified
 inline TypeGeneral::Vector* TypeGeneral::Edge::GetReverseMessagePtr()
 {
-  return m_reverse_message;
+	return m_reverse_message;
 }
 
 inline void TypeGeneral::Edge::Swap(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj)
 {
-  if (m_type == GENERAL)
+	if (m_type == GENERAL)
 	{
 		((EdgeGeneral*)this)->m_dir = 1 - ((EdgeGeneral*)this)->m_dir;
 	}
@@ -485,16 +485,16 @@ inline void TypeGeneral::Edge::Swap(GlobalSize Kglobal, LocalSize Ki, LocalSize 
 
 inline TypeGeneral::REAL TypeGeneral::Edge::UpdateMessage(GlobalSize Kglobal, LocalSize Ksource, LocalSize Kdest, Vector* source, REAL gamma, int dir, void* _buf)
 {
-  //modified
-  {
-    int message_size = Ksource.m_K > Kdest.m_K ? Ksource.m_K : Kdest.m_K;
-    for (int i = 0; i < message_size; i++)
-      m_reverse_message->m_data[i] = m_message->m_data[i];
-  }
-  
-  Vector* buf = (Vector*) _buf;
+	//modified
+	{
+		int message_size = Ksource.m_K > Kdest.m_K ? Ksource.m_K : Kdest.m_K;
+		for (int i = 0; i < message_size; i++)
+			m_reverse_message->m_data[i] = m_message->m_data[i];
+	}
+
+	Vector* buf = (Vector*) _buf;
 	REAL vMin;
-	
+
 	if (m_type == POTTS)
 	{
 		assert(Ksource.m_K == Kdest.m_K);

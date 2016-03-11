@@ -35,14 +35,20 @@ namespace simple_stereo {
         for(auto i=0; i<pipelineOption.num_threads; ++i){
             const int startid = i * kLabelPerThread;
 //            const int interval = pipelineOption.num_threads;
-	    const int interval = 1;
+            const int interval = 1;
             initials[i].init(kPix, vector<int>(1, startid));
             threadOptions[i].kTotal = kFusionSize + kOtherThread;
             threadOptions[i].kOtherThread = kOtherThread;
             threadOptions[i].solution_exchange_interval = 1;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
-            generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
-            solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
+            if(multiway) {
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new MultiwayStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                solvers[i] = shared_ptr<FusionSolver<Space> >(new MultiwayStereoSolver(model));
+            }else{
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
+            }
+
             printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));
         }
 
@@ -60,7 +66,10 @@ namespace simple_stereo {
         if(num_threads == 1)
             dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_sequ");
         else{
-            dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_share");
+            if(multiway)
+                dumpOutData(parallelFusionPipeline, file_io.getDirectory() + "/temp/plot_share_multi");
+            else
+                dumpOutData(parallelFusionPipeline, file_io.getDirectory() + "/temp/plot_share_binary");
         }
 
         for(auto i=0; i<model->width * model->height; ++i){

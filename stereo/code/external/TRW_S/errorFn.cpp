@@ -8,8 +8,4 @@
 
 using namespace std;
 
-inline void DefaultErrorFn(char* msg)
-{
-  fprintf(stderr, "%s\n", msg);
-  exit(1);
-}
+

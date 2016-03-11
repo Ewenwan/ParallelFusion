@@ -1,5 +1,5 @@
-template <class T> MRFEnergy<T>::MRFEnergy(GlobalSize Kglobal, ErrorFunction errorFn)
-  : m_errorFn(errorFn ? errorFn : DefaultErrorFn),
+template <class T> MRFEnergy<T>::MRFEnergy(GlobalSize Kglobal, ErrorFunctorT errorFn)
+  : m_errorFn(errorFn),
     m_mallocBlockFirst(NULL),
     m_nodeFirst(NULL),
     m_nodeLast(NULL),

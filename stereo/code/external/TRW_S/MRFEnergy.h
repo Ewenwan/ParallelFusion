@@ -11,8 +11,9 @@ vnk@microsoft.com
 #include "instances.h"
 
 #include <vector>
-
-
+#include <string>
+#include <glog/logging.h>
+#include <functional>
 
 // After MRFEnergy is allocated, there are two phases:
 // 1. Energy construction. Only AddNode(), AddNodeData() and AddEdge() may be called.
@@ -23,6 +24,10 @@ vnk@microsoft.com
 // or GetSolution() may be called. (The last function can be called only after
 // Minimize_TRW_S() or Minimize_BP()).
 
+inline void DefaultErrorFn(const std::string& msg)
+{
+	CHECK(true) << msg;
+}
 
 template <class T> class MRFEnergy
 {
@@ -38,10 +43,10 @@ public:
 	typedef typename T::EdgeData   EdgeData;
 
 	typedef Node* NodeId;
-	typedef void (*ErrorFunction)(char* msg);
+	typedef std::function<void(const std::string&)> ErrorFunctorT;
 
 	// Constructor. Function errorFn is called with an error message, if an error occurs.
-	MRFEnergy(GlobalSize Kglobal, ErrorFunction errorFn = NULL);
+	MRFEnergy(GlobalSize Kglobal, ErrorFunctorT errorFn = &DefaultErrorFn);
 
 	// Destructor.
 	~MRFEnergy();
@@ -150,7 +155,7 @@ private:
 	struct MRFEdge;
 	struct MallocBlock;
 
-	ErrorFunction	m_errorFn;
+	ErrorFunctorT	m_errorFn;
 	MallocBlock*	m_mallocBlockFirst;
 	Node*			m_nodeFirst;
 	Node*			m_nodeLast;

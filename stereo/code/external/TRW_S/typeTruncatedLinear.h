@@ -125,8 +125,8 @@ public:
 		GlobalSize(int K);
 
 	private:
-	friend struct Vector;
-	friend struct Edge;
+		friend struct Vector;
+		friend struct Edge;
 		int		m_K; // number of labels
 	};
 
@@ -139,8 +139,8 @@ public:
 		NodeData(REAL* data); // data = pointer to array of size MRFEnergy::m_Kglobal
 
 	private:
-	friend struct Vector;
-	friend struct Edge;
+		friend struct Vector;
+		friend struct Edge;
 		REAL*		m_data;
 	};
 
@@ -149,8 +149,8 @@ public:
 		EdgeData(REAL alpha, REAL lambda);
 
 	private:
-	friend struct Vector;
-	friend struct Edge;
+		friend struct Vector;
+		friend struct Edge;
 		REAL		m_alpha;
 		REAL		m_lambda;
 	};
@@ -166,7 +166,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////
 
 private:
-friend class MRFEnergy<TypeTruncatedLinear>;
+	friend class MRFEnergy<TypeTruncatedLinear>;
 
 	struct Vector
 	{
@@ -183,12 +183,12 @@ friend class MRFEnergy<TypeTruncatedLinear>;
 
 		static int GetArraySize(GlobalSize Kglobal, LocalSize K);
 		REAL GetArrayValue(GlobalSize Kglobal, LocalSize K, int k); // note: k is an integer in [0..GetArraySize()-1].
-		                                                            // For Potts functions GetArrayValue() and GetValue() are the same,
-		                                                            // but they are different for, say, 2-dimensional labels.
+		// For Potts functions GetArrayValue() and GetValue() are the same,
+		// but they are different for, say, 2-dimensional labels.
 		void SetArrayValue(GlobalSize Kglobal, LocalSize K, int k, REAL x);
 
 	private:
-	friend struct Edge;
+		friend struct Edge;
 		REAL		m_data[1]; // actual size is MRFEnergy::m_Kglobal
 	};
 
@@ -199,7 +199,7 @@ friend class MRFEnergy<TypeTruncatedLinear>;
 		void Initialize(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj, EdgeData data, Vector* Di, Vector* Dj); // called once when user adds an edge
 		Vector* GetMessagePtr();
 		void Swap(GlobalSize Kglobal, LocalSize Ki, LocalSize Kj); // if the client calls this function, then the meaning of 'dir'
-								                                               // in distance transform functions is swapped
+		// in distance transform functions is swapped
 
 		// When UpdateMessage() is called, edge contains message from dest to source.
 		// The function must replace it with the message from source to dest.

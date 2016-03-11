@@ -151,36 +151,36 @@ namespace simple_stereo {
         sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
         unaryDisp.saveImage(buffer, 256.0 / (double)model->nLabel);
 
-        cout << "========================================" << endl;
-        cout << "Runing sequential alpha-expansion" << endl;
-        ParallelOptimize optimize_sequential(file_io, model, 1);
-        Depth result_sequential;
-        optimize_sequential.optimize(result_sequential, 2);
-        sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
-        result_sequential.saveImage(buffer);
+//        cout << "========================================" << endl;
+//        cout << "Runing sequential alpha-expansion" << endl;
+//        ParallelOptimize optimize_sequential(file_io, model, 1);
+//        Depth result_sequential;
+//        optimize_sequential.optimize(result_sequential, 2);
+//        sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
+//        result_sequential.saveImage(buffer);
 
         cout << "========================================" << endl;
         cout << "Runing parallel method with solution sharing" << endl;
-        ParallelOptimize optimize_parallel(file_io, model, 4);
+        ParallelOptimize optimize_parallel(file_io, model, 4, true);
         Depth result_parallel;
         optimize_parallel.optimize(result_parallel, 2);
         sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
         result_parallel.saveImage(buffer);
 
-        cout << "========================================" << endl;
-        cout << "Runing Victor's method" << endl;
-        VictorOptimize optimize_victor(file_io, model, 4);
-        Depth result_victor;
-        optimize_victor.optimize(result_victor, 2);
-        sprintf(buffer, "%s/temp/result_victor.jpg", file_io.getDirectory().c_str());
-        result_victor.saveImage(buffer);
-
-        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
-        Depth result_hierarchy;
-        optimize_hierarchy.optimize(result_hierarchy, 1);
-        sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
-        cout << "Saving " << buffer << endl << flush;
-        result_hierarchy.saveImage(buffer);
+//        cout << "========================================" << endl;
+//        cout << "Runing Victor's method" << endl;
+//        VictorOptimize optimize_victor(file_io, model, 4);
+//        Depth result_victor;
+//        optimize_victor.optimize(result_victor, 2);
+//        sprintf(buffer, "%s/temp/result_victor.jpg", file_io.getDirectory().c_str());
+//        result_victor.saveImage(buffer);
+//
+//        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
+//        Depth result_hierarchy;
+//        optimize_hierarchy.optimize(result_hierarchy, 1);
+//        sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
+//        cout << "Saving " << buffer << endl << flush;
+//        result_hierarchy.saveImage(buffer);
 
 
 //        FirstOrderOptimize optimize_firstOrder(file_io, model);
