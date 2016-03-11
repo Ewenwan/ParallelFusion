@@ -151,18 +151,18 @@ namespace simple_stereo {
         sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
         unaryDisp.saveImage(buffer, 256.0 / (double)model->nLabel);
 
-//        ParallelOptimize optimize_parallel(file_io, model, 1);
-//        Depth result_parallel;
-//        optimize_parallel.optimize(result_parallel, 1);
-//        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
-//        result_parallel.saveImage(buffer);
+        ParallelOptimize optimize_parallel(file_io, model, 1);
+        Depth result_parallel;
+        optimize_parallel.optimize(result_parallel, 1);
+        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
+        result_parallel.saveImage(buffer);
 
-        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
-        Depth result_hierarchy;
-        optimize_hierarchy.optimize(result_hierarchy, 1);
-        sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
-        cout << "Saving " << buffer << endl << flush;
-        result_hierarchy.saveImage(buffer);
+//        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
+//        Depth result_hierarchy;
+//        optimize_hierarchy.optimize(result_hierarchy, 1);
+//        sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
+//        cout << "Saving " << buffer << endl << flush;
+//        result_hierarchy.saveImage(buffer);
 
 
 //        FirstOrderOptimize optimize_firstOrder(file_io, model);

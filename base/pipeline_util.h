@@ -71,6 +71,10 @@ namespace ParallelFusion{
         inline const std::list<Observation>& getProfile() const{
             return profile;
         }
+
+        inline std::list<Observation>& getProfile(){
+            return profile;
+        }
     private:
         void add(const Observation& ob){
             std::lock_guard<std::mutex> lock(mt);

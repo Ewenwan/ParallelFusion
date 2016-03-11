@@ -90,17 +90,21 @@ namespace simple_stereo {
         }
 
         const void appendSpace(const CompactLabelSpace& rhs){
-            if(num_nodes_ == 0){
+            CHECK(!(rhs.getLabelSpace().empty() && rhs.getSingleLabel().empty()));
+            if(num_nodes_ == 0 && rhs.getNumNode() > 0){
                 label_space_.resize((size_t)rhs.getNumNode());
                 num_nodes_ = (int)label_space_.size();
             }
-            CHECK_EQ(rhs.getNumNode(), getNumNode());
-            for(auto i=0; i<label_space_.size(); ++i){
-                for(auto j=0; j<rhs.getLabelOfNode(i).size(); ++j)
-                    label_space_[i].push_back(rhs(i,j));
+            if(rhs.getNumNode() > 0) {
+                for (auto i = 0; i < label_space_.size(); ++i) {
+                    for (auto j = 0; j < rhs.getLabelOfNode(i).size(); ++j)
+                        label_space_[i].push_back(rhs(i, j));
+                }
             }
-            for(auto i=0; i<rhs.getSingleLabel().size(); ++i)
-                singleLabel.push_back(rhs.getSingleLabel()[i]);
+            if(rhs.getSingleLabel().size() > 0) {
+                for (auto i = 0; i < rhs.getSingleLabel().size(); ++i)
+                    singleLabel.push_back(rhs.getSingleLabel()[i]);
+            }
         }
 
         inline virtual bool empty() const{
@@ -206,6 +210,7 @@ namespace simple_stereo {
 
 
     double fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model);
+    void dumpOutData(const ParallelFusion::ParallelFusionPipeline<CompactLabelSpace>& pipeline, const std::string& prefix);
 }//namespace dynamic_stereo
 
 #endif //DYNAMICSTEREO_OPTIMIZATION_H
