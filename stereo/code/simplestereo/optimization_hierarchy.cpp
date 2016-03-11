@@ -44,14 +44,14 @@ namespace simple_stereo{
             }else{
                     CHECK_EQ(proposals.getSingleLabel().size(), 2);
                     for(auto i=0; i<kPix; ++i){
-                            solution.second(i,0) = proposals.getSingleLabel()[0];
+                            solution.second(i,0) = proposals.getSingleLabel().front();
                     }
             }
-            if(proposals.getSingleLabel().size() == 2){
+            if(!proposals.getSingleLabel().empty()){
                     //MRF
                     for(auto i=0; i<kPix; ++i)
                             mrf->setLabel(i, solution.second(i,0));
-                    mrf->alpha_expansion(proposals.getSingleLabel()[1]);
+                    mrf->alpha_expansion(proposals.getSingleLabel().back());
                     for(auto i=0; i<kPix; ++i){
                             solution.second(i, 0) = mrf->getLabel(i);
                     }
@@ -61,7 +61,7 @@ namespace simple_stereo{
                             fuseTwoSolution(solution.second, proposals, i, model);
             }
             solution.first = evaluateEnergy(solution.second);
-            solution.second.getLabelSpace().clear();
+            solution.second.getSingleLabel().clear();
     }
 }//namespace simple_stereo
 

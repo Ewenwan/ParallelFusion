@@ -145,12 +145,13 @@ namespace ParallelFusion {
 
                 //set flag1 to true, indicating this node is computed
                 t->flag1.store(true);
-
+                printf("Node %d and %d are fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
+                
                 //record profile
                 float difft = ((float) cv::getTickCount() - start_time) / (float) cv::getTickFrequency();
                 Observation ob(difft, solution.first);
                 profile->addObservation(ob);
-                printf("Node %d and %d are fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
+
                 //if current solution is better, update best soltuion
                 if (ob.second < current_solution.first)
                     bestSolution->set(solution);
