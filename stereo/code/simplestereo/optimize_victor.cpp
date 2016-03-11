@@ -29,8 +29,9 @@ namespace simple_stereo{
 
         //slave threads
         for(auto i=0; i<pipelineOption.num_threads; ++i){
-            const int startid = i;
-            const int interval = pipelineOption.num_threads;
+            const int startid = i * kLabelPerThread;
+//            const int interval = pipelineOption.num_threads;
+	    const int interval = 1;
             threadOptions[i].kTotal = kFusionSize;
             threadOptions[i].kOtherThread = 0;
             threadOptions[i].solution_exchange_interval = 1;

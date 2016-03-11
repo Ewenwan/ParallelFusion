@@ -33,8 +33,9 @@ namespace simple_stereo {
         //slave threads
         const int kOtherThread = std::min(num_threads-1, 1);
         for(auto i=0; i<pipelineOption.num_threads; ++i){
-            const int startid = i;
-            const int interval = pipelineOption.num_threads;
+            const int startid = i * kLabelPerThread;
+//            const int interval = pipelineOption.num_threads;
+	    const int interval = 1;
             initials[i].init(kPix, vector<int>(1, startid));
             threadOptions[i].kTotal = kFusionSize + kOtherThread;
             threadOptions[i].kOtherThread = kOtherThread;
