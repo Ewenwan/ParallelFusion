@@ -24,7 +24,8 @@ namespace ParallelFusion {
     public:
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
-                                                                      terminate(false), write_flag((size_t)option_.num_threads), threadProfile((size_t)option_.num_threads){ }
+                                                                      terminate(false), write_flag((size_t)option_.num_threads),
+                                                                      threadProfile((size_t)option_.num_threads){ }
 
         typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
@@ -46,6 +47,9 @@ namespace ParallelFusion {
         double getBestLabeling(SolutionType<LABELSPACE>& solution) const;
         void getAllResult(LABELSPACE& solutions) const;
         inline const GlobalTimeEnergyProfile& getGlobalProfile() const{
+            return globalProfile;
+        }
+        inline GlobalTimeEnergyProfile& getGlobalProfile(){
             return globalProfile;
         }
         inline const std::vector<std::list<Observation> >& getAllThreadProfiles() const{
@@ -107,33 +111,37 @@ namespace ParallelFusion {
 
         bool monitor_exists = false;
 
+        monitorThreadIds.clear();
+        slaveThreadIds.clear();
+        terminate.store(false);
+
         //sanity checks
-        for(auto i=0; i<option.num_threads; ++i){
-            if(thread_options[i].is_monitor){
+        for (auto i = 0; i < option.num_threads; ++i) {
+            if (thread_options[i].is_monitor) {
                 monitor_exists = true;
                 //CHECK_EQ(thread_options[i].kTotal, thread_options[i].kOtherThread) << "Monitor thread can not generate proposal";
                 monitorThreadIds.push_back(i);
-            }else{
+            } else {
                 slaveThreadIds.push_back(i);
             }
             CHECK_GE(thread_options[i].kTotal, 0) << "Negative number of proposals from self.";
             CHECK_GE(thread_options[i].kOtherThread, 0) << "Negative number of proposals from others.";
-            CHECK_GE(thread_options[i].solution_exchange_interval, 1) << "Solution exchange interval should be a positive number.";
+            CHECK_GE(thread_options[i].solution_exchange_interval, 1) <<
+                                                                      "Solution exchange interval should be a positive number.";
         }
         //if synchronization is needed, there must be an monitor thread
-        if(option.synchronize)
+        if (option.synchronize)
             CHECK(monitor_exists);
 
         //initialize arrays. Slave threads are store in 0..slaveThreadIds.size() elements
-        for(auto i=0; i<slaveThreadIds.size(); ++i){
-            const int& idx = slaveThreadIds[i];
+        for (auto i = 0; i < slaveThreadIds.size(); ++i) {
+            const int &idx = slaveThreadIds[i];
             bestSolutions[i].set(SolutionType<LABELSPACE>(-1, initials[idx]));
             write_flag[i].store(true);
         }
 
+        start_time = (float) cv::getTickCount();
 
-        //GO!
-        start_time = (float)cv::getTickCount();
         //launch slave threads. Join method is called from the destructor of thread_guard
         std::vector<thread_guard> slaves(slaveThreadIds.size());
         for(auto tid=0; tid<slaves.size(); ++tid){
@@ -238,7 +246,7 @@ namespace ParallelFusion {
                 generator->getProposals(proposals_self, current_solution.second, num_proposals_from_self);
                 proposals.appendSpace(proposals_self);
 
-                printf("In iteration %d, thread %d generates %d proposals and grab %d solutions\n", iter, id, num_proposals_from_self, num_proposals_from_others);
+                //printf("In iteration %d, thread %d generates %d proposals and grab %d solutions\n", iter, id, num_proposals_from_self, num_proposals_from_others);
 
 
                 //printf("Solving...\n");
@@ -307,10 +315,10 @@ namespace ParallelFusion {
                 std::this_thread::yield();
                 LABELSPACE proposals;
                 SolutionType<LABELSPACE> current_solution;
-		
-		current_solution.first = std::numeric_limits<double>::max();
-		CHECK_LE(thread_option.kTotal, slaveThreadIds.size()) << "Not enough slave threads for final fusion.";
-		
+
+                current_solution.first = std::numeric_limits<double>::max();
+                CHECK_LE(thread_option.kTotal, slaveThreadIds.size()) << "Not enough slave threads for final fusion.";
+
                 int num_proposals_to_fuse = 0;
                 for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
                     //if (option.synchronize) No matter synchronize or not, monitor thread has to wait util results are available.
