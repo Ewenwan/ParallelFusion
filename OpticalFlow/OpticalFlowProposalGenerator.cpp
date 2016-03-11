@@ -272,4 +272,52 @@ namespace flow_fusion {
 	      drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     }
   }
+
+  void OpticalFlowProposalGenerator::getAllProposals(vector<LabelSpace<pair<double, double> > > &proposals)
+  {
+    vector<vector<pair<double, double> > > initial_flows;
+    for (int num_levels = 1; num_levels <= 5; num_levels++) {
+      vector<pair<double, double> > proposal_flows = calcFlowsPyrLK(image_1_, image_2_, num_levels);
+      initial_flows.push_back(proposal_flows);
+    }
+
+    for (int num_levels = 1; num_levels <= 5; num_levels++) {
+      for (int poly_n = 1; poly_n <= 7; poly_n += 2) {
+	for (int flag_index = 0; flag_index <= 0; flag_index++) {
+	  const int FLAGS = flag_index == 0 ? 0 : OPTFLOW_FARNEBACK_GAUSSIAN;
+	  vector<pair<double, double> > proposal_flows = calcFlowsFarneback(image_1_, image_2_, num_levels, poly_n, FLAGS);
+	  initial_flows.push_back(proposal_flows);
+	}
+      }
+    }
+
+    for (vector<vector<pair<double, double> > >::const_iterator initial_flow_it = initial_flows.begin(); initial_flow_it != initial_flows.end(); initial_flow_it++) {
+      
+      proposals.push_back(LABELSPACE(*initial_flow_it));
+      
+      current_solution_ = *initial_flow_it;
+
+      for (int proposal_index = 0; proposal_index < 4; proposal_index++) {
+	LABELSPACE proposal_label_space;
+	generateProposalMoveAround(proposal_label_space);
+	proposals.push_back(proposal_label_space);
+      }
+      for (int proposal_index = 0; proposal_index < 4; proposal_index++) {
+	LABELSPACE proposal_label_space;
+        generateProposalShift(proposal_label_space);
+        proposals.push_back(proposal_label_space);
+      }
+      for (int proposal_index = 0; proposal_index < 1; proposal_index++) {
+	LABELSPACE proposal_label_space;
+        generateProposalCluster(proposal_label_space);
+        proposals.push_back(proposal_label_space);
+      }
+      for (int proposal_index = 0; proposal_index < 1; proposal_index++) {
+        LABELSPACE proposal_label_space;
+        generateProposalDisturb(proposal_label_space);
+        proposals.push_back(proposal_label_space);
+      }
+    }
+    random_shuffle(proposals.begin(), proposals.end());
+  }
 }
