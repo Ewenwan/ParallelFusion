@@ -41,7 +41,7 @@ pixels window. Pairwise terms are simple Pottz model. The total energy
 is defined by the sum of the two, while scaling the pairwise term by a
 factor of \yasu{X value}.
 %
-We use Middlebury stereo datasets for the experiments.
+We use images from the Middlebury stereo benchmark~\cite{middlebury_stereo}.
 
 \mysubsubsection{Competing methods}
 
@@ -59,10 +59,11 @@ with graph-cuts optimization as the competing methods.
 been evaluated: SF-SS (SF without solution sharing), SF-MF (SF without
 multi-way fusion), and the standard SF.
 %
-For SF-SS, we have chosen $\alpha=2$ ($\beta=0$). For SF-MF, each thread
-iterates the step of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so
-that it can take a solution proposal in one step and a neighboring
-solution in the next. For the standard SF, we have used ($\alpha=1, \beta=1$).
+SF-SS implies $\beta=0$, where $\alpha$ is the free parameter and set to
+2. SF-MF implies $\alpha+\beta=1$, where each thread iterates the step
+of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so that it can take a
+solution proposal in one step and a neighboring solution in the
+next. For standard SF, we have used ($\alpha=1, \beta=1$).
 %
 %
 %
