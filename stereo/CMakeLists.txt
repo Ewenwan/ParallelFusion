@@ -28,5 +28,5 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/segment_ms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/segment_gb)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/QPBO1.4)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/MRF2.2)
-
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/code/external/TRW_S)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external)

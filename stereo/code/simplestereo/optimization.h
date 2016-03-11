@@ -198,6 +198,13 @@ namespace simple_stereo {
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
     };
 
+    class MultiwayStereoSolver: public SimpleStereoSolver{
+    public:
+        MultiwayStereoSolver(const MRFModel<int>* model_): SimpleStereoSolver(model_){}
+        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
+                           ParallelFusion::SolutionType<CompactLabelSpace>& solution);
+    };
+
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
     public:
         SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_ = true);
@@ -208,7 +215,6 @@ namespace simple_stereo {
         std::vector<int> labelTable;
         int nextLabel;
     };
-
 
     double fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model);
     void dumpOutData(const ParallelFusion::ParallelFusionPipeline<CompactLabelSpace>& pipeline, const std::string& prefix);
