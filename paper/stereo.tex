@@ -1,11 +1,12 @@
-\section{Swarm Fusion implementations \yasu{I don't like this title..}}
-We compare our Swarm fusion methods against competing approaches over
-three problems in Computer Vision. The SF architecture has high degrees
-of freedom and the challenge is to properly quantity the contribution of
-various algorithmic aspects. For this purpose, we carefully design the
-SF architecture for each problem independently, sometimes limiting the
-capabilities on purpose, to enable effective and fair comparative
-evaluation.  We now explain the details of the three problems.
+\section{Swarm Fusion instantiation}
+We compare SF against competing approaches over three problems in
+Computer Vision. SF framework has high degrees of freedom and the
+challenge is to properly quantity the contributions of various
+algorithmic aspects. For this purpose, we have used the three SF
+architectures illustrated in Fig.~\ref{fig:model}. For some problems, we
+have further limited the capabilities of SF on purpose, to enable
+effective and fair comparative evaluations. We now explain the details
+of the three problems.
 
 % We pick three representative problems in Computer Vision to evaluate the
 % effectiveness of the Fusion swarm methods against existing methods. We
@@ -18,7 +19,7 @@ evaluation.  We now explain the details of the three problems.
 %Vision (See Fig.~\ref{fig:problem}).  5
 \begin{figure}[tb]
  \includegraphics[width=\columnwidth]{figure/problem.pdf} \caption{We
- compare our Swarm Fusion methods against competing approaches on a
+ compare our Swarm Fusion method against competing approaches on a
  depthmap stereo~\cite{middle_bury_stereo}, an optical
  flow~\cite{middlebury_optical_flow}, or a layered depthmap
  estimation~\cite{layered_depthmap} problem. In the layered depthmap
