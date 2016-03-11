@@ -147,7 +147,6 @@ namespace simple_stereo {
                 StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     private:
-        void finalFuse(const std::vector<ParallelFusion::SolutionType<CompactLabelSpace> >& solutions, ParallelFusion::SolutionType<CompactLabelSpace>& result);
         const int num_threads;
     };
 
@@ -160,9 +159,12 @@ namespace simple_stereo {
         const int num_threads;
     };
 
-    class DummyGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
-    public:
-        virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N){}
+    class VictorOptimize: public StereoOptimizer{
+        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_):
+                StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
+        virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
+    private:
+        const int num_threads;
     };
 
     class SimpleStereoSolver : public ParallelFusion::FusionSolver<CompactLabelSpace> {
@@ -177,41 +179,16 @@ namespace simple_stereo {
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
         virtual double evaluateEnergy(const CompactLabelSpace& solution) const;
 
-    private:
+    protected:
         const MRFModel<int>* model;
         const int kPix;
         Expansion* mrf;
         //kolmogorov::qpbo::QPBO<int>* qpbo;
     };
 
-    class SimpleStereoMonitor: public ParallelFusion::FusionSolver<CompactLabelSpace>{
+    class HierarchyStereoSolver: public SimpleStereoSolver{
     public:
-        typedef std::pair<double, double> Observation;
-
-        SimpleStereoMonitor(const MRFModel<int>* model_): model(model_), kPix(model->width * model->height){}
-
-        virtual void initSolver(const CompactLabelSpace & initial){
-            observations.clear();
-            std::time(&start_time);
-            t = cv::getTickCount();
-        }
-        virtual double evaluateEnergy(const CompactLabelSpace & solution) const;
-
-        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
-                           ParallelFusion::SolutionType<CompactLabelSpace>& solution);
-
-        void writePlot(const std::string& path) const;
-    protected:
-        const MRFModel<int>* model;
-        const int kPix;
-        std::time_t start_time;
-        float t;
-        std::vector<Observation> observations;
-    };
-
-    class SimpleStereoMonitorFusion: public SimpleStereoMonitor{
-    public:
-        SimpleStereoMonitorFusion(const MRFModel<int>* model_): SimpleStereoMonitor(model_){}
+        HierarchyStereoSolver(const MRFModel<int>* model_): SimpleStereoSolver(model_){}
         virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
     };

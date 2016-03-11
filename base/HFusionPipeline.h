@@ -59,6 +59,10 @@ namespace ParallelFusion {
             return finalSolution->getSolution();
         }
 
+        inline const GlobalTimeEnergyProfile& getGlobalProfile() const{
+            return *profile;
+        }
+
     private:
         HFusionPipelineOption option;
         std::shared_ptr<GlobalTimeEnergyProfile> profile;
@@ -129,22 +133,29 @@ namespace ParallelFusion {
                 task_queue.pop();
                 lock.unlock();
 
-                LABELSPACE p1 = *(t->lchild->data);
-                p1.appendSpace(*(t->rchild->data));
                 SolutionType<LABELSPACE> solution;
                 SolutionType<LABELSPACE> current_solution;
+                LABELSPACE p1 = *(t->lchild->data);
+                p1.appendSpace(*(t->rchild->data));
+
+                ////////////////////////////////////
+                //Note!!!!!!
+                //Be careful of "current_solution". The one passed into the solver is the best solutions so far.
+                //However, typically you want to fuse left child with right child.
+                ///////////////////////////////////
                 bestSolution->get(current_solution);
                 solver->solve(p1, current_solution, solution);
                 t->data = std::make_shared<LABELSPACE>(solution.second);
 
                 //set flag1 to true, indicating this node is computed
                 t->flag1.store(true);
+                printf("Nodes(%d,%d) are fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
 
                 //record profile
                 float difft = ((float) cv::getTickCount() - start_time) / (float) cv::getTickFrequency();
                 Observation ob(difft, solution.first);
                 profile->addObservation(ob);
-                printf("Node: (%d,%d) fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
+
                 //if current solution is better, update best soltuion
                 if (ob.second < current_solution.first)
                     bestSolution->set(solution);
@@ -168,7 +179,7 @@ namespace ParallelFusion {
             s->initSolver(initial);
         SolutionType<LABELSPACE> initSolution;
         initSolution.second = initial;
-        initSolution.first = -1;
+        initSolution.first = std::numeric_limits<double>::max();
         finalSolution->set(initSolution);
 
         typedef typename Hang_BinaryTree::BinaryTree<SolutionPtr<LABELSPACE> >::FunctorType FunctorT;
