@@ -65,6 +65,8 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
   int new_segment_id = 0;
   map<int, Segment> union_segments;
   vector<vector<int> > union_labels(NUM_PIXELS_);
+
+  if (getNumSegments() > 0)
   {
     map<int, int> segment_id_map;
     const int NUM_SEGMENTS = getNumSegments();
@@ -92,25 +94,24 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
       }
     }
 
-    if (NUM_SEGMENTS > 0) {
-      for (int pixel = 0; pixel < NUM_PIXELS_; pixel++) {
-	const vector<int> labels = getLabelOfNode(pixel);
-	for (vector<int>::const_iterator label_it = labels.begin(); label_it != labels.end(); label_it++) {
-	  int new_label = 0;
-	  for (int layer_index = 0; layer_index < NUM_LAYERS_; layer_index++) {
-	    int segment_id = *label_it / static_cast<int>(pow(NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index)) % (NUM_SEGMENTS + 1);
-	    new_label += segment_id_map[segment_id] * pow(UNION_NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index);
-	  }
-	  union_labels[pixel].push_back(new_label);
+    for (int pixel = 0; pixel < NUM_PIXELS_; pixel++) {
+      const vector<int> labels = getLabelOfNode(pixel);
+      for (vector<int>::const_iterator label_it = labels.begin(); label_it != labels.end(); label_it++) {
+	int new_label = 0;
+	for (int layer_index = 0; layer_index < NUM_LAYERS_; layer_index++) {
+	  int segment_id = *label_it / static_cast<int>(pow(NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index)) % (NUM_SEGMENTS + 1);
+	  new_label += segment_id_map[segment_id] * pow(UNION_NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index);
 	}
+	union_labels[pixel].push_back(new_label);
       }
     }
-
+    
     // if (segments_.size() > 0)
     //   for (map<int, int>::const_iterator segment_it = segment_id_map.begin(); segment_it != segment_id_map.end(); segment_it++)
     //     cout << "self: " << segment_it->first << '\t' << segment_it->second << endl;
   }
 
+  if (rhs.getNumSegments() > 0)
   {
     map<int, int> rhs_segment_id_map;
     const int RHS_NUM_SEGMENTS = rhs.getNumSegments();
@@ -138,20 +139,18 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
       }
     }
 
-    if (RHS_NUM_SEGMENTS > 0) {
-      for (int pixel = 0; pixel < NUM_PIXELS_; pixel++) {
-        const vector<int> rhs_labels = rhs.getLabelOfNode(pixel);
-	for (vector<int>::const_iterator rhs_label_it = rhs_labels.begin(); rhs_label_it != rhs_labels.end(); rhs_label_it++) {
-	  int rhs_new_label = 0;
-	  for (int layer_index = 0; layer_index < NUM_LAYERS_; layer_index++) {
-	    int segment_id = *rhs_label_it / static_cast<int>(pow(RHS_NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index)) % (RHS_NUM_SEGMENTS + 1);
-	    rhs_new_label += rhs_segment_id_map[segment_id] * pow(UNION_NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index);
-	  }
-	  union_labels[pixel].push_back(rhs_new_label);
+    for (int pixel = 0; pixel < NUM_PIXELS_; pixel++) {
+      const vector<int> rhs_labels = rhs.getLabelOfNode(pixel);
+      for (vector<int>::const_iterator rhs_label_it = rhs_labels.begin(); rhs_label_it != rhs_labels.end(); rhs_label_it++) {
+	int rhs_new_label = 0;
+	for (int layer_index = 0; layer_index < NUM_LAYERS_; layer_index++) {
+	  int segment_id = *rhs_label_it / static_cast<int>(pow(RHS_NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index)) % (RHS_NUM_SEGMENTS + 1);
+	  rhs_new_label += rhs_segment_id_map[segment_id] * pow(UNION_NUM_SEGMENTS + 1, NUM_LAYERS_ - 1 - layer_index);
 	}
+	union_labels[pixel].push_back(rhs_new_label);
       }
     }
-
+    
     // if (rhs_segments.size() > 0)
     //   for (map<int, int>::const_iterator rhs_segment_it = rhs_segment_id_map.begin(); rhs_segment_it != rhs_segment_id_map.end(); rhs_segment_it++)
     // 	cout << "rhs: " << rhs_segment_it->first << '\t' << rhs_segment_it->second << endl;
@@ -162,6 +161,8 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
       if (union_labels[pixel].size() == 0)
         union_labels[pixel].push_back(0);
 
+  CHECK_EQ(union_segments.size(), UNION_NUM_SEGMENTS) << "The number of segments in union is not consistent" << endl;
+  
   label_space_ = union_labels;
   segments_ = union_segments;
   addIndicatorLabels();

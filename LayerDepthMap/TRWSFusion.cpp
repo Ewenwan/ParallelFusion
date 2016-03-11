@@ -533,6 +533,7 @@ void TRWSFusion::solve(const LayerLabelSpace &proposal_label_space, const Parall
   proposal_num_layers_ = proposal_label_space.getNumLayers();
 
   if (proposal_num_segments_ == 0) {
+    cout << "no segments in fusion" << endl;
     solution = current_solution;
     solution.first = numeric_limits<double>::max();
     return;
@@ -905,7 +906,7 @@ void TRWSFusion::solve(const LayerLabelSpace &proposal_label_space, const Parall
   
   
   MRFEnergy<TypeGeneral>::Options options;
-  options.m_iterMax = 2000;
+  options.m_iterMax = 200;
   options.m_printIter = 200;
   options.m_printMinIter = 100;
   options.m_eps = 0.1;
@@ -926,7 +927,7 @@ void TRWSFusion::solve(const LayerLabelSpace &proposal_label_space, const Parall
   // }
   // proposal_index++;
 
-  double lower_bound, energy_value;
+  double lower_bound = -1, energy_value = -1;
   energy->Minimize_TRW_S(options, lower_bound, energy_value);
   
   vector<int> fused_labels(NUM_NODES);
@@ -986,6 +987,7 @@ void TRWSFusion::solve(const LayerLabelSpace &proposal_label_space, const Parall
     solution_label_space.setSingleLabels(fused_labels);
     solution = make_pair(energy_value, solution_label_space);
   } else {
+    cout << "Too large energy: " << energy_value << '\t' << lower_bound << endl;
     solution = current_solution;
     //    solution.setLabelSpace(current_solution);
   }

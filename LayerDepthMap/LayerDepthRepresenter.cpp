@@ -35,7 +35,7 @@ using namespace cv;
 using namespace cv_utils;
 using namespace Eigen;
 
-LayerDepthRepresenter::LayerDepthRepresenter(const Mat &image, const vector<double> &point_cloud, const RepresenterPenalties &penalties, const DataStatistics &statistics, const int scene_index, const Mat &ori_image, const vector<double> &ori_point_cloud, const bool first_time, const int num_layers) : image_(image), point_cloud_(point_cloud), IMAGE_WIDTH_(image.cols), IMAGE_HEIGHT_(image.rows), NUM_PIXELS_(IMAGE_WIDTH_ * IMAGE_HEIGHT_), PENALTIES_(penalties), STATISTICS_(statistics), SCENE_INDEX_(scene_index), ori_image_(ori_image), ori_point_cloud_(ori_point_cloud), FIRST_TIME_(first_time), num_layers_(num_layers)
+LayerDepthRepresenter::LayerDepthRepresenter(const Mat &image, const vector<double> &point_cloud, const RepresenterPenalties &penalties, const DataStatistics &statistics, const int scene_index, const Mat &ori_image, const vector<double> &ori_point_cloud, const bool first_time, const int num_layers, const PipelineParams &pipeline_params) : image_(image), point_cloud_(point_cloud), IMAGE_WIDTH_(image.cols), IMAGE_HEIGHT_(image.rows), NUM_PIXELS_(IMAGE_WIDTH_ * IMAGE_HEIGHT_), PENALTIES_(penalties), STATISTICS_(statistics), SCENE_INDEX_(scene_index), ori_image_(ori_image), ori_point_cloud_(ori_point_cloud), FIRST_TIME_(first_time), num_layers_(num_layers), PIPELINE_PARAMS_(pipeline_params)
 {
   //  surface_models_ = fitSurfaceModels(point_cloud, segmentation);
   //  assert(num_surfaces_ > 1);
@@ -74,8 +74,6 @@ LayerDepthRepresenter::~LayerDepthRepresenter()
 
 void LayerDepthRepresenter::optimizeLayerRepresentation()
 {
-  srand(time(NULL));
-
   //num_layers_ = min(estimateNumLayers(IMAGE_WIDTH_, IMAGE_HEIGHT_, initial_segmentation_, surface_depths_), 3);
   
   // PointCloudSegmenter segmenter(point_cloud_, image_, SCENE_INDEX_);
@@ -128,8 +126,8 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
   }
   
   ParallelFusion::ParallelFusionOption option;
-  option.num_threads = 4;
-  option.max_iteration = 100;
+  option.num_threads = PIPELINE_PARAMS_.num_threads;
+  option.max_iteration = PIPELINE_PARAMS_.num_iterations;
   option.selectionMethod = ParallelFusion::ParallelFusionOption::BEST;
   //option.synchronize = true;
   
@@ -146,11 +144,12 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
     initials[i].setNumPixels(NUM_PIXELS_);
     initials[i].setNumLayers(num_layers_);
 
-    thread_options[i].kSelfThread = 2;
-    thread_options[i].kOtherThread = 1;
-    if (i == option.num_threads - 1 && false) {
-      thread_options[i].kSelfThread = 0;
-      thread_options[i].kOtherThread = 4;
+    thread_options[i].kTotal = PIPELINE_PARAMS_.num_proposals_in_total;
+    thread_options[i].kOtherThread = PIPELINE_PARAMS_.num_proposals_from_others;
+    thread_options[i].solution_exchange_interval = PIPELINE_PARAMS_.solution_exchange_interval;
+    if (i == option.num_threads - 1 && PIPELINE_PARAMS_.use_monitor_thread) {
+      thread_options[i].kTotal = 2;
+      thread_options[i].kOtherThread = 0;
       thread_options[i].is_monitor = true;
     }
   }

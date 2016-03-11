@@ -17,7 +17,7 @@ using namespace std;
 class LayerDepthRepresenter {
 
  public:
-  LayerDepthRepresenter(const cv::Mat &image, const vector<double> &point_cloud, const RepresenterPenalties &penalties, const DataStatistics &statistics, const int scene_index, const cv::Mat &ori_image, const vector<double> &ori_point_cloud, const bool first_time, const int num_layers);
+  LayerDepthRepresenter(const cv::Mat &image, const vector<double> &point_cloud, const RepresenterPenalties &penalties, const DataStatistics &statistics, const int scene_index, const cv::Mat &ori_image, const vector<double> &ori_point_cloud, const bool first_time, const int num_layers, const PipelineParams &pipeline_params);
 
   ~LayerDepthRepresenter();
 
@@ -37,6 +37,7 @@ class LayerDepthRepresenter {
   
   const RepresenterPenalties PENALTIES_;
   const DataStatistics STATISTICS_;
+  const PipelineParams PIPELINE_PARAMS_;
   
   const int SCENE_INDEX_;
   const bool FIRST_TIME_;
