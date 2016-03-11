@@ -59,6 +59,10 @@ namespace ParallelFusion {
             return finalSolution->getSolution();
         }
 
+        inline const GlobalTimeEnergyProfile& getGlobalProfile() const{
+            return *profile;
+        }
+
     private:
         HFusionPipelineOption option;
         std::shared_ptr<GlobalTimeEnergyProfile> profile;

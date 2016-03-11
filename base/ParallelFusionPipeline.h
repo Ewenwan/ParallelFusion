@@ -19,8 +19,6 @@
 
 namespace ParallelFusion {
 
-
-
     template<class LABELSPACE>
     class ParallelFusionPipeline {
     public:

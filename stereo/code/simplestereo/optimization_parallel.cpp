@@ -143,77 +143,7 @@ namespace simple_stereo {
         }
         return e;
     }
-
-
-    void SimpleStereoMonitor::solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
-                                    ParallelFusion::SolutionType<CompactLabelSpace>& solution){
-        CHECK(!proposals.getLabelSpace().empty());
-        float difft = ((float)getTickCount() - t) / (float)getTickFrequency();
-        const size_t nSolution = proposals.getLabelSpace()[0].size();
-        double min_energy = numeric_limits<double>::max();
-        for(auto i=0; i<nSolution; ++i){
-            CompactLabelSpace curSolution;
-            curSolution.init(kPix, vector<int>(1,0));
-            for(auto j=0; j<kPix; ++j)
-                curSolution(j,0) = proposals(j,i);
-            double curE = evaluateEnergy(curSolution);
-            if(curE < min_energy)
-                min_energy = curE;
-        }
-        observations.push_back(Observation(difft, min_energy));
-    }
-
-    double SimpleStereoMonitor::evaluateEnergy(const CompactLabelSpace &solution) const {
-        CHECK_EQ(solution.getNumNode(), kPix);
-        double e = 0;
-        const int w = model->width;
-        const int h = model->height;
-        const double r = model->MRFRatio;
-        for(auto i=0; i<kPix; ++i) {
-            e += model->MRF_data[i * model->nLabel + solution(i, 0)] / model->MRFRatio;
-        }
-        for(auto x=0; x<w - 1; ++x) {
-            for (auto y = 0; y < h - 1; ++y) {
-                int sc = model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
-                         model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
-                e += (double) sc / r;
-            }
-        }
-        return e;
-    }
-    void SimpleStereoMonitor::writePlot(const std::string &path) const {
-        ofstream fout(path.c_str());
-        CHECK(fout.is_open());
-        fout << "Time\tEnergy" << endl;
-        char buffer[1024] = {};
-        for(const auto& ob: observations){
-            sprintf(buffer, "%.3f\t%.5f\n", ob.first, ob.second);
-            fout << buffer;
-        }
-
-        fout.close();
-    }
-
-    void SimpleStereoMonitorFusion::solve(const CompactLabelSpace &proposals,
-                                          const ParallelFusion::SolutionType<CompactLabelSpace> &current_solution,
-                                          ParallelFusion::SolutionType<CompactLabelSpace> &solution) {
-        //fuse all solutions together
-        CHECK(!proposals.getLabelSpace().empty());
-        const size_t nSolution = proposals.getLabelSpace()[0].size();
-        CompactLabelSpace fusedSolution;
-        fusedSolution.init(kPix, vector<int>(1,0));
-        for(auto i=0; i<kPix; ++i)
-            fusedSolution(i,0) = proposals(i,0);
-
-        for(auto pid=1; pid<nSolution; ++pid){
-            fuseTwoSolution(fusedSolution, proposals, pid, model);
-        }
-
-        double e = evaluateEnergy(fusedSolution);
-        float difft = ((float)getTickCount() - t) / (float)getTickFrequency();
-        observations.push_back(Observation(difft, e));
-    }
-
+    
 
     double fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model){
 //        CHECK_EQ(s1.getNumNode(), s2.getNumNode());
