@@ -39,7 +39,6 @@ namespace simple_stereo{
                                       ParallelFusion::SolutionType<CompactLabelSpace> &solution) {
             solution.second.init(kPix, vector<int>(1,0));
             if(!proposals.getLabelSpace().empty()){
-                    CHECK_EQ(proposals.getLabelSpace()[0].size(), 1);
                     for(auto i=0; i<kPix; ++i)
                             solution.second(i,0) = proposals(i,0);
             }else{

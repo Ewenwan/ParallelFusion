@@ -309,7 +309,7 @@ namespace ParallelFusion {
                 std::this_thread::yield();
                 LABELSPACE proposals;
                 SolutionType<LABELSPACE> current_solution;
-		current_solution.first = numeric_limits<double>::max();
+		current_solution.first = std::numeric_limits<double>::max();
 		CHECK_LE(thread_option.kTotal, slaveThreadIds.size()) << "Not enough slave threads for final fusion.";
 
 		int num_proposals_to_fuse = 0;
