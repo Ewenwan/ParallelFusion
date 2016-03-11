@@ -138,9 +138,6 @@ namespace simple_stereo {
                                                                                 const_cast<int*>(model->vCue)));
         mrf = new Expansion(model->width, model->height, model->nLabel, energy_function);
         mrf->initialize();
-
-//        qpbo = new kolmogorov::qpbo::QPBO<int>(kPix, 2 * kPix);
-//        qpbo->AddNode(kPix);
     }
 
     void SimpleStereoSolver::solve(const CompactLabelSpace &proposals,
@@ -172,8 +169,7 @@ namespace simple_stereo {
             fuseTwoSolution(solution.second, proposals,i,model);
             //printf("Done. Unlabeled:%.3f, label changed:%.3f\n", unlabeled / (float)kPix, changed / (float)kPix);
         }
-
-        //solution.first = evaluateEnergy(solution.second);
+        solution.second.getSingleLabel().clear();
         solution.first = evaluateEnergy(solution.second);
     }
 
