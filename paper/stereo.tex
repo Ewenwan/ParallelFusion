@@ -35,13 +35,19 @@ We start with a simple depthmap stereo problem with standard unary and
 pairwise terms. We employ submodular pairwise terms to make this stereo
 represent relatively ``easy'' MRF inference problems.
 %
-Unary terms are computed as the average Normalized Cross Correlation
-score between the reference image and the others inside a $7\times 7$
-pixels window. Pairwise terms are simple Pottz model. The total energy
-is defined by the sum of the two, while scaling the pairwise term by a
-factor of \yasu{X value}.
+Unary terms are computed as the average robust photoconsistancy
+score~\cite{woodford} between the reference image and the others inside a $7\times 7$
+pixels window.
+\begin{equation}
+  \text{\hang{equation to fill in}}
+\end{equation}
+Pairwise terms are simple truncated absolute label
+difference with maximum label difference $\sigma_s=4$. The total energy is
+defined by the sum of the two, while scaling the pairwise term by a
+factor of $0.005$. For simplicity we don't enforce visibility constraint.
+
 %
-We use images from the Middlebury stereo benchmark~\cite{middlebury_stereo}.
+We performed our experiments on Book sequence from Middlebury stereo datasets.~\cite{middlebury_stereo}.
 
 \mysubsubsection{Competing methods}
 
@@ -49,7 +55,7 @@ We use images from the Middlebury stereo benchmark~\cite{middlebury_stereo}.
 function~\cite{mvs_furukawa_survey} makes unary terms dominant in most
 stereo problems.  Our experiments have also supported this, where the
 fusion method (i.e., the use of proposal generation) rather makes it slow
-due to the overhead.  Therefore, we have chosen Parallel
+due to the overhead.\hang{Don't quite understand this sentence. Does the ``dominant'' means running time or energy? In my experiments, unary terms are pre-computed and are not counted into the running time}  Therefore, we have chosen Parallel
 Alpha Expansion~\cite{delong} and Hierarchical Fusion~\cite{delong,olga}
 with graph-cuts optimization as the competing methods.
 
