@@ -49,17 +49,17 @@ We use Middlebury stereo datasets for the experiments.
 function~\cite{mvs_furukawa_survey} makes unary terms dominant in most
 stereo problems.  Our experiments have also supported this, where the
 fusion method (i.e., the use of proposal generation) rather makes it slow
-due to the overhead.  Therefore, we pick parallel
-alpha-expansion~\cite{delong} and hierarchical fusion~\cite{delong,olga}
+due to the overhead.  Therefore, we have chosen Parallel
+Alpha Expansion~\cite{delong} and Hierarchical Fusion~\cite{delong,olga}
 with graph-cuts optimization as the competing methods.
 
-\mysubsubsection{Swarm fusion architectures}
+\mysubsubsection{Swarm Fusion architectures}
 
 \noindent The three swarm architectures in Fig.~\ref{fig:model} have
-been evaluated: SFWSS (SF without solution sharing), SFWMF (SF without
+been evaluated: SF-SS (SF without solution sharing), SF-MF (SF without
 multi-way fusion), and the standard SF.
 %
-For SFWSS, we have chosen $\alpha=2$ ($\beta=0$). For SFWMF, each thread
+For SF-SS, we have chosen $\alpha=2$ ($\beta=0$). For SF-MF, each thread
 iterates the step of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so
 that it can take a solution proposal in one step and a neighboring
 solution in the next. For the standard SF, we have used ($\alpha=1, \beta=1$).
