@@ -18,7 +18,7 @@ namespace simple_stereo {
         result.initialize(width, height, -1);
         //configure as sequential fusion
         ParallelFusionOption pipelineOption;
-        pipelineOption.num_threads = 5;
+        pipelineOption.num_threads = 4;
         pipelineOption.max_iteration = 8;
         const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
 
@@ -34,10 +34,7 @@ namespace simple_stereo {
             const int startid = i;
             const int interval = pipelineOption.num_threads;
             initials[i].init(kPix, vector<int>(1, startid));
-            if(victorMethod)
-                threadOptions[i].kOtherThread = 0;
-            else
-                threadOptions[i].kOtherThread = 1;
+            threadOptions[i].kOtherThread = 1;
             //threadOptions[i].kSelfThread = 8;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
@@ -47,58 +44,18 @@ namespace simple_stereo {
 
         //monitor thread
         initials.back().init(0);
-        threadOptions.back().is_monitor = true;
-        //threadOptions.back().kSelfThread = 0;
-        generators.back() = shared_ptr<ProposalGenerator<Space> >(new DummyGenerator());
-        if(victorMethod)
-            solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitorFusion(model));
-        else
-            solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitor(model));
-
         Pipeline parallelFusionPipeline(pipelineOption);
 
-        time_t start_t, end_t;
-        time(&start_t);
         float t = (float)getTickCount();
         printf("Start runing parallel optimization\n");
         parallelFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);
-        time(&end_t);
         t = ((float)getTickCount() - t) / (float)getTickFrequency();
 
         SolutionType<Space > solution;
-        if(victorMethod){
-            CompactLabelSpace all_solution;
-            parallelFusionPipeline.getAllResult(all_solution);
-            if(all_solution.getLabelSpace()[0].size() == 1)
-                parallelFusionPipeline.getBestLabeling(solution);
-            else{
-                printf("Performing final fusion...\n");
-                CompactLabelSpace fusedSolution;
-                fusedSolution.init(kPix, vector<int>(1,0));
-                for(auto i=0; i<kPix; ++i)
-                    fusedSolution(i,0) = all_solution(i,0);
-                for(auto i=1; i<all_solution.getLabelSpace()[0].size(); ++i)
-                    fuseTwoSolution(fusedSolution, all_solution, i, model);
-                solution.second =fusedSolution;
-                solution.first = solvers[0]->evaluateEnergy(solution.second);
-            }
-        }else
-            parallelFusionPipeline.getBestLabeling(solution);
+        parallelFusionPipeline.getBestLabeling(solution);
 
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
-
         char buffer[1024] = {};
-
-        if(victorMethod) {
-            sprintf(buffer, "%s/temp/plot_victor.txt", file_io.getDirectory().c_str());
-            const SimpleStereoMonitorFusion *monitorPtr = dynamic_cast<SimpleStereoMonitorFusion *>(solvers.back().get());
-            monitorPtr->writePlot(string(buffer));
-        }
-        else{
-            sprintf(buffer, "%s/temp/plot_share.txt", file_io.getDirectory().c_str());
-            const SimpleStereoMonitor *monitorPtr = dynamic_cast<SimpleStereoMonitor *>(solvers.back().get());
-            monitorPtr->writePlot(string(buffer));
-        }
 
         for(auto i=0; i<model->width * model->height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
