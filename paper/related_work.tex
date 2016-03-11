@@ -1,10 +1,10 @@
 \section{Related work}
 
 
-Markov Random Field (MRF) inference has been a very active field in
-Computer Vision with extensive literature. We refer the readers to
-survey articles for a comprehensive
-review~\cite{middlebury_mrf,comparative_study_of_modern_inference}, and
+MRF inference has been a very active field in Computer Vision with the
+extensive literature. We refer the readers to survey articles for
+comprehensive
+reviews~\cite{middlebury_mrf,comparative_study_of_modern_inference}, and
 here focus our description on closely related topics.
 
 \mysubsubsection{Parallel Alpha-Expansion}
@@ -22,16 +22,15 @@ al.~\cite{Dhruv_pushmeet_making_the_right_move} adaptively computed an
 effective sequence of labels to explore. This technique can be combined
 with parallel alpha-expansion techniques to further obtain speed-up.
 %
-Strictly speaking, these approaches are not in the family of FM, because
-they only consider constant label proposals. Our approach is a
-generalization of FM.
+Strictly speaking, these approaches are not in the family of Fusion Move
+methods (FM), because they only consider constant label proposals. Our
+approach is a generalization of FM.
 
 
 \mysubsubsection{Parallel MAP inference}
 
-\noindent
-The core MAP inference algorithms themselves can be parallelized.
-Strandmark et al. parallelized graph-cuts~\cite{strandmark2010parallel}.
+\noindent The core MAP inference itself can be parallelized.  Strandmark
+et al. parallelized graph-cuts~\cite{strandmark2010parallel}.
 %
 Message passing algorithms are friendly to GPU implementation and can
 exploit the power of parallel computation.
@@ -40,9 +39,9 @@ exploit the power of parallel computation.
 While state-of-the-art optimization libraries are often freely available
 for non-commercial purposes, most companies have to develop and maintain
 in-house implementation of these algorithms.  The core optimization
-libraries are often very complex and their modifications require
-significant engineering investments for many companies. In contrast, our
-idea is extremely simple and easily reproducible by standard engineers.
+libraries are very complex and their modifications require significant
+engineering investments. In contrast, our idea is extremely simple and
+easily reproducible by standard engineers.
 
 
 
@@ -56,9 +55,9 @@ idea is extremely simple and easily reproducible by standard engineers.
 
 \noindent FM was first introduced by Lempitsky et al. in solving an
 optical flow problem~\cite{first_fusion_viktor}. FM has been effectively
-used to solve challenging problems in Computer Vision such as a stereo
-problem with second order smoothness priors~\cite{woodford}, a stereo
-problem with parameteric surface fitting and segmentation (i.e., Surface
+used to solve challenging problems in Computer Vision such as stereo
+with second order smoothness priors~\cite{woodford}, stereo
+with parameteric surface fitting and segmentation (i.e., Surface
 Stereo)~\cite{surface_stereo}, or multicut
 partitioning~\cite{fusionmovesforcorrelationclustering}.
 %
@@ -66,16 +65,17 @@ FM has two main advantages over the other general inference
 techniques~\cite{trw,loopy_belief_propagation}. First, FM allows us to
 exploit domain-specific knowledge in customizing proposal generation
 schemes. Second, FM can handle problems with very large label spaces
-(and even real-values variables), because the core optimization just
-solves a binary decision problem.
+(and even real-values variables), because the core optimization
+solves a sequence of binary decision problems.
 %
 In contrast, methods like message passing algorithms need to maintain
 messages and beliefs for the entire label space all the time.
 %
 Although conceptually straightforward, we are not aware of {\it Parallel
-Fusion Move} algorithms that fuses solution proposals, as opposed to
+Fusion move} algorithms that fuse solution proposals, as opposed to
 labels, in parallel. This paper seeks to fully unleash the power of
-parallel computation in FM via a more general framework.
+parallel computation based on FM in the most general setting.
+%for the most general FM via a more general framework.
 
 
 \mysubsubsection{Evolutionary algorithms and Particle Swarm Optimization}
@@ -85,11 +85,14 @@ Genetic algorithms (GA)~\cite{ga} and Particle Swarm
 Optimization (PSO)~\cite{pso} maintain multiple solutions and improve
 them over time.
 %
-While GA and PSO have limited theoretical justification, they have been
-used to produce great empirical results, for example, hand
-tracking~\cite{pushmeet_hand_tracking}. At high level, our strategy is
-similar in spirit. However, GA or PSO rather arbitrarily copies part of
-the solution or makes random movements in each step. Our approach
-directly optimizes the objective function to improve solutions.
+GA or PSO has been used to produce great empirical results, for example,
+hand tracking~\cite{pushmeet_hand_tracking}.
+%
+At high level, our strategy is similar in spirit. However, GA or PSO
+rather arbitrarily copies parts of the solutions or makes random movements
+in each step (i.e., limited theoretical justification).
+%
+Our approach directly optimizes the objective function to improve
+solutions.
 
 
