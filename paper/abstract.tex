@@ -2,18 +2,22 @@
 This paper proposes a novel MAP inference framework for Markov Random
 Field (MRF) problems in parallel computing environments.  The inference
 framework, dubbed Swarm Fusion method, is a natural generalization of
-Fusion Move method for parallel computation. Every thread (in a case of
-multi-threading environment) maintains and updates a solution. At every
-iteration, each thread can generate arbitrary number of solution
-proposals and take arbitrary number of concurrent solutions from the
-other threads to perform multi-way fusion in updating its solution. The
-framework is general, making popular existing inference techniques such
-as alpha-expansion, fusion move, parallel alpha-expansion, or
-hierarchical fusion, its special cases. We have evaluated the approach
-against competing methods on stereo, optical flow, and layered depthmap
-estimation problems. Our experiments have shown that the Swarm Fusion
-method exploits the parallel computing resources and become effective
-especially for challenging problems.
+the Fusion Move method. Every thread (in a case of multi-threading
+environments) maintains and updates a solution. At every iteration, a
+thread can generate arbitrary number of solution proposals and take
+arbitrary number of concurrent solutions from the other threads to
+perform multi-way fusion in updating its solution. The framework is
+general, making popular existing inference techniques such as
+alpha-expansion, fusion move, parallel alpha-expansion, or hierarchical
+fusion, its special cases. We have evaluated the effectiveness of our
+approach against competing methods on three problems of varying
+difficulties, in particular, the stereo, the optical flow, and the
+layered depthmap estimation problems.
+%Our experiments have shown that the Swarm Fusion method outperform
+%competing methods, especially for challenging problems with massive
+%solution space.
+% can effectively exploits the parallel computing resources and become
+%effective especially for challenging problems.
 %\yasu{must be at least 70 and at most 150 words.}
 \keywords{MRF; Fusion Move; Particle Swarm Optimization}
 \end{abstract}

@@ -17,14 +17,14 @@ al.~\cite{delong}, and Veksler~\cite{olga} proposed an hierarchical
 approach, where labels can be simultaneously fused from the bottom to
 the top in a tree of labels. 
 % 
-%Strictly speaking, these parallelize alpha-expansion approaches are not
-%in the family of Fusion Move methods, because they never generate
-%solution proposals. Our approach parallelize fusion move methods.
 Instead of taking a hierarchical approach, Batra et
 al.~\cite{Dhruv_pushmeet_making_the_right_move} adaptively computed an
 effective sequence of labels to explore. This technique can be combined
 with parallel alpha-expansion techniques to further obtain speed-up.
-
+%
+Strictly speaking, these approaches are not in the family of FM, because
+they only consider constant label proposals. Our approach is a
+generalization of FM.
 
 
 \mysubsubsection{Parallel MAP inference}
@@ -36,15 +36,13 @@ Strandmark et al. parallelized graph-cuts~\cite{strandmark2010parallel}.
 Message passing algorithms are friendly to GPU implementation and can
 exploit the power of parallel computation.
 %
-However, the core optimization libraries are often very complex and
-require significant engineering by experts for modification.
 %
 While state-of-the-art optimization libraries are often freely available
 for non-commercial purposes, most companies have to develop and maintain
-in-house implementation of these algorithms. The modification of the
-core optimization libraries is a significant engineering investment for
-many companies. In contrast, our idea is extremely simple and easily
-reproducible.
+in-house implementation of these algorithms.  The core optimization
+libraries are often very complex and their modifications require
+significant engineering investments for many companies. In contrast, our
+idea is extremely simple and easily reproducible by standard engineers.
 
 
 
@@ -74,10 +72,10 @@ solves a binary decision problem.
 In contrast, methods like message passing algorithms need to maintain
 messages and beliefs for the entire label space all the time.
 %
-Although conceptually straightforward, we are not aware of {\it parallel
-fusion move} algorithms that fuses solution proposals, as opposed to
+Although conceptually straightforward, we are not aware of {\it Parallel
+Fusion Move} algorithms that fuses solution proposals, as opposed to
 labels, in parallel. This paper seeks to fully unleash the power of
-parallel computation in FM via more general framework.
+parallel computation in FM via a more general framework.
 
 
 \mysubsubsection{Evolutionary algorithms and Particle Swarm Optimization}
@@ -88,8 +86,8 @@ Optimization (PSO)~\cite{pso} maintain multiple solutions and improve
 them over time.
 %
 While GA and PSO have limited theoretical justification, they have been
-used to produce great empirical results, for example, hand tracking via
-PSO~\cite{pushmeet_hand_tracking}. At high level, our strategy is
+used to produce great empirical results, for example, hand
+tracking~\cite{pushmeet_hand_tracking}. At high level, our strategy is
 similar in spirit. However, GA or PSO rather arbitrarily copies part of
 the solution or makes random movements in each step. Our approach
 directly optimizes the objective function to improve solutions.
