@@ -81,6 +81,7 @@ namespace ParallelFusion {
                 workers((size_t) num_threads), solvers(solvers_), profile(profile_), bestSolution(bestSolution_),
                 timeout(100), terminate(false) {
             //launch threads. All threads will atomatically joined by thread_guard
+            start_time = cv::getTickCount();
             for (auto i = 0; i < workers.size(); ++i) {
                 std::thread t(&ThreadPool::workerThread, this, i, solvers[i]);
                 workers[i].bind(t);
