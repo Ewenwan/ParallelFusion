@@ -99,6 +99,12 @@ int main(int argc, char *argv[])
 
     ParallelFusion::HFusionPipeline<LABELSPACE> h_fusion_pipeline(option);
     h_fusion_pipeline.runHFusion(all_proposals, solvers, LABELSPACE(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT)));
+
+    list<ParallelFusion::Observation> observations = h_fusion_pipeline.getGlobalProfile().getProfile();
+    for (list<ParallelFusion::Observation>::const_iterator observation_it = observations.begin(); observation_it != observations.end(); observation_it++) {
+      cout << observation_it->first << '\t' << observation_it->second << endl;
+    }
+    exit(1);
   }
   
   typedef ParallelFusion::LabelSpace<pair<double, double> > LABELSPACE;

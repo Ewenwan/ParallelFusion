@@ -48,7 +48,7 @@ namespace ParallelFusion {
     template<class LABELSPACE>
     class HFusionPipeline {
     public:
-        HFusionPipeline(const HFusionPipelineOption &option_) : option(option_), profile(new GlobalTimeEnergyProfile()),
+    HFusionPipeline(const HFusionPipelineOption &option_) : option(option_), profile(new GlobalTimeEnergyProfile()),
                                                                 finalSolution(new SynSolution<LABELSPACE>()) { }
 
         void runHFusion(const std::vector<LABELSPACE> &proposals,

@@ -296,7 +296,7 @@ namespace flow_fusion {
       proposals.push_back(LABELSPACE(*initial_flow_it));
       
       current_solution_ = *initial_flow_it;
-
+      
       for (int proposal_index = 0; proposal_index < 4; proposal_index++) {
 	LABELSPACE proposal_label_space;
 	generateProposalMoveAround(proposal_label_space);
