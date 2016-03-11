@@ -115,4 +115,16 @@ struct DataStatistics {
   /* } */
 };
 
+struct PipelineParams {
+  int num_threads;
+  int num_iterations;
+
+  int num_proposals_in_total;
+  int num_proposals_from_others;
+  int solution_exchange_interval;
+  
+  bool use_monitor_thread;
+};
+
+
 #endif /* defined(__LayerDepthMap__DataStructure__) */

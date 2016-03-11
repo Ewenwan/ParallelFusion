@@ -35,6 +35,16 @@ DEFINE_int32(num_layers, 4, "The number of layers.");
 DEFINE_string(scene_name, "cse013", "Scene name.");
 DEFINE_int32(scene_rotation_angle, 0, "The rotation angle of the scene.");
 
+DEFINE_int32(num_threads, 2, "The number of threads.");
+DEFINE_int32(num_iterations, 30, "The number of iterations.");
+
+DEFINE_int32(num_proposals_in_total, 1, "The number of proposals in total.");
+DEFINE_int32(num_proposals_from_others, 0, "The number of proposals from others.");
+DEFINE_int32(solution_exchange_interval, 3, "The number of iterations between consecutive solution exchanges.");
+DEFINE_int32(result_index, 0, "The index of the result.");
+DEFINE_bool(use_monitor_thread, false, "Whether monitor object is used.");
+
+
 int main(int argc, char* argv[]) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   FLAGS_log_dir = "Log";
@@ -54,7 +64,7 @@ int main(int argc, char* argv[]) {
   }
 
 
-  srand(time(0));
+  srand(0);
   
   vector<double> point_cloud;
   Mat image;
@@ -516,8 +526,16 @@ int main(int argc, char* argv[]) {
     // imwrite("Test/image_completed.bmp", image_completed);
     // exit(1);
   }
+
+  PipelineParams pipeline_params;
+  pipeline_params.num_threads = FLAGS_num_threads;
+  pipeline_params.num_iterations = FLAGS_num_iterations;
+  pipeline_params.num_proposals_in_total = FLAGS_num_proposals_in_total;
+  pipeline_params.num_proposals_from_others = FLAGS_num_proposals_from_others;
+  pipeline_params.solution_exchange_interval = FLAGS_solution_exchange_interval;
+  pipeline_params.use_monitor_thread = FLAGS_use_monitor_thread;
   
-  LayerDepthRepresenter representer(image, point_cloud, penalties, statistics, FLAGS_scene_index, ori_image, ori_point_cloud, first_time, FLAGS_num_layers);
+  LayerDepthRepresenter representer(image, point_cloud, penalties, statistics, FLAGS_scene_index, ori_image, ori_point_cloud, first_time, FLAGS_num_layers, pipeline_params);
 
   // A[1][1] = 2;
   // A[1][2] = 1;

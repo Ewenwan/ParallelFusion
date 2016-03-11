@@ -934,8 +934,7 @@ vector<int> deleteSmallSegments(const vector<int> &segmentation, const int width
 
 Mat modifySurfaceIdImage(const Mat &surface_id_image, const int type)
 {
-    srand(time(NULL));
-    if (type == 1) {
+  if (type == 1) {
       Mat modified_surface_id_image = surface_id_image.clone();
       int width = surface_id_image.cols;
         int height = surface_id_image.rows;
@@ -1232,7 +1231,6 @@ void savePointCloud(const vector<double> &point_cloud, const char *filename)
 
 Mat drawSegmentationImage(const vector<int> &segmentation, const int width)
 {
-  srand(time(NULL));
   Mat segmentation_image(segmentation.size() / width, width, CV_8UC3);
   map<int, int> color_table;
   for (int i = 0; i < segmentation.size(); i++) {
@@ -1264,8 +1262,7 @@ Mat drawSegmentationImage(const vector<int> &segmentation, const int width)
 
 Mat drawSegmentationImage(const vector<int> &segmentation, const int width, const Mat &image, const char type)
 {
-    srand(time(NULL));
-    const int height = segmentation.size() / width;
+  const int height = segmentation.size() / width;
     Mat segmentation_image(height, width, CV_8UC3);
     
     set<int> used_color_indices;
@@ -1530,8 +1527,7 @@ vector<double> fitPlane(const vector<double> &points, double &error_per_pixel)
 
 vector<double> fitPlaneRobust(const vector<double> &points, const double plane_error_threshold)
 {
-    srand(time(NULL));
-    const int NUM_POINTS = points.size() / 3;
+  const int NUM_POINTS = points.size() / 3;
     if (NUM_POINTS < 3)
         return vector<double>();
     vector<double> max_num_inliers_plane;

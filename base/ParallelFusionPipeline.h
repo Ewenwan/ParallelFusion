@@ -298,7 +298,7 @@ namespace ParallelFusion {
     template<class LABELSPACE>
       void ParallelFusionPipeline<LABELSPACE>::monitorThread(const int id, GeneratorPtr generator, SolverPtr solver, const ThreadOption &thread_option) {
         try{
-            printf("Monitor thread launched\n");
+	  printf("Monitor thread launched\n");
             solver->initSolver(LABELSPACE());
 	    int iter = 0;
             while(true) {
@@ -309,6 +309,7 @@ namespace ParallelFusion {
                 std::this_thread::yield();
                 LABELSPACE proposals;
                 SolutionType<LABELSPACE> current_solution;
+		current_solution.first = numeric_limits<double>::max();
 		CHECK_LE(thread_option.kTotal, slaveThreadIds.size()) << "Not enough slave threads for final fusion.";
 
 		int num_proposals_to_fuse = 0;
@@ -319,18 +320,18 @@ namespace ParallelFusion {
 			
 		  SolutionType<LABELSPACE> s;
 		  bestSolutions[tid].get(s);
-                    proposals.appendSpace(s.second);
-                    if (option.synchronize)
+		  proposals.appendSpace(s.second);
+		  if (option.synchronize)
 		      write_flag[tid].store(true);
 
-		    num_proposals_to_fuse++;
-		    if (num_proposals_to_fuse == thread_option.kTotal) {
-		      SolutionType<LABELSPACE> curSolution;
-                      solver->solve(proposals, current_solution, curSolution);
-		      current_solution = curSolution;
-		      proposals = curSolution.second;
-		      num_proposals_to_fuse = 1;
-		    }
+		  num_proposals_to_fuse++;
+                  if (num_proposals_to_fuse == thread_option.kTotal) {
+		    SolutionType<LABELSPACE> curSolution;
+		    solver->solve(proposals, current_solution, curSolution);
+		    current_solution = curSolution;
+		    proposals = curSolution.second;
+		    num_proposals_to_fuse = 1;
+		  }
                 }
 		
 
