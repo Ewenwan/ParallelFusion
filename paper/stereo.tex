@@ -1,11 +1,12 @@
-\section{Swarm Fusion implementations \yasu{I don't like this title..}}
-We compare our Swarm fusion methods against competing approaches over
-three problems in Computer Vision. The SF architecture has high degrees
-of freedom and the challenge is to properly quantity the contribution of
-various algorithmic aspects. For this purpose, we carefully design the
-SF architecture for each problem independently, sometimes limiting the
-capabilities on purpose, to enable effective and fair comparative
-evaluation.  We now explain the details of the three problems.
+\section{Swarm Fusion instantiation}
+We compare SF against competing approaches over three problems in
+Computer Vision. SF framework has high degrees of freedom and the
+challenge is to properly quantity the contributions of various
+algorithmic aspects. For this purpose, we have used the three SF
+architectures illustrated in Fig.~\ref{fig:model}. For some problems, we
+have further limited the capabilities of SF on purpose, to enable
+effective and fair comparative evaluations. We now explain the details
+of the three problems.
 
 % We pick three representative problems in Computer Vision to evaluate the
 % effectiveness of the Fusion swarm methods against existing methods. We
@@ -18,7 +19,7 @@ evaluation.  We now explain the details of the three problems.
 %Vision (See Fig.~\ref{fig:problem}).  5
 \begin{figure}[tb]
  \includegraphics[width=\columnwidth]{figure/problem.pdf} \caption{We
- compare our Swarm Fusion methods against competing approaches on a
+ compare our Swarm Fusion method against competing approaches on a
  depthmap stereo~\cite{middle_bury_stereo}, an optical
  flow~\cite{middlebury_optical_flow}, or a layered depthmap
  estimation~\cite{layered_depthmap} problem. In the layered depthmap
@@ -40,7 +41,7 @@ pixels window. Pairwise terms are simple Pottz model. The total energy
 is defined by the sum of the two, while scaling the pairwise term by a
 factor of \yasu{X value}.
 %
-We use Middlebury stereo datasets for the experiments.
+We use images from the Middlebury stereo benchmark~\cite{middlebury_stereo}.
 
 \mysubsubsection{Competing methods}
 
@@ -48,20 +49,21 @@ We use Middlebury stereo datasets for the experiments.
 function~\cite{mvs_furukawa_survey} makes unary terms dominant in most
 stereo problems.  Our experiments have also supported this, where the
 fusion method (i.e., the use of proposal generation) rather makes it slow
-due to the overhead.  Therefore, we pick parallel
-alpha-expansion~\cite{delong} and hierarchical fusion~\cite{delong,olga}
+due to the overhead.  Therefore, we have chosen Parallel
+Alpha Expansion~\cite{delong} and Hierarchical Fusion~\cite{delong,olga}
 with graph-cuts optimization as the competing methods.
 
-\mysubsubsection{Swarm fusion architectures}
+\mysubsubsection{Swarm Fusion architectures}
 
 \noindent The three swarm architectures in Fig.~\ref{fig:model} have
-been evaluated: SFWSS (SF without solution sharing), SFWMF (SF without
+been evaluated: SF-SS (SF without solution sharing), SF-MF (SF without
 multi-way fusion), and the standard SF.
 %
-For SFWSS, we have chosen $\alpha=2$ ($\beta=0$). For SFWMF, each thread
-iterates the step of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so
-that it can take a solution proposal in one step and a neighboring
-solution in the next. For the standard SF, we have used ($\alpha=1, \beta=1$).
+SF-SS implies $\beta=0$, where $\alpha$ is the free parameter and set to
+2. SF-MF implies $\alpha+\beta=1$, where each thread iterates the step
+of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so that it can take a
+solution proposal in one step and a neighboring solution in the
+next. For standard SF, we have used ($\alpha=1, \beta=1$).
 %
 %
 %

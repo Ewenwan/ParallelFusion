@@ -68,11 +68,11 @@ namespace ParallelFusion{
         }
 
         //the following method can only be called from single thread!
-        inline const std::list<Observation>& getProfile() const{
+        inline const std::vector<Observation>& getProfile() const{
             return profile;
         }
 
-        inline std::list<Observation>& getProfile(){
+        inline std::vector<Observation>& getProfile(){
             return profile;
         }
     private:
@@ -86,7 +86,7 @@ namespace ParallelFusion{
         }
         mutable std::mutex mt;
         const bool keep_minimum;
-        std::list<Observation> profile;
+        std::vector<Observation> profile;
     };
 
     struct ParallelFusionOption {

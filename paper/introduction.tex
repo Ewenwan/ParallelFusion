@@ -7,15 +7,15 @@ processing job using hundreds or even thousands of computational nodes
 in a cloud.
 %
 In the recent work on the AI program playing the ancient Chinese board
-game of {\it Go} (AlphaGo from DeepMind), parallelization plays a key
-role in the Monte-Carlo tree search~\cite{nature_alpha_go}.
+game of {\it Go}, parallelization plays a key role in the Monte-Carlo
+tree search~\cite{nature_alpha_go}.
 
 
 Parallel computation offers tremendous potential for Computer Vision. As
 image sensing technologies have gone through revolutions, we are in
 ever growing demands in solving very large problems. One may need to
 apply image denoising to 50 Megapixel images from latest digital
-SLRs~\cite{canon?}, stitch thousands of images to generate gigapixel
+SLRs (e.g., Canon EOS 5DS), stitch thousands of images to generate gigapixel
 panoramas~\cite{gigapan}, or solve volumetric reconstruction and
 segmentation problems over a billion ($=1024^3$)
 voxels~\cite{Joint3DSceneReconstructionandclassSegmentation}.
@@ -23,14 +23,15 @@ voxels~\cite{Joint3DSceneReconstructionandclassSegmentation}.
 %
 However, state-of-the-art algorithms are still inherently sequential in
 many Computer Vision problems. Take a Fusion Move method
-(FM)~\cite{viktor,second_order_stereo,else}, which has been one of the
-most effective techniques for the Markov Random Field (MRF) inference,
-for example~\cite{fusion_moves}.
+(FM)~\cite{viktor,second_order_stereo,else} for example, which has been
+one of the most effective techniques for Markov Random Field (MRF)
+inference, including the above problems like image denoising, image
+stitching, or volumetric reconstruction.
 %
 It sequentially improves solution by fusing the current solution with a
-solution proposal. Its successful applications range from optical flow,
-stereo, image denoising, image inpainting, to image
-segmentation~\cite{fusion_moves_for_markov_random_field_optimization}.
+solution proposal. Its successful applications go beyond and also cover
+optical flow, stereo, image inpainting, or image segmentation
+problems~\cite{fusion_moves_for_markov_random_field_optimization}.
 
 
 Unleashing the power of parallel computation for effective MRF inference
@@ -62,8 +63,10 @@ depthmap estimation.
 %
 %Our approach outperforms all the other competing methods, especially for
 %challenging problems with a large label space.
-Our idea is very simple and the method is easily reproducible with
-minimal coding.
+Our idea is very simple. We believe that the method is easily
+reproducible with minimal coding, and would have immediate impact on
+numerous Computer Vision researchers or engineers, who currently solve
+MRF problems.
 % will instantly benefit every Computer Vision researcher or
 % engineer, who currently uses fusion move algorithm on multi-core
 % environments to solve challenging problems.

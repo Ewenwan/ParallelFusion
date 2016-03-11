@@ -29,8 +29,9 @@ namespace simple_stereo{
 
         //slave threads
         for(auto i=0; i<pipelineOption.num_threads; ++i){
-            const int startid = i;
-            const int interval = pipelineOption.num_threads;
+            const int startid = i * kLabelPerThread;
+//            const int interval = pipelineOption.num_threads;
+	    const int interval = 1;
             threadOptions[i].kTotal = kFusionSize;
             threadOptions[i].kOtherThread = 0;
             threadOptions[i].solution_exchange_interval = 1;
@@ -42,15 +43,17 @@ namespace simple_stereo{
         }
 
         Pipeline victorFusionPipeline(pipelineOption);
-        float t = (float)getTickCount();
+        float start_t = (float)getTickCount();
 
         SolutionType<Space> solution;
+        GlobalTimeEnergyProfile& profile =victorFusionPipeline.getGlobalProfile();
         for(auto iter=0; iter < max_iter; ++iter) {
             if(iter > 0){
                 for(auto i=0; i<initials.size(); ++i)
                     initials[i] = solution.second;
             }
-            victorFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);
+            bool reset_time = (iter == 0);
+            victorFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions, reset_time);
 
             CompactLabelSpace all_solution;
             victorFusionPipeline.getAllResult(all_solution);
@@ -70,11 +73,12 @@ namespace simple_stereo{
                 solution.second =fusedSolution;
                 solution.first = solvers[0]->evaluateEnergy(solution.second);
             }
-        }
 
-        t = ((float)getTickCount() - t) / (float)getTickFrequency();
-        printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
-        victorFusionPipeline.getGlobalProfile().addObservation(t, solution.first);
+            float local_t = ((float)getTickCount() - start_t) / (float)getTickFrequency();
+            profile.addObservation(local_t, solution.first);
+        }
+        float total_t = ((float)getTickCount() - start_t) / (float)getTickFrequency();
+        printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, total_t);
 
         dumpOutData(victorFusionPipeline, file_io.getDirectory()+"/temp/plot_victor");
 

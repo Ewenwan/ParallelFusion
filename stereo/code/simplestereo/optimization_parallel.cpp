@@ -31,12 +31,14 @@ namespace simple_stereo {
         const int kPix = model->width * model->height;
 
         //slave threads
+        const int kOtherThread = std::min(num_threads-1, 1);
         for(auto i=0; i<pipelineOption.num_threads; ++i){
-            const int startid = i;
-            const int interval = pipelineOption.num_threads;
+            const int startid = i * kLabelPerThread;
+//            const int interval = pipelineOption.num_threads;
+	    const int interval = 1;
             initials[i].init(kPix, vector<int>(1, startid));
-            threadOptions[i].kTotal = kFusionSize + 1;
-            threadOptions[i].kOtherThread = 1;
+            threadOptions[i].kTotal = kFusionSize + kOtherThread;
+            threadOptions[i].kOtherThread = kOtherThread;
             threadOptions[i].solution_exchange_interval = 1;
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
@@ -55,7 +57,11 @@ namespace simple_stereo {
         parallelFusionPipeline.getBestLabeling(solution);
 
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
-        dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_share");
+        if(num_threads == 1)
+            dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_sequ");
+        else{
+            dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_share");
+        }
 
         for(auto i=0; i<model->width * model->height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
