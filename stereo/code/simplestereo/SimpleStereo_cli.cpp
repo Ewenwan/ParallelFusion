@@ -20,7 +20,7 @@ int main(int argc, char** argv){
     }
 
     google::InitGoogleLogging(argv[1]);
-    google::ParseCommandLineFlags(&argc, &argv, true);
+    google::ParseCommandLineFlags(&argc, &argv, true);;
 
     FileIO file_io(argv[1]);
     SimpleStereo stereo(file_io, FLAGS_testFrame, FLAGS_resolution, FLAGS_downsample, FLAGS_weight_smooth);
