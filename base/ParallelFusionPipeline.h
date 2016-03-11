@@ -25,11 +25,11 @@ namespace ParallelFusion {
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
                                                                       terminate(false), write_flag((size_t)option_.num_threads),
-                                                                      threadProfile((size_t)option_.num_threads){
+	threadProfile((size_t)option_.num_threads){
             start_time = (float)cv::getTickCount();
         }
-
-        typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
+      
+      typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
         typedef std::vector<GeneratorPtr> GeneratorSet;
         typedef std::shared_ptr<FusionSolver<LABELSPACE> > SolverPtr;
         typedef std::vector<SolverPtr> SolverSet;
@@ -108,7 +108,7 @@ namespace ParallelFusion {
                                                                  const std::vector<ThreadOption> &thread_options,
                                                                  const bool reset_time){
 
-        CHECK_EQ(option.num_threads, initials.size());
+      CHECK_EQ(option.num_threads, initials.size());
         CHECK_EQ(option.num_threads, generators.size());
         CHECK_EQ(option.num_threads, solvers.size());
         CHECK_EQ(option.num_threads, thread_options.size());
@@ -222,30 +222,33 @@ namespace ParallelFusion {
                 const int num_proposals_from_others = (iter + 1) % thread_option.solution_exchange_interval == 0 ? thread_option.kOtherThread : 0;
 
                 bool grabbed_solution_from_self = false;
-                if (option.selectionMethod == ParallelFusionOption::RANDOM) {
+		if (num_proposals_from_others > 0) {
+		  if (option.selectionMethod == ParallelFusionOption::RANDOM) {
                     for(auto pid=0; pid < num_proposals_from_others; ++pid) {
-                        int idshift = distribution(seed);
-                        int tid = (id + idshift) % (int)slaveThreadIds.size();
-                        SolutionType<LABELSPACE> s;
-                        bestSolutions[tid].get(s);
-                        proposals.appendSpace(s.second);
+		      int idshift = distribution(seed);
+		      int tid = (id + idshift) % (int)slaveThreadIds.size();
+		      SolutionType<LABELSPACE> s;
+		      bestSolutions[tid].get(s);
+		      proposals.appendSpace(s.second);
                     }
-                } else if (option.selectionMethod == ParallelFusionOption::BEST) { //
+		  } else if (option.selectionMethod == ParallelFusionOption::BEST) { //
                     std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size());
                     for(auto tid=0; tid < slaveThreadIds.size(); ++tid)
+		      if (tid != id)
                         solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
                     sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
                     for(auto pid=0; pid < num_proposals_from_others; ++pid) {
-                        int tid = solution_energy_index_pairs[pid].second;
-                        if (tid == id) {
-                            grabbed_solution_from_self = true;
-                            continue;
-                        }
-                        SolutionType<LABELSPACE> s;
-                        bestSolutions[tid].get(s);
-                        proposals.appendSpace(s.second);
+		      int tid = solution_energy_index_pairs[pid].second;
+		      if (tid == id) {
+			grabbed_solution_from_self = true;
+			continue;
+		      }
+		      SolutionType<LABELSPACE> s;
+		      bestSolutions[tid].get(s);
+		      proposals.appendSpace(s.second);
                     }
-                }
+		  }
+		}
 
                 int num_proposals_from_self = thread_option.kTotal - num_proposals_from_others;
                 if (grabbed_solution_from_self)

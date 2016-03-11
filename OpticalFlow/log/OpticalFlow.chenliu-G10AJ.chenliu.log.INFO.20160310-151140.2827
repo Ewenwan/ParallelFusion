@@ -1,0 +1,6 @@
+Log file created at: 2016/03/10 15:11:40
+Running on machine: chenliu-G10AJ
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0310 15:11:40.793421  2827 main.cpp:49] other-data/Dimetrodon
+I0310 15:11:40.793642  2827 main.cpp:58] 141100	-1	-1	0
+F0310 15:11:46.117347  2827 ParallelFusionPipeline.h:116] Check failed: thread_options[i].kTotal == thread_options[i].kOtherThread (2 vs. 0) Monitor thread can not generate proposal

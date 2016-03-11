@@ -1,0 +1,24 @@
+Log file created at: 2016/03/10 12:31:11
+Running on machine: chenliu-G10AJ
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0310 12:31:11.968847 21067 main.cpp:49] other-data/Dimetrodon
+I0310 12:31:11.978842 21067 main.cpp:58] 131471	-1	-1	0
+I0310 12:31:40.045579 21080 OpticalFlowProposalGenerator.cpp:115] 131500	0	2	11978.5
+I0310 12:32:12.282191 21081 OpticalFlowProposalGenerator.cpp:115] 131532	0	3	7699.15
+I0310 12:32:26.445899 21079 OpticalFlowProposalGenerator.cpp:115] 131546	0	1	7818.97
+I0310 12:32:39.130978 21080 OpticalFlowProposalGenerator.cpp:115] 131559	1	2	7579.02
+I0310 12:32:41.157191 21078 OpticalFlowProposalGenerator.cpp:115] 131561	0	0	7968.59
+I0310 12:32:46.918545 21079 OpticalFlowProposalGenerator.cpp:115] 131566	1	1	7622.82
+I0310 12:32:59.325652 21080 OpticalFlowProposalGenerator.cpp:115] 131579	2	2	7520.67
+I0310 12:33:08.636587 21079 OpticalFlowProposalGenerator.cpp:115] 131588	2	1	7593.05
+I0310 12:33:23.627562 21080 OpticalFlowProposalGenerator.cpp:115] 131603	3	2	7506.22
+I0310 12:33:30.825628 21078 OpticalFlowProposalGenerator.cpp:115] 131610	1	0	7884.54
+I0310 12:33:49.396461 21079 OpticalFlowProposalGenerator.cpp:115] 131629	3	1	7555.62
+I0310 12:33:53.274979 21080 OpticalFlowProposalGenerator.cpp:115] 131633	4	2	7497.91
+I0310 12:34:11.811700 21081 OpticalFlowProposalGenerator.cpp:115] 131651	1	3	7501.22
+I0310 12:34:14.212625 21078 OpticalFlowProposalGenerator.cpp:115] 131654	2	0	7566.32
+I0310 12:34:34.442517 21078 OpticalFlowProposalGenerator.cpp:115] 131674	3	0	7384.92
+I0310 12:34:35.370872 21081 OpticalFlowProposalGenerator.cpp:115] 131675	2	3	7487.16
+I0310 12:35:00.605265 21081 OpticalFlowProposalGenerator.cpp:115] 131700	3	3	7485.99
+I0310 12:35:24.614765 21078 OpticalFlowProposalGenerator.cpp:115] 131724	4	0	7322.45
+I0310 12:35:34.931566 21081 OpticalFlowProposalGenerator.cpp:115] 131734	4	3	7470.7
