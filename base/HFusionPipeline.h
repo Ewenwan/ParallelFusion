@@ -145,7 +145,7 @@ namespace ParallelFusion {
 
                 //set flag1 to true, indicating this node is computed
                 t->flag1.store(true);
-                printf("Node %d and %d are fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
+                printf("Nodes(%d,%d) are fused by thread %d, final energy:%.5f\n", t->lchild->nodeId, t->rchild->nodeId, threadId, solution.first);
 
                 //record profile
                 float difft = ((float) cv::getTickCount() - start_time) / (float) cv::getTickFrequency();

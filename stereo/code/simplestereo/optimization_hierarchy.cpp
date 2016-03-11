@@ -23,6 +23,7 @@ namespace simple_stereo{
             std::vector<Space> proposals((size_t)model->nLabel);
             for(auto i=0; i<proposals.size(); ++i)
                     proposals[i].getSingleLabel().push_back(i);
+            //std::random_shuffle(proposals.begin(), proposals.end());
 
             Space initial;
             initial.init(width * height, vector<int>(1,0));
