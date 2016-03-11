@@ -157,10 +157,11 @@ namespace simple_stereo {
 //        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
 //        result_parallel.saveImage(buffer);
 
-        HierarchyOptimize optimize_hierarchy(file_io, model, 4);
+        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
         Depth result_hierarchy;
         optimize_hierarchy.optimize(result_hierarchy, 1);
         sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
+        cout << "Saving " << buffer << endl << flush;
         result_hierarchy.saveImage(buffer);
 
 
