@@ -29,7 +29,7 @@ namespace ParallelFusion {
     using NodePtr = std::shared_ptr<NodeT<LABELSPACE> >;
 
     template<class LABELSPACE>
-    struct AsynTask {
+      struct AsynTask {
         AsynTask(NodePtr<LABELSPACE> p1, NodePtr<LABELSPACE> p2, NodeT<LABELSPACE> s) : lchild(p1), rchild(p2),
                                                                                         selfNode(s) { }
 
@@ -40,7 +40,7 @@ namespace ParallelFusion {
 
     struct HFusionPipelineOption {
     public:
-        HFusionPipelineOption() : num_threads(4) { }
+    HFusionPipelineOption() : num_threads(4) { }
 
         int num_threads;
     };

@@ -10,6 +10,7 @@
 #include <ctime>
 
 #include "../base/ParallelFusionPipeline.h"
+#include "../base/HFusionPipeline.h"
 //#include "../base/cv_utils/cv_utils.h"
 #include "OpticalFlowCalculation.h"
 #include "OpticalFlowUtils.h"
@@ -80,6 +81,26 @@ int main(int argc, char *argv[])
   //GaussianBlur(image_2, image_2, cv::Size(5, 5), 0, 0);
 
 
+  {
+    typedef ParallelFusion::LabelSpace<pair<double, double> > LABELSPACE;
+    ParallelFusion::HFusionPipelineOption option;
+    option.num_threads = FLAGS_num_threads;
+    //option.synchronize = true;
+  
+    OpticalFlowProposalGenerator generator(image_1, image_2);
+    vector<LABELSPACE> all_proposals;
+    generator.getAllProposals(all_proposals);
+    vector<shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> > > solvers((size_t)option.num_threads);
+    vector<ParallelFusion::ThreadOption> thread_options((size_t)option.num_threads);
+
+    for (auto i = 0; i < option.num_threads; ++i) {
+      solvers[i] = shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> >(new OpticalFlowFusionSolver(image_1, image_2));
+    }
+
+    ParallelFusion::HFusionPipeline<LABELSPACE> h_fusion_pipeline(option);
+    h_fusion_pipeline.runHFusion(all_proposals, solvers, LABELSPACE(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT)));
+  }
+  
   typedef ParallelFusion::LabelSpace<pair<double, double> > LABELSPACE;
 
   

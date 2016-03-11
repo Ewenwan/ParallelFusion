@@ -20,7 +20,10 @@ namespace flow_fusion {
 
       void writeSolution(const std::pair<double, LABELSPACE> &solution, const int thread_index, const int iteration) const;
         
-        //void setGroundTruthSolution(const std::vector<std::pair<double, double> > &ground_truth_solution) { ground_truth_flows_ = ground_truth_solution; };
+      //void setGroundTruthSolution(const std::vector<std::pair<double, double> > &ground_truth_solution) { ground_truth_flows_ = ground_truth_solution; };
+
+      void getAllProposals(std::vector<LABELSPACE> &proposals);
+      
 
     private:
         cv::Mat image_1_;
