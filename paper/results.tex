@@ -41,9 +41,16 @@ generation \chen{We generate proposals on the fly for optical flow and layered d
  \includegraphics[width=\columnwidth]{figure/layered_depthmap_convergence.png}
  \caption{}\label{fig:layered_depthmap_convergence}
 \end{figure}
+\begin{figure}[tb]
+  \includegraphics[width=\columnwidth]{figure/optical_flow_by_threads.png}
+  \caption{}\label{fig:optical_flow_by_threads}
+\end{figure}
 
 
 \chen{
+  There are interesting pattern in the convergence plot of optical flow estimation problem. As both FS-MF and PAE are doing binary fusion, FS-MF finds lower energy faster than PAE. The reason is as follows. Some solution proposals are more effective than others, so once a thread grabs an effective solution proposal, it find a much lower energy. Since there is no solution sharing in PAE model, other threads cannot share this lower energy state, and keeps working on improving its own state. On the other hand, FS-MF allows solution sharing, so once a thread grabs an effective solution proposal and moves to a lower energy state, other threads can share this lower energy state. To further demonstrate what is happening here, we plot the energy-time for each thread in PAE and FS-MF in figure \ref{fig:optical_flow_by_threads}. As we can see from the figure, in PAE model, one thread finds lower energy state faster than others, while other threads waste resources working at a high energy state. But in FS-MF model, all threads exchange information about the lowest energy state and work on improving the lowest energy state together. Same comparison holds for FS-SS and FS.
+}
+  \chen{
   From the convergence plot of layered depth map estimation, we can see that, Fusion Move, Parallel Fusion Move, and FS-MF all stalk at a high energy state. The reason is binary fusion of solution proposals (either from others or self) is too limited to further decrease the energy due to the complexity of the problem itself. Only when multi-way fusion is used (in FS-SS and FS), it becomes possible for the energy to further decrease. This coincides with the observation in \cite{layered_depthmap} that binary fusion of proposal solutions is not as powerful as their subspace fusion which is a special form of multi-way fusion here.
 }
 
