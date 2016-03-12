@@ -228,6 +228,11 @@ void ProposalDesigner::getProposals(LayerLabelSpace &proposal_label_space, const
       if (proposal_iteration_ == 1)
         break;
     }
+    // cout << "append current solution" << endl;
+    // cout << "current: " << current_solution.getNumSegments() << endl;
+    // cout << "proposal: " << proposal_label_space.getNumSegments() << endl;
+    // proposal_label_space.appendSpace(current_solution);
+    // exit(1);
     if (N == 0)
       proposal_label_space.appendSpace(current_solution);
     return;
@@ -322,6 +327,7 @@ void ProposalDesigner::getProposals(LayerLabelSpace &proposal_label_space, const
   proposal_label_space.setSegments(proposal_segments_);
   proposal_label_space.setNumPixels(NUM_PIXELS_);
   proposal_label_space.setNumLayers(NUM_LAYERS_);
+  proposal_label_space.appendSpace(current_solution);
   proposal_iteration_++;
   return;
 }

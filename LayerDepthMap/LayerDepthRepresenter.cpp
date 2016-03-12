@@ -147,6 +147,8 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
     initials[i].setNumPixels(NUM_PIXELS_);
     initials[i].setNumLayers(num_layers_);
 
+    // generators[i]->getProposals(initials[i], initials[i], 2);
+    // exit(1);
     thread_options[i].kTotal = PIPELINE_PARAMS_.num_proposals_in_total;
     thread_options[i].kOtherThread = PIPELINE_PARAMS_.num_proposals_from_others;
     thread_options[i].solution_exchange_interval = PIPELINE_PARAMS_.solution_exchange_interval;

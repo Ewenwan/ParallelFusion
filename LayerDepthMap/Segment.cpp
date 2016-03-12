@@ -18,6 +18,8 @@ using namespace Eigen;
 using namespace cv_utils;
 
 
+std::atomic<int> Segment::static_id(0);
+
 Segment::Segment(const cv::Mat &image, const std::vector<double> &point_cloud, const std::vector<double> &normals, const vector<double> &camera_parameters, const vector<int> &pixels, const RepresenterPenalties &penalties, const DataStatistics &input_statistics, const int segment_type) : IMAGE_WIDTH_(image.cols), IMAGE_HEIGHT_(image.rows), NUM_PIXELS_(image.cols * image.rows), CAMERA_PARAMETERS_(camera_parameters), penalties_(penalties), input_statistics_(input_statistics), segment_type_(segment_type), segment_id_(Segment::static_id++)
 {
   if (segment_type == 0)
@@ -38,11 +40,11 @@ Segment::Segment(const cv::Mat &image, const std::vector<double> &point_cloud, c
   //calcConfidence();
 }
 
-Segment::Segment(const int image_width, const int image_height, const vector<double> &camera_parameters, const RepresenterPenalties &penalties, const DataStatistics &input_statistics) : IMAGE_WIDTH_(image_width), IMAGE_HEIGHT_(image_height), NUM_PIXELS_(image_width * image_height), CAMERA_PARAMETERS_(camera_parameters), penalties_(penalties), input_statistics_(input_statistics)
+Segment::Segment(const int image_width, const int image_height, const vector<double> &camera_parameters, const RepresenterPenalties &penalties, const DataStatistics &input_statistics) : IMAGE_WIDTH_(image_width), IMAGE_HEIGHT_(image_height), NUM_PIXELS_(image_width * image_height), CAMERA_PARAMETERS_(camera_parameters), penalties_(penalties), input_statistics_(input_statistics), segment_id_(Segment::static_id++)
 {
 }
 
-Segment::Segment()
+Segment::Segment() : segment_id_(Segment::static_id++)
 {
 }
 
@@ -1059,6 +1061,7 @@ Segment &Segment::operator =(const Segment &segment)
   GMM_ = segment.GMM_;
   segment_confidence_ = segment.segment_confidence_;
 
+  segment_id_ = segment.segment_id_;
   
   // Mat sample(1, 5, CV_32FC1);
   // for (int c = 0; c < 5; c++)

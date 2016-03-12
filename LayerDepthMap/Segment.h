@@ -8,6 +8,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/ml/ml.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <atomic>
+
 
 #include "DataStructure.h"
 //#include "BSpline.h"
@@ -74,11 +76,10 @@ class Segment{
 
   friend Segment upsampleSegment(const Segment &segment, const cv::Mat &new_image, const std::vector<double> &new_point_cloud, const std::vector<double> &new_normals, const std::vector<double> &new_camera_parameters, const std::vector<int> &pixels);
 
-  int getSegmentId() { return segment_id_; };
+  int getSegmentId() const { return segment_id_; };
 
- protected:
-  int segment_id_;
   static std::atomic<int> static_id;
+
   
  private:
   int IMAGE_WIDTH_;
@@ -86,7 +87,8 @@ class Segment{
 
   int NUM_PIXELS_;
   std::vector<double> CAMERA_PARAMETERS_;
-  
+
+  int segment_id_;
   
   RepresenterPenalties penalties_;
   DataStatistics input_statistics_;
@@ -140,7 +142,6 @@ class Segment{
 
   std::vector<int> deleteInvalidPixels(const std::vector<double> &point_cloud, const std::vector<int> &pixels);
 };
-
 
 std::map<int, Segment> calcSegments(const cv::Mat &image, const std::vector<double> &point_cloud, const std::vector<int> &segmentation, const RepresenterPenalties &penalties, const DataStatistics &statistics);
 
