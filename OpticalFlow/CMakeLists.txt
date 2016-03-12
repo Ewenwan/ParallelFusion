@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_BUILD_TYPE Release)
 
 include_directories(/usr/local/include/eigen3)
+include_directories(/usr/include/eigen3)
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../base")
 
 find_package(OpenCV REQUIRED)
