@@ -178,7 +178,7 @@ namespace ParallelFusion {
         double minE = std::numeric_limits<double>::max();
         for(auto i=0; i<slaveThreadIds.size(); ++i){
             if(bestSolutions[i].getSolution().first < minE){
-                solution.second.clear();
+	      solution.second.clear();
                 solution.second.appendSpace(bestSolutions[i].getSolution().second);
                 solution.first = bestSolutions[i].getSolution().first;
                 minE = solution.first;
@@ -285,7 +285,7 @@ namespace ParallelFusion {
                     //if(option.synchronize) //Always set this flag so that a minotor could know whether results are ready, synchronization is guaranteed it the minotor thread set the flag to true.
                     write_flag[id].store(false);
 		    
-                    return;
+		    continue;
                   }
                 }
 
