@@ -14,18 +14,20 @@ using namespace ParallelFusion;
 
 namespace simple_stereo {
 
-    SimpleStereo::SimpleStereo(const FileIO &file_io_, const int anchor_, const int dispResolution_, const int downsample_, const double weight_smooth_):
-            file_io(file_io_), anchor(anchor_), downsample(downsample_), model(new MRFModel<int>()){
+    SimpleStereo::SimpleStereo(const FileIO &file_io_, const int anchor_, const int dispResolution_,
+                               const int downsample_, const double weight_smooth_, const int num_threads_) :
+            file_io(file_io_), anchor(anchor_), downsample(downsample_), num_threads(num_threads_),
+            model(new MRFModel<int>()) {
         CHECK_GE(file_io.getTotalNum(), 2) << "Too few images at " << file_io.getDirectory();
-        images.resize((size_t)file_io.getTotalNum());
+        images.resize((size_t) file_io.getTotalNum());
         CHECK(downsample == 1 || downsample == 2 || downsample == 4 || downsample == 8) << "Invalid downsample ratio!";
-        const int nLevel = (int)std::log2((double)downsample) + 1;
-        for(auto i=0; i<images.size(); ++i) {
+        const int nLevel = (int) std::log2((double) downsample) + 1;
+        for (auto i = 0; i < images.size(); ++i) {
             vector<Mat> pyramid(nLevel);
             Mat tempMat = imread(file_io.getImage(i));
             pyramid[0] = tempMat;
-            for(auto k=1; k<nLevel; ++k)
-                pyrDown(pyramid[k-1], pyramid[k]);
+            for (auto k = 1; k < nLevel; ++k)
+                pyrDown(pyramid[k - 1], pyramid[k]);
             images[i] = pyramid.back().clone();
         }
         width = images[0].cols;
@@ -57,7 +59,7 @@ namespace simple_stereo {
             fin.read((char *) &type, sizeof(int));
             printf("Cached data: anchor:%d, resolution:%d, Energytype:%d\n",
                    frame, resolution, type);
-            if (frame == anchor && resolution == model->nLabel  && ds == downsample && type == sizeof(int)) {
+            if (frame == anchor && resolution == model->nLabel && ds == downsample && type == sizeof(int)) {
                 printf("Reading unary term from cache...\n");
                 fin.read((char *) model->MRF_data, model->width * model->height * model->nLabel * sizeof(int));
                 recompute = false;
@@ -77,7 +79,7 @@ namespace simple_stereo {
                         //project onto other views and compute matching cost
                         vector<vector<double>> patches(images.size());
                         for (auto v = 0; v < images.size(); ++v) {
-                            double distance = (double) (v - anchor) * (double)d / downsample / 5;
+                            double distance = (double) (v - anchor) * (double) d / downsample / 5;
                             Vector2d imgpt(x + distance, y);
                             local_matcher::samplePatch(images[v], imgpt, 3, patches[v]);
                         }
@@ -101,11 +103,11 @@ namespace simple_stereo {
 
         //compute unary disparity
         unaryDisp.initialize(width, height, -1);
-        for(auto i=0; i<width * height; ++i){
+        for (auto i = 0; i < width * height; ++i) {
             EnergyType min_e = std::numeric_limits<EnergyType>::max();
-            for(auto d=0; d<model->nLabel; ++d){
-                if(model->MRF_data[model->nLabel * i + d] < min_e){
-                    unaryDisp.setDepthAtInd(i, (double)d);
+            for (auto d = 0; d < model->nLabel; ++d) {
+                if (model->MRF_data[model->nLabel * i + d] < min_e) {
+                    unaryDisp.setDepthAtInd(i, (double) d);
                     min_e = model->MRF_data[model->nLabel * i + d];
                 }
             }
@@ -149,11 +151,16 @@ namespace simple_stereo {
         initMRF();
 
         sprintf(buffer, "%s/temp/unaryDisp.jpg", file_io.getDirectory().c_str());
-        unaryDisp.saveImage(buffer, 256.0 / (double)model->nLabel);
+        unaryDisp.saveImage(buffer, 256.0 / (double) model->nLabel);
+
+        vector<int> labelList((size_t)model->nLabel);
+        for(auto i=0; i < labelList.size(); ++i)
+            labelList[i] = i;
+        random_shuffle(labelList.begin(), labelList.end());
 
         cout << "========================================" << endl;
         cout << "Runing sequential alpha-expansion" << endl;
-        ParallelOptimize optimize_sequential(file_io, model,  1, "Sequential");
+        ParallelOptimize optimize_sequential(file_io, model, 1, "Sequential", labelList);
         Depth result_sequential;
         optimize_sequential.optimize(result_sequential, 2);
         sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
@@ -161,7 +168,7 @@ namespace simple_stereo {
 
         cout << "========================================" << endl;
         cout << "Runing parallel method with solution sharing" << endl;
-        ParallelOptimize optimize_parallel(file_io, model, 4, "Swarn");
+        ParallelOptimize optimize_parallel(file_io, model, num_threads, "Swarn", labelList);
         Depth result_parallel;
         optimize_parallel.optimize(result_parallel, 2);
         sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
@@ -169,7 +176,7 @@ namespace simple_stereo {
 
         cout << "========================================" << endl;
         cout << "Runing multiway fusion with solution sharing" << endl;
-        ParallelOptimize optimize_multiway(file_io, model, 4, "Swarn_multiway", true);
+        ParallelOptimize optimize_multiway(file_io, model, num_threads, "Swarn_multiway", labelList, true);
         Depth result_multiway;
         optimize_multiway.optimize(result_multiway, 2);
         sprintf(buffer, "%s/temp/result_multiway.jpg", file_io.getDirectory().c_str());
@@ -177,7 +184,7 @@ namespace simple_stereo {
 
         cout << "========================================" << endl;
         cout << "Runing Victor's method" << endl;
-        VictorOptimize optimize_victor(file_io, model, 4, "Victor");
+        VictorOptimize optimize_victor(file_io, model, num_threads, "Victor", labelList);
         Depth result_victor;
         optimize_victor.optimize(result_victor, 2);
         sprintf(buffer, "%s/temp/result_victor.jpg", file_io.getDirectory().c_str());
@@ -185,7 +192,7 @@ namespace simple_stereo {
 
         cout << "========================================" << endl;
         cout << "Runing Victor's method multiway" << endl;
-        VictorOptimize optimize_victor_multiway(file_io, model, 4, "Victor_multiway", true);
+        VictorOptimize optimize_victor_multiway(file_io, model, num_threads, "Victor_multiway", labelList, true);
         Depth result_victor_multiway;
         optimize_victor_multiway.optimize(result_victor_multiway, 2);
         sprintf(buffer, "%s/temp/result_victor_multiway.jpg", file_io.getDirectory().c_str());
@@ -193,7 +200,7 @@ namespace simple_stereo {
 
         cout << "========================================" << endl;
         cout << "Runing Hierarchy method" << endl;
-        HierarchyOptimize optimize_hierarchy(file_io, model, 6);
+        HierarchyOptimize optimize_hierarchy(file_io, model, num_threads, labelList);
         Depth result_hierarchy;
         optimize_hierarchy.optimize(result_hierarchy, 1);
         sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
@@ -207,4 +214,4 @@ namespace simple_stereo {
 //        sprintf(buffer, "%s/temp/result_firstOrder.jpg", file_io.getDirectory().c_str());
 //        result_firstOrder.saveImage(buffer);
     }
-}
+}//namespace simple_stereo

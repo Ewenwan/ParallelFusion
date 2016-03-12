@@ -12,6 +12,7 @@ DEFINE_int32(resolution, 256, "resolution");
 DEFINE_int32(testFrame, 0, "reference frame");
 DEFINE_double(weight_smooth, 0.01, "smoothness weight");
 DEFINE_int32(downsample, 2, "downsample");
+DEFINE_int32(num_threads, 4, "number of threads");
 
 int main(int argc, char** argv){
     if(argc < 2){
@@ -23,7 +24,7 @@ int main(int argc, char** argv){
     google::ParseCommandLineFlags(&argc, &argv, true);;
 
     FileIO file_io(argv[1]);
-    SimpleStereo stereo(file_io, FLAGS_testFrame, FLAGS_resolution, FLAGS_downsample, FLAGS_weight_smooth);
+    SimpleStereo stereo(file_io, FLAGS_testFrame, FLAGS_resolution, FLAGS_downsample, FLAGS_weight_smooth, FLAGS_num_threads);
     stereo.runStereo();
     return 0;
 }

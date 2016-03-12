@@ -17,7 +17,7 @@ namespace simple_stereo {
         bool victorMethod = true;
         result.initialize(width, height, -1);
         const int kFusionSize = 4;
-        //configure as sequential fusion
+
         ParallelFusionOption pipelineOption;
         pipelineOption.num_threads = num_threads;
         pipelineOption.max_iteration = model->nLabel / num_threads / kFusionSize * max_iter;
@@ -28,24 +28,24 @@ namespace simple_stereo {
         vector<Space> initials((size_t)pipelineOption.num_threads);
         vector<ThreadOption> threadOptions((size_t)pipelineOption.num_threads);
 
+        vector<vector<int> > labelSubSpace;
+        splitLabel(labelSubSpace);
+
         const int kPix = model->width * model->height;
 
         //slave threads
         const int kOtherThread = std::min(num_threads-1, 1);
         for(auto i=0; i<pipelineOption.num_threads; ++i){
-            const int startid = i * kLabelPerThread;
-//            const int interval = pipelineOption.num_threads;
-            const int interval = 1;
+            const int startid = labelSubSpace[i].front();
             initials[i].init(kPix, vector<int>(1, startid));
             threadOptions[i].kTotal = kFusionSize + kOtherThread;
             threadOptions[i].kOtherThread = kOtherThread;
             threadOptions[i].solution_exchange_interval = 1;
-            printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
             if(multiway) {
-                generators[i] = shared_ptr<ProposalGenerator<Space> >(new MultiwayStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new MultiwayStereoGenerator(kPix, labelSubSpace[i]));
                 solvers[i] = shared_ptr<FusionSolver<Space> >(new MultiwayStereoSolver(model));
             }else{
-                generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(kPix, labelSubSpace[i]));
                 solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
             }
 
@@ -72,5 +72,10 @@ namespace simple_stereo {
         return solution.first;
     }
 
+    void ParallelOptimize::splitLabel(std::vector<std::vector<int> > &labelSubLists) const {
+        labelSubLists.resize((size_t)num_threads);
+        for(auto i=0; i<labelList.size(); ++i)
+            labelSubLists[i%num_threads].push_back(labelList[i]);
+    }
 
 }
