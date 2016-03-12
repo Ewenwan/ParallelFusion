@@ -26,7 +26,7 @@ namespace ParallelFusion {
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
                                                                       terminate(false), write_flag((size_t)option_.num_threads),
 	threadProfile((size_t)option_.num_threads){
-            start_time = (float)cv::getTickCount();
+	start_time = (float)cv::getTickCount();
         }
       
       typedef std::shared_ptr<ProposalGenerator<LABELSPACE> > GeneratorPtr;
@@ -193,7 +193,8 @@ namespace ParallelFusion {
                                                           GeneratorPtr generator,
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
-        try {
+      try {
+	srand(id);
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);

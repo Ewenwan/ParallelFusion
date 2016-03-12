@@ -32,7 +32,7 @@ solution from each thread.
 
 SF has two main parameters $\alpha_i$ and $\beta_i$ (for each thread
 $T_i$), determining its processing flow: In each fusion step, a thread
-collects $\alpha_i$ solution proposals from the proposal pool and
+collects $\alpha_i$ solution proposals from the proposal pool \chen{A proposal pool sounds confusing. We often don't really maintain such a pool as many proposals are generated dynamically based on current solution. We just have certain strategies right there and in each iteration, we pick some strategies to generate proposals on the fly. This is different with the solution pool which is really there.}
 $\beta_i$ solutions from the solution pool, based on a user-defined
 strategy or at random to be simple.
 %
@@ -45,7 +45,7 @@ processing architectures as shown in Figure~\ref{fig:model}.
 %
 \begin{figure}[tb]
  \includegraphics[width=\columnwidth]{figure/model.pdf} \caption{Swarm
- Fusion (SF) architecture and its relationships to existing methods. The
+   Fusion (SF) architecture and its relationships to existing methods. The
  bottom right example shows the general SF architecture, where
  each thread takes arbitrary number of solution proposals and concurrent
  solutions from other threads for fusion. The framework is flexible and
@@ -64,16 +64,16 @@ processing architectures as shown in Figure~\ref{fig:model}.
  as Alpha Expansion~\cite{alpha_expansion}, Fusion Move~\cite{FM},
  Parallel Alpha Expansion~\cite{delong}, or Hierarchical
  Fusion~\cite{delong_hierarchical_fusion,olga}, are all special cases of
- SF.}\label{fig:model}
+ SF.} \label{fig:model}
 \end{figure}
 %
 The bottom right architecture is the most general one, in which threads
-always fuse some solution proposals and some concurrent solutions (i.e.,
+always fuse some solution proposals and \chen{or?} some concurrent solutions (i.e.,
 $\alpha\ne 0, \beta \ne 0$).
 %
 Each fusion is multi-way (not binary) and the energy is not submodular
 in general, for which effective inference techniques such as
-TRW~\cite{kolmogorov,opengm} exist.
+TRW~\cite{kolmogorov,opengm} \chen{TRW-S?} exist.
 %, and hence we use TRW~\cite{kolmogorov} for the fusion, while any other
 %compatible inference techniques can be used~\cite{opengm}.
 However, if one knows that a certain fusion step is a binary fusion with
@@ -126,7 +126,7 @@ Fusion method (SF). AE can be realized by setting $(\alpha=1, \beta=0)$ and
 restricting the proposal generation to constant labels with a single
 thread. Same goes for FM, this time, without the restriction on the
 proposal generation scheme. PAE is realized by setting
-$(\alpha=1,\beta=1)$ with multiple threads, again with a restriction on
+$(\alpha=1,\beta=1)$ \chen{$(\alpha=1,\beta=0)$} with multiple threads, again with a restriction on
 the proposal generation scheme (the last sequential fusion in PAE is
 realized by $(\alpha=0, \beta=1)$ with a single thread).
 %

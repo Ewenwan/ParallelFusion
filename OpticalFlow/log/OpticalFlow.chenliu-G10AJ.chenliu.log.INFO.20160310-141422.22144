@@ -1,6 +1,0 @@
-Log file created at: 2016/03/10 14:14:22
-Running on machine: chenliu-G10AJ
-Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
-I0310 14:14:22.437113 22144 main.cpp:49] other-data/Dimetrodon
-I0310 14:14:22.437337 22144 main.cpp:58] 137662	-1	-1	0
-I0310 14:15:03.543817 22159 OpticalFlowProposalGenerator.cpp:115] 137703	0	3	11973.6

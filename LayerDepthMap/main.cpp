@@ -51,7 +51,8 @@ int main(int argc, char* argv[]) {
   //  FLAGS_logtostderr = false;
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << FLAGS_scene_name;
-
+  LOG(INFO) << FLAGS_num_threads << '\t' << FLAGS_num_iterations << '\t' << FLAGS_num_proposals_in_total << '\t' << FLAGS_num_proposals_from_others << '\t' << FLAGS_solution_exchange_interval << '\t' << FLAGS_use_monitor_thread << endl;
+  
   {
     time_t timer;
     time(&timer);
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
   }
 
 
-  srand(0);
+  //srand(0);
   
   vector<double> point_cloud;
   Mat image;

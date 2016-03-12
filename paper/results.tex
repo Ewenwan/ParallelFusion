@@ -29,9 +29,19 @@ Kolmogorov~\cite{msr_link?,trw_link}.
 The figure illustrates the convergence rate of three competing methods
 (alpha expansion, parallel alpha expansion, hierarchical fusion) against
 our swarm fusion method (only binary fusion without proposal
-generation).
+generation \chen{We generate proposals on the fly for optical flow and layered depth map. So the time actually includes proposal generation stage which can be ignored. I think we can just delete this sentence.}).
 
 \begin{figure}[tb]
- \includegraphics[width=\columnwidth]{figure/result_layered_depthmap.pdf}
- \caption{}\label{fig:result_layered_depthmap}
+  \includegraphics[width=\columnwidth]{figure/optical_flow_convergence.pdf}
+  \caption{}\label{fig:optical_flow_convergence}
 \end{figure}
+\begin{figure}[tb]
+ \includegraphics[width=\columnwidth]{figure/layered_depthmap_convergence.pdf}
+ \caption{}\label{fig:layered_depthmap_convergence}
+\end{figure}
+
+
+\chen{
+  From the convergence plot of layered depth map estimation, we can see that, Fusion Move, Parallel Fusion Move, and FS-MF all stalk at a high energy state. The reason is binary fusion of solution proposals (either from others or self) is too limited to further decrease the energy due to the complexity of the problem itself. Only when multi-way fusion is used (in FS-SS and FS), it becomes possible for the energy to further decrease. This coincides with the observation in \cite{layered_depthmap} that binary fusion of proposal solutions is not as powerful as their subspace fusion which is a special form of multi-way fusion here.
+}
+
