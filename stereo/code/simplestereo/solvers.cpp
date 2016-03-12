@@ -34,10 +34,11 @@ namespace simple_stereo{
 
     void SimpleStereoSolver::initSolver(const CompactLabelSpace &initial) {
         CHECK_EQ(initial.getNumNode(), model->width * model->height);
-        energy_function = shared_ptr<EnergyFunction>(new EnergyFunction(new DataCost(const_cast<int*>(model->MRF_data)),
-                                                             new SmoothnessCost(1, 4, model->weight_smooth,
-                                                                                const_cast<int*>(model->hCue),
-                                                                                const_cast<int*>(model->vCue))));
+        dataCost = shared_ptr<DataCost>(new DataCost(const_cast<int*>(model->MRF_data)));
+        smoothnessCost = shared_ptr<SmoothnessCost>(new SmoothnessCost(1, 4, model->weight_smooth,
+                                                                       const_cast<int*>(model->hCue),
+                                                                       const_cast<int*>(model->vCue)));
+        energy_function = shared_ptr<EnergyFunction>(new EnergyFunction(dataCost.get(), smoothnessCost.get()));
         mrf = shared_ptr<Expansion>(new Expansion(model->width, model->height, model->nLabel, energy_function.get()));
         mrf->initialize();
     }
@@ -87,7 +88,7 @@ namespace simple_stereo{
         for(auto x=0; x<w - 1; ++x) {
             for (auto y = 0; y < h - 1; ++y) {
                 int sc = model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution(y * w + x + 1, 0), true) +
-                         model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), true);
+                         model->computeSmoothCost(y * w + x, solution(y * w + x, 0), solution((y + 1) * w + x, 0), false);
                 e += (double) sc / r;
             }
         }
@@ -170,8 +171,8 @@ namespace simple_stereo{
         for(auto i=0; i<kPix; ++i) {
             for (auto l = 0; l < singleLabelSize; ++l)
                 dataCost[i][l] = model->operator()(i, proposals[l]) / model->MRFRatio;
-            for(auto l=0; l<fullLabelSize; ++l)
-                dataCost[i][l+singleLabelSize] = model->operator()(i, proposals(i, l)) / model->MRFRatio;
+            for (auto l = 0; l < fullLabelSize; ++l)
+                dataCost[i][l + singleLabelSize] = model->operator()(i, proposals(i, l)) / model->MRFRatio;
             nodes.get()[i] = mrf->AddNode(SmoothT::LocalSize(nLabel), SmoothT::NodeData(dataCost[i].data()));
         }
 
@@ -193,7 +194,7 @@ namespace simple_stereo{
                     if(l2 < singleLabelSize)
                         ll2 = proposals[l2];
                     else
-                        ll2 = proposals(pix1, l2-singleLabelSize);
+                        ll2 = proposals(pix2, l2-singleLabelSize);
                     smoothCost[pix1 + offset][l1 + l2 * nLabel] = model->computeSmoothCost(pix1, ll1, ll2, direction) / model->MRFRatio;
                 }
             }
@@ -215,6 +216,7 @@ namespace simple_stereo{
         option.m_iterMax = 30;
         mrf->Minimize_TRW_S(option, lowerBound, energy);
 
+        //printf("====================================\nTRWS final energy:%.3f\n====================================\n", energy);
         //copy result
         if(solution.getNumNode() < kPix)
             solution.init(kPix, vector<int>(1,0));

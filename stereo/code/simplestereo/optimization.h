@@ -124,8 +124,8 @@ namespace simple_stereo {
 
     class StereoOptimizer{
     public:
-        StereoOptimizer(const stereo_base::FileIO& file_io_, const MRFModel<int>* model_): file_io(file_io_), model(model_),
-                                                                                      width(model_->width), height(model_->height), nLabel(model_->nLabel){}
+        StereoOptimizer(const stereo_base::FileIO& file_io_, const MRFModel<int>* model_, const std::string method_ = ""): file_io(file_io_), model(model_),
+                                                                                      width(model_->width), height(model_->height), nLabel(model_->nLabel), method(method_){}
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const = 0;
         double evaluateEnergy(const std::vector<int>& labeling) const{
             return 0;
@@ -140,6 +140,7 @@ namespace simple_stereo {
         const int width;
         const int height;
         const int nLabel;
+        const std::string method;
     };
 
     class FirstOrderOptimize: public StereoOptimizer{
@@ -148,11 +149,14 @@ namespace simple_stereo {
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     };
 
-    class ParallelOptimize: public StereoOptimizer{
+    class ParallelOptimize: public StereoOptimizer {
     public:
-        ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int>* model_, const int num_threads_, const bool multiway_ = false):
-                StereoOptimizer(file_io_, model_), num_threads(num_threads_), multiway(multiway_){}
+        ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_,
+                         const std::string method_ , const bool multiway_ = false) :
+                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_), multiway(multiway_) { }
+
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
+
     private:
         const int num_threads;
         const bool multiway;
@@ -160,8 +164,9 @@ namespace simple_stereo {
 
     class HierarchyOptimize: public StereoOptimizer {
     public:
-        HierarchyOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_):
-                StereoOptimizer(file_io_, model_), num_threads(num_threads_){}
+        HierarchyOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_,
+                         const std::string method_ = "Hierarchy") :
+                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_){ }
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
     private:
         const int num_threads;
@@ -169,8 +174,8 @@ namespace simple_stereo {
 
     class VictorOptimize: public StereoOptimizer{
     public:
-        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_, const bool multiway_ = false):
-                StereoOptimizer(file_io_, model_), num_threads(num_threads_), multiway(multiway_){}
+        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_, const std::string method_, const bool multiway_ = false):
+                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_), multiway(multiway_){}
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
     private:
         const int num_threads;
@@ -194,6 +199,8 @@ namespace simple_stereo {
         const int kPix;
         std::shared_ptr<Expansion> mrf;
         std::shared_ptr<EnergyFunction> energy_function;
+        std::shared_ptr<DataCost> dataCost;
+        std::shared_ptr<SmoothnessCost> smoothnessCost;
     };
 
     class HierarchyStereoSolver: public SimpleStereoSolver{

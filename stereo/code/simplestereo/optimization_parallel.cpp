@@ -63,14 +63,8 @@ namespace simple_stereo {
         parallelFusionPipeline.getBestLabeling(solution);
 
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
-        if(num_threads == 1)
-            dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_sequ");
-        else{
-            if(multiway)
-                dumpOutData(parallelFusionPipeline, file_io.getDirectory() + "/temp/plot_share_multi");
-            else
-                dumpOutData(parallelFusionPipeline, file_io.getDirectory() + "/temp/plot_share_binary");
-        }
+
+        dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_"+method);
 
         for(auto i=0; i<model->width * model->height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
