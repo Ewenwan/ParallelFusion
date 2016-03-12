@@ -118,6 +118,9 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
   // calcSuperpixels(image_, point_cloud_, normals);
   // exit(1);
 
+
+  Segment::static_id = 0;
+  
   normals_ = calcNormals(point_cloud_, IMAGE_WIDTH_, IMAGE_HEIGHT_);
   for (int pixel = 0; pixel < NUM_PIXELS_; pixel++) {
     if (point_cloud_[pixel * 3 + 2] < 0)
@@ -128,7 +131,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
   ParallelFusion::ParallelFusionOption option;
   option.num_threads = PIPELINE_PARAMS_.num_threads;
   option.max_iteration = PIPELINE_PARAMS_.num_iterations;
-  option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
+  option.selectionMethod = ParallelFusion::ParallelFusionOption::BEST;
   //option.synchronize = true;
   
 

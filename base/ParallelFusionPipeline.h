@@ -194,7 +194,7 @@ namespace ParallelFusion {
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
       try {
-	srand(id);
+	srand(id + 1);
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);
@@ -233,10 +233,10 @@ namespace ParallelFusion {
 		      proposals.appendSpace(s.second);
                     }
 		  } else if (option.selectionMethod == ParallelFusionOption::BEST) { //
-                    std::vector<std::pair<double, int> > solution_energy_index_pairs(slaveThreadIds.size());
+                    std::vector<std::pair<double, int> > solution_energy_index_pairs;
                     for(auto tid=0; tid < slaveThreadIds.size(); ++tid)
 		      if (tid != id)
-                        solution_energy_index_pairs[tid] = std::make_pair(bestSolutions[tid].getEnergy(), tid);
+                        solution_energy_index_pairs.push_back(std::make_pair(bestSolutions[tid].getEnergy(), tid));
                     sort(solution_energy_index_pairs.begin(), solution_energy_index_pairs.end());
                     for(auto pid=0; pid < num_proposals_from_others; ++pid) {
 		      int tid = solution_energy_index_pairs[pid].second;

@@ -74,6 +74,11 @@ class Segment{
 
   friend Segment upsampleSegment(const Segment &segment, const cv::Mat &new_image, const std::vector<double> &new_point_cloud, const std::vector<double> &new_normals, const std::vector<double> &new_camera_parameters, const std::vector<int> &pixels);
 
+  int getSegmentId() { return segment_id_; };
+
+ protected:
+  int segment_id_;
+  static std::atomic<int> static_id;
   
  private:
   int IMAGE_WIDTH_;

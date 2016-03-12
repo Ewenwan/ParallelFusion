@@ -20,7 +20,7 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
   }      
   
   map<int, Segment> rhs_segments = rhs.getSegments();
-
+  
   set<int> unique_segment_ids;
   {
     const int NUM_SEGMENTS = getNumSegments();
@@ -65,6 +65,7 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
   int new_segment_id = 0;
   map<int, Segment> union_segments;
   vector<vector<int> > union_labels(NUM_PIXELS_);
+  map<int, int> unique_segment_id_map;
 
   if (getNumSegments() > 0)
   {
@@ -79,7 +80,8 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
 	    continue;
 	  if (segment_id_map.count(segment_id) == 0) {
 	    segment_id_map[segment_id] = new_segment_id;
-	    new_segment_id++;
+	    segment_id_map[segments_.at(segment_id).getSegmentId()] = new_segment_id;
+            new_segment_id++;
 	  }
 	}
       }
@@ -123,8 +125,13 @@ void LayerLabelSpace::unionSpace(const LayerLabelSpace &rhs)
 	  if (segment_id == RHS_NUM_SEGMENTS)
 	    continue;
 	  if (rhs_segment_id_map.count(segment_id) == 0) {
-	    rhs_segment_id_map[segment_id] = new_segment_id;
-	    new_segment_id++;
+	    int unique_segment_id = rhs_segments.at(segment_id).getSegmentId();
+	    if (unique_segment_id_map.count(unique_segment_id) > 0) {
+	      rhs_segment_id_map[segment_id] = unique_segment_id_map[unique_segment_id];
+	    } else {
+              rhs_segment_id_map[segment_id] = new_segment_id;
+	      new_segment_id++;
+	    }
 	  }
 	}
       }

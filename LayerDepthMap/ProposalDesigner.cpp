@@ -228,6 +228,8 @@ void ProposalDesigner::getProposals(LayerLabelSpace &proposal_label_space, const
       if (proposal_iteration_ == 1)
         break;
     }
+    if (N == 0)
+      proposal_label_space.appendSpace(current_solution);
     return;
   }
 
