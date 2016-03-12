@@ -14,14 +14,14 @@ find_package(OpenCV REQUIRED)
 #find_package(GLOG REQUIRED)
 find_package(gflags REQUIRED)
 
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../base)
+#link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../base)
 include_directories(/opt/gurobi650/linux64/include)
-set(PROJECT_LINK_LIBS ParallelFusion_base.so)
+#set(PROJECT_LINK_LIBS)
 
 #include_directories(../base/cv_utils /opt/gurobi650/linux64/include)
 file(GLOB SOURCES "*.cpp")
 add_executable(OpticalFlow ${SOURCES})
-target_link_libraries(OpticalFlow ${OpenCV_LIBS} ${GFlags_LIBS} ${PROJECT_LINK_LIBS} glog gflags)
+target_link_libraries(OpticalFlow ${OpenCV_LIBS} ${GFlags_LIBS} glog gflags)
 #target_link_libraries(OcclusionCRF ${OpenGM_LIBS})
 
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../base)
