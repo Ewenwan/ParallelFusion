@@ -194,7 +194,7 @@ namespace ParallelFusion {
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
       try {
-	srand(id + 1);
+	srand(id);
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);

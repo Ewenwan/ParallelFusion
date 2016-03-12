@@ -39,8 +39,8 @@ namespace flow_fusion {
 
       for (int c = 0; c < 3; c++)
         color_vec.push_back(color_high_freq[c]);
-      for (int c = 0; c < 3; c++)
-        color_vec.push_back(color[c]);
+      //for (int c = 0; c < 3; c++)
+      //color_vec.push_back(color[c]);
       return color_vec;
     }
 
@@ -118,10 +118,10 @@ namespace flow_fusion {
       vector<double> color_1 = getImageColor(true, pixel_1 % IMAGE_WIDTH_, pixel_1 / IMAGE_WIDTH_);
       vector<double> color_2 = getImageColor(false, pixel_2 % IMAGE_WIDTH_, pixel_2 / IMAGE_WIDTH_);
       double color_distance = cv_utils::calcDistance(color_1, color_2);
-      double weight = exp(-pow(color_distance, 0.8));
+      //double weight = exp(-pow(color_distance, 0.8));
       //  double color_difference = calcDistance(convertVec3bToVector(image_1_.at<Vec3b>(pixel_1 / IMAGE_WIDTH_, pixel_1 % IMAGE_WIDTH_)), convertVec3bToVector(image_1_.at<Vec3b>(pixel_2 / IMAGE_WIDTH_, pixel_2 % IMAGE_WIDTH_)));
       //double weight = 1; //0.01 * exp(-pow(color_difference / 30, 2) / 2);
-      //double weight = color_difference < 30 ? 0.024 : 0.008;
+      double weight = color_distance < 30 ? 0.024 : 0.008;
       smoothness_cost *= weight;
       // double flow_distance = sqrt(pow(flow_1.first - flow_2.first, 2) + pow(flow_1.second - flow_2.second, 2));
 

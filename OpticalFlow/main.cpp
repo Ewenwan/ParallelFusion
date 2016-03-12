@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     generators[i] = shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE> >(new OpticalFlowProposalGenerator(image_1, image_2));
     solvers[i] = shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> >(new OpticalFlowFusionSolver(image_1, image_2));
     initials[i].setSingleLabels(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT));
-    
+
     thread_options[i].kTotal = FLAGS_num_proposals_in_total;
     thread_options[i].kOtherThread = FLAGS_num_proposals_from_others;
     thread_options[i].solution_exchange_interval = FLAGS_solution_exchange_interval;

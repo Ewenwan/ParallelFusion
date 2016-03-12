@@ -34,7 +34,7 @@ namespace flow_fusion {
         const int IMAGE_WIDTH_;
         const int IMAGE_HEIGHT_;
 
-        const double SMOOTHNESS_TERM_WEIGHT_ = 5;
+        const double SMOOTHNESS_TERM_WEIGHT_ = 1;
 
         std::vector<std::map<int, double> > pixel_neighbor_weights_;
 
