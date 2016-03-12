@@ -20,7 +20,7 @@ using namespace ParallelFusion;
 namespace flow_fusion {
   OpticalFlowFusionSolver::OpticalFlowFusionSolver(const cv::Mat &image_1, const cv::Mat &image_2) : image_1_(
 													      image_1.clone()), image_2_(image_2.clone()), IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows) {
-      calcNeighborInfo();
+    calcNeighborInfo();
 
       Mat blurred_image_1, blurred_image_2;
       GaussianBlur(image_1, blurred_image_1, cv::Size(5, 5), 0, 0);
@@ -31,7 +31,7 @@ namespace flow_fusion {
       cvtColor(image_2, image_2_gray_, CV_BGR2GRAY);
     }
 
-    vector<double> OpticalFlowFusionSolver::readColorVec(const bool left_or_right, const int x, const int y) const {
+  vector<double> OpticalFlowFusionSolver::readColorVec(const bool left_or_right, const int x, const int y) const {
       Vec3b color_high_freq = left_or_right ? image_1_high_freq_.at<Vec3b>(y, x) : image_2_high_freq_.at<Vec3b>(y, x);
       Vec3b color = left_or_right ? image_1_.at<Vec3b>(y, x) : image_2_.at<Vec3b>(y, x);
       uchar color_gray = left_or_right ? image_1_gray_.at<uchar>(y, x) : image_2_gray_.at<uchar>(y, x);
@@ -95,8 +95,8 @@ namespace flow_fusion {
       vector<double> color_2 = getImageColor(false, pixel % IMAGE_WIDTH_ + flow.first,
                                              pixel / IMAGE_WIDTH_ + flow.second);
       double color_distance = cv_utils::calcDistance(color_1, color_2);
-      //double data_cost = pow(color_distance, 2) / (pow(color_distance, 2) + pow(MU, 2));
-      double data_cost = pow(pow(color_distance / 255, 2) + 0.000001, 0.45);
+      double data_cost = pow(color_distance, 2) / (pow(color_distance, 2) + pow(MU, 2));
+      //double data_cost = pow(pow(color_distance / 255, 2) + 0.000001, 0.45);
       //if (data_cost > 2)
       //cout << pixel << '\t' << color_distance << '\t' << data_cost << endl;
       return data_cost;
@@ -112,9 +112,8 @@ namespace flow_fusion {
       const double NU = 0.2;
       double pixel_distance = sqrt(pow(pixel_1 % IMAGE_WIDTH_ - pixel_2 % IMAGE_WIDTH_, 2) +
                                    pow(pixel_1 / IMAGE_WIDTH_ - pixel_2 / IMAGE_WIDTH_, 2));
-      //double smoothness_cost = log(1 + pow(flow_1.first - flow_2.first, 2) / (2 * pow(NU, 2))) + log(1 + pow(flow_1.second - flow_2.second, 2) / (2 * pow(NU, 2)));
-      double smoothness_cost = pow(
-              pow(flow_1.first - flow_2.first, 2) + pow(flow_1.second - flow_2.second, 2) + 0.000001, 0.5);
+      double smoothness_cost = log(1 + pow(flow_1.first - flow_2.first, 2) / (2 * pow(NU, 2))) + log(1 + pow(flow_1.second - flow_2.second, 2) / (2 * pow(NU, 2)));
+      //double smoothness_cost = pow(pow(flow_1.first - flow_2.first, 2) + pow(flow_1.second - flow_2.second, 2) + 0.000001, 0.5);
 
       vector<double> color_1 = getImageColor(true, pixel_1 % IMAGE_WIDTH_, pixel_1 / IMAGE_WIDTH_);
       vector<double> color_2 = getImageColor(false, pixel_2 % IMAGE_WIDTH_, pixel_2 / IMAGE_WIDTH_);
@@ -279,7 +278,24 @@ namespace flow_fusion {
     }
 
 
-    void OpticalFlowFusionSolver::calcNeighborInfo() {
+  void OpticalFlowFusionSolver::calcNeighborInfo() {
+    {
+      pixel_neighbor_weights_.assign(IMAGE_WIDTH_ * IMAGE_HEIGHT_, map<int, double>());
+      for (int pixel = 0; pixel < IMAGE_WIDTH_ * IMAGE_HEIGHT_; pixel++) {
+	int x = pixel % IMAGE_WIDTH_;
+	int y = pixel / IMAGE_WIDTH_;
+	if (x < IMAGE_WIDTH_ - 1)
+	  pixel_neighbor_weights_[pixel][pixel + 1] = 1;
+        if (x > 0)
+	  pixel_neighbor_weights_[pixel][pixel - 1] = 1;
+	if (y < IMAGE_HEIGHT_ - 1)
+	  pixel_neighbor_weights_[pixel][pixel + IMAGE_WIDTH_] = 1;
+        if (y > 0)
+	  pixel_neighbor_weights_[pixel][pixel - IMAGE_WIDTH_] = 1;
+      }
+      return;
+    }
+    
       Mat color_image;
       cvtColor(image_1_, color_image, CV_BGR2HSV);
       pixel_neighbor_weights_.assign(IMAGE_WIDTH_ * IMAGE_HEIGHT_, map<int, double>());
@@ -304,8 +320,7 @@ namespace flow_fusion {
 
       double epsilon = 0.00001;
       for (int pixel = 0; pixel < IMAGE_WIDTH_ * IMAGE_HEIGHT_; pixel++) {
-        vector<int> window_pixels = cv_utils::findWindowPixels(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_,
-                                                               NEIGHBOR_WINDOW_SIZE);
+        vector<int> window_pixels; // = cv_utils::findWindowPixels(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_, NEIGHBOR_WINDOW_SIZE);
         vector<vector<double> > guidance_image_var(3, vector<double>(3));
         for (int c_1 = 0; c_1 < 3; c_1++)
           for (int c_2 = 0; c_2 < 3; c_2++)
