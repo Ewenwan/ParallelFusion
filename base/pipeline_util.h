@@ -98,7 +98,7 @@ namespace ParallelFusion{
         bool synchronize;
 
 
-        enum SolutionSelection{RANDOM, BEST};
+      enum SolutionSelection{RANDOM, BEST, ALL};
         SolutionSelection selectionMethod;
     };
 

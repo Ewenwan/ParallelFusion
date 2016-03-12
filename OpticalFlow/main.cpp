@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
   ParallelFusion::ParallelFusionOption option;
   option.num_threads = FLAGS_num_threads;
   option.max_iteration = FLAGS_num_iterations;
-  option.selectionMethod = ParallelFusion::ParallelFusionOption::BEST;
+  option.selectionMethod = ParallelFusion::ParallelFusionOption::ALL;
   //option.synchronize = true;
   
   
