@@ -20,7 +20,7 @@ include_directories(/opt/gurobi650/linux64/include)
 
 #include_directories(../base/cv_utils /opt/gurobi650/linux64/include)
 file(GLOB SOURCES "*.cpp")
-add_executable(OpticalFlow ${SOURCES})
+add_executable(OpticalFlow ${SOURCES} TRW_S/errorFn.cpp)
 target_link_libraries(OpticalFlow ${OpenCV_LIBS} ${GFlags_LIBS} glog gflags -lpthread)
 #target_link_libraries(OcclusionCRF ${OpenGM_LIBS})
 
