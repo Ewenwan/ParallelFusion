@@ -37,8 +37,13 @@ namespace simple_stereo{
             threadOptions[i].solution_exchange_interval = 1;
             initials[i].init(kPix, vector<int>(1, startid));
             printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
-            generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
-            solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
+            if(multiway) {
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new MultiwayStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                solvers[i] = shared_ptr<FusionSolver<Space> >(new MultiwayStereoSolver(model));
+            }else{
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
+            }
             printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));
         }
 
@@ -62,15 +67,20 @@ namespace simple_stereo{
             else{
                 printf("Performing final fusion...\n");
                 CompactLabelSpace fusedSolution;
-                fusedSolution.init(kPix, vector<int>(1,0));
-                for(auto i=0; i<kPix; ++i)
-                    fusedSolution(i,0) = all_solution(i,0);
-                for(auto i=1; i<all_solution.getLabelSpace()[0].size(); ++i) {
-                    cout << i << ' ' << flush;
-                    fuseTwoSolution(fusedSolution, all_solution, i, model);
+                if(multiway){
+                    multiwayFusionByTRWS(all_solution, model, solution.second);
+                }else {
+
+                    fusedSolution.init(kPix, vector<int>(1, 0));
+                    for (auto i = 0; i < kPix; ++i)
+                        fusedSolution(i, 0) = all_solution(i, 0);
+                    for (auto i = 1; i < all_solution.getLabelSpace()[0].size(); ++i) {
+                        cout << i << ' ' << flush;
+                        fuseTwoSolution(fusedSolution, all_solution, i, model);
+                    }
+                    cout << endl;
+                    solution.second = fusedSolution;
                 }
-                cout << endl;
-                solution.second =fusedSolution;
                 solution.first = solvers[0]->evaluateEnergy(solution.second);
             }
 
@@ -80,7 +90,7 @@ namespace simple_stereo{
         float total_t = ((float)getTickCount() - start_t) / (float)getTickFrequency();
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, total_t);
 
-        dumpOutData(victorFusionPipeline, file_io.getDirectory()+"/temp/plot_victor");
+        dumpOutData(victorFusionPipeline, file_io.getDirectory()+"/temp/plot_"+method);
 
         for(auto i=0; i<model->width * model->height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));

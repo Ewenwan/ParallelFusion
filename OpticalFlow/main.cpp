@@ -45,10 +45,11 @@ using namespace flow_fusion;
 int main(int argc, char *argv[])
 {
   google::ParseCommandLineFlags(&argc, &argv, true);
-  FLAGS_log_dir = "log";
+  FLAGS_log_dir = "Log";
   //FLAGS_logtostderr = false;
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << FLAGS_dataset_name;
+  LOG(INFO) << FLAGS_num_threads << '\t' << FLAGS_num_iterations << '\t' << FLAGS_num_proposals_in_total << '\t' << FLAGS_num_proposals_from_others << '\t' << FLAGS_solution_exchange_interval << '\t' << FLAGS_use_monitor_thread << endl;
 
   time_t timer;
   time(&timer);
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
   today.tm_year = 116;
   LOG(INFO) << difftime(timer, mktime(&today)) << '\t' << -1 << '\t' << -1 << '\t' << 0 << endl;
   
-  srand(0);
+  //srand(0);
   //  PipelineParams pipeline_params(FLAGS_num_threads, FLAGS_num_fusion_iterations);
 
   Mat image_1 = imread(FLAGS_dataset_name + "/frame10.png");
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
   //GaussianBlur(image_1, image_1, cv::Size(5, 5), 0, 0);
   //GaussianBlur(image_2, image_2, cv::Size(5, 5), 0, 0);
 
-
+  if (false)
   {
     typedef ParallelFusion::LabelSpace<pair<double, double> > LABELSPACE;
     ParallelFusion::HFusionPipelineOption option;
@@ -127,7 +128,7 @@ int main(int argc, char *argv[])
     generators[i] = shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE> >(new OpticalFlowProposalGenerator(image_1, image_2));
     solvers[i] = shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> >(new OpticalFlowFusionSolver(image_1, image_2));
     initials[i].setSingleLabels(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT));
-    
+
     thread_options[i].kTotal = FLAGS_num_proposals_in_total;
     thread_options[i].kOtherThread = FLAGS_num_proposals_from_others;
     thread_options[i].solution_exchange_interval = FLAGS_solution_exchange_interval;

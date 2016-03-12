@@ -8,6 +8,15 @@ have further limited the capabilities of SF on purpose, to enable
 effective and fair comparative evaluations. We now explain the details
 of the three problems.
 
+\hang{Better to explain the methology we used, either here or in
+  Result part. For example:}
+
+\hang{To evaluate the effectness of different parallel structures, we
+  plot the energy minimization process against time. We define the
+  energy of the parallel system at a certain time as the minimum
+  energy of all threads at that time.}
+
+
 % We pick three representative problems in Computer Vision to evaluate the
 % effectiveness of the Fusion swarm methods against existing methods. We
 % control the SF architectures for each problem independently to make
@@ -54,14 +63,19 @@ We performed our experiments on Book sequence from Middlebury stereo datasets.~\
 \noindent The sophistication of photometric consistency
 function~\cite{mvs_furukawa_survey} makes unary terms dominant in most
 stereo problems.  Our experiments have also supported this, where the
-fusion method (i.e., the use of proposal generation) rather makes it slow
-due to the overhead.\hang{Don't quite understand this sentence. Does the ``dominant'' means running time or energy? In my experiments, unary terms are pre-computed and are not counted into the running time}  Therefore, we have chosen Parallel
-Alpha Expansion~\cite{delong} and Hierarchical Fusion~\cite{delong,olga}
+fusion method (i.e., the use of proposal generation) rather makes it
+slow due to the overhead.\hang{Don't quite understand this
+  sentence. Does the ``dominant'' means running time or energy? In my
+  experiments, unary terms are pre-computed and are not counted into
+  the running time} Therefore, we have chosen Parallel Alpha
+Expansion~\cite{delong} and Hierarchical Fusion~\cite{delong,olga}
 with graph-cuts optimization as the competing methods.
 
-
-add Alpha Expansion.
-uniform and random splitting for parallel alpha expansion
+Since the optimization in the above stereo problem is fairly easy, we
+compare our method with standard sequential alpha expansion, parallel
+alpha expansion \cite{first_fusion_viktor} and hierarchy fusion
+\cite{olga}. In all experiment, we use $\alpha$-expansion to fuse
+single label proposals, and QPBO to fuse multi-label proposals. 
 
 
 \mysubsubsection{Swarm Fusion architectures}

@@ -18,7 +18,7 @@ using namespace Eigen;
 using namespace cv_utils;
 
 
-Segment::Segment(const cv::Mat &image, const std::vector<double> &point_cloud, const std::vector<double> &normals, const vector<double> &camera_parameters, const vector<int> &pixels, const RepresenterPenalties &penalties, const DataStatistics &input_statistics, const int segment_type) : IMAGE_WIDTH_(image.cols), IMAGE_HEIGHT_(image.rows), NUM_PIXELS_(image.cols * image.rows), CAMERA_PARAMETERS_(camera_parameters), penalties_(penalties), input_statistics_(input_statistics), segment_type_(segment_type)
+Segment::Segment(const cv::Mat &image, const std::vector<double> &point_cloud, const std::vector<double> &normals, const vector<double> &camera_parameters, const vector<int> &pixels, const RepresenterPenalties &penalties, const DataStatistics &input_statistics, const int segment_type) : IMAGE_WIDTH_(image.cols), IMAGE_HEIGHT_(image.rows), NUM_PIXELS_(image.cols * image.rows), CAMERA_PARAMETERS_(camera_parameters), penalties_(penalties), input_statistics_(input_statistics), segment_type_(segment_type), segment_id_(Segment::static_id++)
 {
   if (segment_type == 0)
     //fitDispPlane(point_cloud, pixels, distance_to_boundaries);
@@ -34,6 +34,7 @@ Segment::Segment(const cv::Mat &image, const std::vector<double> &point_cloud, c
 
   calcColorStatistics(image, segment_pixels_);
   calcSegmentMaskInfo();
+  
   //calcConfidence();
 }
 

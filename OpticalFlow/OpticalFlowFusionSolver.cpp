@@ -2,11 +2,11 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
-#include <opengm/opengm.hxx>
-#include <opengm/graphicalmodel/graphicalmodel.hxx>
-#include <opengm/operations/minimizer.hxx>
-#include <opengm/operations/adder.hxx>
-#include <opengm/inference/trws/trws_trws.hxx>
+// #include <opengm/opengm.hxx>
+// #include <opengm/graphicalmodel/graphicalmodel.hxx>
+// #include <opengm/operations/minimizer.hxx>
+// #include <opengm/operations/adder.hxx>
+// #include <opengm/inference/trws/trws_trws.hxx>
 
 #include "../base/cv_utils/cv_utils.h"
 #include "TRW_S/MRFEnergy.h"
@@ -20,7 +20,7 @@ using namespace ParallelFusion;
 namespace flow_fusion {
   OpticalFlowFusionSolver::OpticalFlowFusionSolver(const cv::Mat &image_1, const cv::Mat &image_2) : image_1_(
 													      image_1.clone()), image_2_(image_2.clone()), IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows) {
-      calcNeighborInfo();
+    calcNeighborInfo();
 
       Mat blurred_image_1, blurred_image_2;
       GaussianBlur(image_1, blurred_image_1, cv::Size(5, 5), 0, 0);
@@ -31,7 +31,7 @@ namespace flow_fusion {
       cvtColor(image_2, image_2_gray_, CV_BGR2GRAY);
     }
 
-    vector<double> OpticalFlowFusionSolver::readColorVec(const bool left_or_right, const int x, const int y) const {
+  vector<double> OpticalFlowFusionSolver::readColorVec(const bool left_or_right, const int x, const int y) const {
       Vec3b color_high_freq = left_or_right ? image_1_high_freq_.at<Vec3b>(y, x) : image_2_high_freq_.at<Vec3b>(y, x);
       Vec3b color = left_or_right ? image_1_.at<Vec3b>(y, x) : image_2_.at<Vec3b>(y, x);
       uchar color_gray = left_or_right ? image_1_gray_.at<uchar>(y, x) : image_2_gray_.at<uchar>(y, x);
@@ -39,8 +39,8 @@ namespace flow_fusion {
 
       for (int c = 0; c < 3; c++)
         color_vec.push_back(color_high_freq[c]);
-      for (int c = 0; c < 3; c++)
-        color_vec.push_back(color[c]);
+      //for (int c = 0; c < 3; c++)
+      //color_vec.push_back(color[c]);
       return color_vec;
     }
 
@@ -95,8 +95,8 @@ namespace flow_fusion {
       vector<double> color_2 = getImageColor(false, pixel % IMAGE_WIDTH_ + flow.first,
                                              pixel / IMAGE_WIDTH_ + flow.second);
       double color_distance = cv_utils::calcDistance(color_1, color_2);
-      //double data_cost = pow(color_distance, 2) / (pow(color_distance, 2) + pow(MU, 2));
-      double data_cost = pow(pow(color_distance / 255, 2) + 0.000001, 0.45);
+      double data_cost = pow(color_distance, 2) / (pow(color_distance, 2) + pow(MU, 2));
+      //double data_cost = pow(pow(color_distance / 255, 2) + 0.000001, 0.45);
       //if (data_cost > 2)
       //cout << pixel << '\t' << color_distance << '\t' << data_cost << endl;
       return data_cost;
@@ -112,17 +112,16 @@ namespace flow_fusion {
       const double NU = 0.2;
       double pixel_distance = sqrt(pow(pixel_1 % IMAGE_WIDTH_ - pixel_2 % IMAGE_WIDTH_, 2) +
                                    pow(pixel_1 / IMAGE_WIDTH_ - pixel_2 / IMAGE_WIDTH_, 2));
-      //double smoothness_cost = log(1 + pow(flow_1.first - flow_2.first, 2) / (2 * pow(NU, 2))) + log(1 + pow(flow_1.second - flow_2.second, 2) / (2 * pow(NU, 2)));
-      double smoothness_cost = pow(
-              pow(flow_1.first - flow_2.first, 2) + pow(flow_1.second - flow_2.second, 2) + 0.000001, 0.5);
+      double smoothness_cost = log(1 + pow(flow_1.first - flow_2.first, 2) / (2 * pow(NU, 2))) + log(1 + pow(flow_1.second - flow_2.second, 2) / (2 * pow(NU, 2)));
+      //double smoothness_cost = pow(pow(flow_1.first - flow_2.first, 2) + pow(flow_1.second - flow_2.second, 2) + 0.000001, 0.5);
 
       vector<double> color_1 = getImageColor(true, pixel_1 % IMAGE_WIDTH_, pixel_1 / IMAGE_WIDTH_);
       vector<double> color_2 = getImageColor(false, pixel_2 % IMAGE_WIDTH_, pixel_2 / IMAGE_WIDTH_);
       double color_distance = cv_utils::calcDistance(color_1, color_2);
-      double weight = exp(-pow(color_distance, 0.8));
+      //double weight = exp(-pow(color_distance, 0.8));
       //  double color_difference = calcDistance(convertVec3bToVector(image_1_.at<Vec3b>(pixel_1 / IMAGE_WIDTH_, pixel_1 % IMAGE_WIDTH_)), convertVec3bToVector(image_1_.at<Vec3b>(pixel_2 / IMAGE_WIDTH_, pixel_2 % IMAGE_WIDTH_)));
       //double weight = 1; //0.01 * exp(-pow(color_difference / 30, 2) / 2);
-      //double weight = color_difference < 30 ? 0.024 : 0.008;
+      double weight = color_distance < 30 ? 0.024 : 0.008;
       smoothness_cost *= weight;
       // double flow_distance = sqrt(pow(flow_1.first - flow_2.first, 2) + pow(flow_1.second - flow_2.second, 2));
 
@@ -140,16 +139,18 @@ namespace flow_fusion {
   {
       const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
 
-      typedef opengm::GraphicalModel<float, opengm::Adder> Model;
-      vector<size_t> pixel_num_labels(NUM_PIXELS);
       vector<vector<pair<double, double> > > label_space_vec = proposals.getLabelSpace();
-
+      vector<size_t> pixel_num_labels(NUM_PIXELS);
       for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
         pixel_num_labels[pixel] = label_space_vec[pixel].size();
-      Model gm(opengm::DiscreteSpace<>(pixel_num_labels.begin(), pixel_num_labels.end()));
 
-      typedef opengm::ExplicitFunction<float> ExplicitFunction;
-      typedef Model::FunctionIdentifier FunctionIdentifier;
+
+      // typedef opengm::GraphicalModel<float, opengm::Adder> Model;
+
+      // Model gm(opengm::DiscreteSpace<>(pixel_num_labels.begin(), pixel_num_labels.end()));
+
+      // typedef opengm::ExplicitFunction<float> ExplicitFunction;
+      // typedef Model::FunctionIdentifier FunctionIdentifier;
 
 
       unique_ptr<MRFEnergy < TypeGeneral> > energy_function(new MRFEnergy<TypeGeneral>(TypeGeneral::GlobalSize()));
@@ -157,21 +158,21 @@ namespace flow_fusion {
 
 
       for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
-        const size_t shape[] = {pixel_num_labels[pixel]};
-        ExplicitFunction f(shape, shape + 1, 0);
-        if (!onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_)) {
-          for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
-            if (pixel_num_labels[pixel] == 0) {
-              cout << "empty proposal: " << pixel << endl;
-              exit(1);
-            }
-            pair<double, double> label = label_space_vec[pixel][proposal_index];
-            f(proposal_index) = calcDataCost(pixel, label);
-          }
-        }
-        FunctionIdentifier id = gm.addFunction(f);
-        size_t variable_index[] = {pixel};
-        gm.addFactor(id, variable_index, variable_index + 1);
+        // const size_t shape[] = {pixel_num_labels[pixel]};
+        // ExplicitFunction f(shape, shape + 1, 0);
+        // if (!onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_)) {
+        //   for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
+        //     if (pixel_num_labels[pixel] == 0) {
+        //       cout << "empty proposal: " << pixel << endl;
+        //       exit(1);
+        //     }
+        //     pair<double, double> label = label_space_vec[pixel][proposal_index];
+        //     f(proposal_index) = calcDataCost(pixel, label);
+        //   }
+        // }
+        // FunctionIdentifier id = gm.addFunction(f);
+        // size_t variable_index[] = {pixel};
+        // gm.addFactor(id, variable_index, variable_index + 1);
 
 
         vector<double> data_cost(pixel_num_labels[pixel], 0);
@@ -199,24 +200,24 @@ namespace flow_fusion {
           if (onBorder(neighbor_pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
             continue;
 
-          const size_t shape[] = {
-                  pixel_num_labels[pixel],
-                  pixel_num_labels[neighbor_pixel]
-          };
-          ExplicitFunction f(shape, shape + 2);
-          for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
-            for (int neighbor_proposal_index = 0;
-                 neighbor_proposal_index < pixel_num_labels[neighbor_pixel]; neighbor_proposal_index++) {
-              pair<double, double> label = label_space_vec[pixel][proposal_index];
-              pair<double, double> neighbor_label = label_space_vec[neighbor_pixel][neighbor_proposal_index];
-              f(proposal_index, neighbor_proposal_index) =
-                      calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) *
-                      max(neighbor_pixel_it->second, 0.0) * SMOOTHNESS_TERM_WEIGHT_;
-            }
-          }
-          FunctionIdentifier id = gm.addFunction(f);
-          size_t variable_indices[] = {pixel, neighbor_pixel};
-          gm.addFactor(id, variable_indices, variable_indices + 2);
+          // const size_t shape[] = {
+          //         pixel_num_labels[pixel],
+          //         pixel_num_labels[neighbor_pixel]
+          // };
+          // ExplicitFunction f(shape, shape + 2);
+          // for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
+          //   for (int neighbor_proposal_index = 0;
+          //        neighbor_proposal_index < pixel_num_labels[neighbor_pixel]; neighbor_proposal_index++) {
+          //     pair<double, double> label = label_space_vec[pixel][proposal_index];
+          //     pair<double, double> neighbor_label = label_space_vec[neighbor_pixel][neighbor_proposal_index];
+          //     f(proposal_index, neighbor_proposal_index) =
+          //             calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) *
+          //             max(neighbor_pixel_it->second, 0.0) * SMOOTHNESS_TERM_WEIGHT_;
+          //   }
+          // }
+          // FunctionIdentifier id = gm.addFunction(f);
+          // size_t variable_indices[] = {pixel, neighbor_pixel};
+          // gm.addFactor(id, variable_indices, variable_indices + 2);
 
 
           vector<double> smoothness_cost(pixel_num_labels[pixel] * pixel_num_labels[neighbor_pixel], 0);
@@ -237,21 +238,21 @@ namespace flow_fusion {
 
       vector<pair<double, double> > fused_solution(NUM_PIXELS);
       if (false) {
-        vector<size_t> selected_proposal_indices;
-        opengm::TRWSi_Parameter<Model> parameter(30);
-        opengm::TRWSi<Model, opengm::Minimizer> solver(gm, parameter);
-        opengm::TRWSi<Model, opengm::Minimizer>::VerboseVisitorType verbose_visitor;
-        solver.infer(verbose_visitor);
-        solver.arg(selected_proposal_indices);
-        cout << "energy: " << solver.value() << " lower bound: " << solver.bound() << endl;
+        // vector<size_t> selected_proposal_indices;
+        // opengm::TRWSi_Parameter<Model> parameter(30);
+        // opengm::TRWSi<Model, opengm::Minimizer> solver(gm, parameter);
+        // opengm::TRWSi<Model, opengm::Minimizer>::VerboseVisitorType verbose_visitor;
+        // solver.infer(verbose_visitor);
+        // solver.arg(selected_proposal_indices);
+        // cout << "energy: " << solver.value() << " lower bound: " << solver.bound() << endl;
 
-        double energy = solver.value();
+        // double energy = solver.value();
 
-        for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
-          fused_solution[pixel] = label_space_vec[pixel][selected_proposal_indices[pixel]];
+        // for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
+        //   fused_solution[pixel] = label_space_vec[pixel][selected_proposal_indices[pixel]];
 
-	LABELSPACE solution_label_space(fused_solution);
-        solution = make_pair(energy, solution_label_space);
+	// LABELSPACE solution_label_space(fused_solution);
+        // solution = make_pair(energy, solution_label_space);
       }
 
       if (true) {
@@ -279,7 +280,24 @@ namespace flow_fusion {
     }
 
 
-    void OpticalFlowFusionSolver::calcNeighborInfo() {
+  void OpticalFlowFusionSolver::calcNeighborInfo() {
+    {
+      pixel_neighbor_weights_.assign(IMAGE_WIDTH_ * IMAGE_HEIGHT_, map<int, double>());
+      for (int pixel = 0; pixel < IMAGE_WIDTH_ * IMAGE_HEIGHT_; pixel++) {
+	int x = pixel % IMAGE_WIDTH_;
+	int y = pixel / IMAGE_WIDTH_;
+	if (x < IMAGE_WIDTH_ - 1)
+	  pixel_neighbor_weights_[pixel][pixel + 1] = 1;
+        if (x > 0)
+	  pixel_neighbor_weights_[pixel][pixel - 1] = 1;
+	if (y < IMAGE_HEIGHT_ - 1)
+	  pixel_neighbor_weights_[pixel][pixel + IMAGE_WIDTH_] = 1;
+        if (y > 0)
+	  pixel_neighbor_weights_[pixel][pixel - IMAGE_WIDTH_] = 1;
+      }
+      return;
+    }
+    
       Mat color_image;
       cvtColor(image_1_, color_image, CV_BGR2HSV);
       pixel_neighbor_weights_.assign(IMAGE_WIDTH_ * IMAGE_HEIGHT_, map<int, double>());
@@ -304,8 +322,7 @@ namespace flow_fusion {
 
       double epsilon = 0.00001;
       for (int pixel = 0; pixel < IMAGE_WIDTH_ * IMAGE_HEIGHT_; pixel++) {
-        vector<int> window_pixels = cv_utils::findWindowPixels(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_,
-                                                               NEIGHBOR_WINDOW_SIZE);
+        vector<int> window_pixels; // = cv_utils::findWindowPixels(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_, NEIGHBOR_WINDOW_SIZE);
         vector<vector<double> > guidance_image_var(3, vector<double>(3));
         for (int c_1 = 0; c_1 < 3; c_1++)
           for (int c_2 = 0; c_2 < 3; c_2++)
