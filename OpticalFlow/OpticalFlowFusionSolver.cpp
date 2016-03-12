@@ -2,11 +2,11 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
-#include <opengm/opengm.hxx>
-#include <opengm/graphicalmodel/graphicalmodel.hxx>
-#include <opengm/operations/minimizer.hxx>
-#include <opengm/operations/adder.hxx>
-#include <opengm/inference/trws/trws_trws.hxx>
+// #include <opengm/opengm.hxx>
+// #include <opengm/graphicalmodel/graphicalmodel.hxx>
+// #include <opengm/operations/minimizer.hxx>
+// #include <opengm/operations/adder.hxx>
+// #include <opengm/inference/trws/trws_trws.hxx>
 
 #include "../base/cv_utils/cv_utils.h"
 #include "TRW_S/MRFEnergy.h"
@@ -139,16 +139,18 @@ namespace flow_fusion {
   {
       const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
 
-      typedef opengm::GraphicalModel<float, opengm::Adder> Model;
-      vector<size_t> pixel_num_labels(NUM_PIXELS);
       vector<vector<pair<double, double> > > label_space_vec = proposals.getLabelSpace();
-
+      vector<size_t> pixel_num_labels(NUM_PIXELS);
       for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
         pixel_num_labels[pixel] = label_space_vec[pixel].size();
-      Model gm(opengm::DiscreteSpace<>(pixel_num_labels.begin(), pixel_num_labels.end()));
 
-      typedef opengm::ExplicitFunction<float> ExplicitFunction;
-      typedef Model::FunctionIdentifier FunctionIdentifier;
+
+      // typedef opengm::GraphicalModel<float, opengm::Adder> Model;
+
+      // Model gm(opengm::DiscreteSpace<>(pixel_num_labels.begin(), pixel_num_labels.end()));
+
+      // typedef opengm::ExplicitFunction<float> ExplicitFunction;
+      // typedef Model::FunctionIdentifier FunctionIdentifier;
 
 
       unique_ptr<MRFEnergy < TypeGeneral> > energy_function(new MRFEnergy<TypeGeneral>(TypeGeneral::GlobalSize()));
@@ -156,21 +158,21 @@ namespace flow_fusion {
 
 
       for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
-        const size_t shape[] = {pixel_num_labels[pixel]};
-        ExplicitFunction f(shape, shape + 1, 0);
-        if (!onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_)) {
-          for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
-            if (pixel_num_labels[pixel] == 0) {
-              cout << "empty proposal: " << pixel << endl;
-              exit(1);
-            }
-            pair<double, double> label = label_space_vec[pixel][proposal_index];
-            f(proposal_index) = calcDataCost(pixel, label);
-          }
-        }
-        FunctionIdentifier id = gm.addFunction(f);
-        size_t variable_index[] = {pixel};
-        gm.addFactor(id, variable_index, variable_index + 1);
+        // const size_t shape[] = {pixel_num_labels[pixel]};
+        // ExplicitFunction f(shape, shape + 1, 0);
+        // if (!onBorder(pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_)) {
+        //   for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
+        //     if (pixel_num_labels[pixel] == 0) {
+        //       cout << "empty proposal: " << pixel << endl;
+        //       exit(1);
+        //     }
+        //     pair<double, double> label = label_space_vec[pixel][proposal_index];
+        //     f(proposal_index) = calcDataCost(pixel, label);
+        //   }
+        // }
+        // FunctionIdentifier id = gm.addFunction(f);
+        // size_t variable_index[] = {pixel};
+        // gm.addFactor(id, variable_index, variable_index + 1);
 
 
         vector<double> data_cost(pixel_num_labels[pixel], 0);
@@ -198,24 +200,24 @@ namespace flow_fusion {
           if (onBorder(neighbor_pixel, IMAGE_WIDTH_, IMAGE_HEIGHT_))
             continue;
 
-          const size_t shape[] = {
-                  pixel_num_labels[pixel],
-                  pixel_num_labels[neighbor_pixel]
-          };
-          ExplicitFunction f(shape, shape + 2);
-          for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
-            for (int neighbor_proposal_index = 0;
-                 neighbor_proposal_index < pixel_num_labels[neighbor_pixel]; neighbor_proposal_index++) {
-              pair<double, double> label = label_space_vec[pixel][proposal_index];
-              pair<double, double> neighbor_label = label_space_vec[neighbor_pixel][neighbor_proposal_index];
-              f(proposal_index, neighbor_proposal_index) =
-                      calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) *
-                      max(neighbor_pixel_it->second, 0.0) * SMOOTHNESS_TERM_WEIGHT_;
-            }
-          }
-          FunctionIdentifier id = gm.addFunction(f);
-          size_t variable_indices[] = {pixel, neighbor_pixel};
-          gm.addFactor(id, variable_indices, variable_indices + 2);
+          // const size_t shape[] = {
+          //         pixel_num_labels[pixel],
+          //         pixel_num_labels[neighbor_pixel]
+          // };
+          // ExplicitFunction f(shape, shape + 2);
+          // for (int proposal_index = 0; proposal_index < pixel_num_labels[pixel]; proposal_index++) {
+          //   for (int neighbor_proposal_index = 0;
+          //        neighbor_proposal_index < pixel_num_labels[neighbor_pixel]; neighbor_proposal_index++) {
+          //     pair<double, double> label = label_space_vec[pixel][proposal_index];
+          //     pair<double, double> neighbor_label = label_space_vec[neighbor_pixel][neighbor_proposal_index];
+          //     f(proposal_index, neighbor_proposal_index) =
+          //             calcSmoothnessCost(pixel, neighbor_pixel, label, neighbor_label) *
+          //             max(neighbor_pixel_it->second, 0.0) * SMOOTHNESS_TERM_WEIGHT_;
+          //   }
+          // }
+          // FunctionIdentifier id = gm.addFunction(f);
+          // size_t variable_indices[] = {pixel, neighbor_pixel};
+          // gm.addFactor(id, variable_indices, variable_indices + 2);
 
 
           vector<double> smoothness_cost(pixel_num_labels[pixel] * pixel_num_labels[neighbor_pixel], 0);
@@ -236,21 +238,21 @@ namespace flow_fusion {
 
       vector<pair<double, double> > fused_solution(NUM_PIXELS);
       if (false) {
-        vector<size_t> selected_proposal_indices;
-        opengm::TRWSi_Parameter<Model> parameter(30);
-        opengm::TRWSi<Model, opengm::Minimizer> solver(gm, parameter);
-        opengm::TRWSi<Model, opengm::Minimizer>::VerboseVisitorType verbose_visitor;
-        solver.infer(verbose_visitor);
-        solver.arg(selected_proposal_indices);
-        cout << "energy: " << solver.value() << " lower bound: " << solver.bound() << endl;
+        // vector<size_t> selected_proposal_indices;
+        // opengm::TRWSi_Parameter<Model> parameter(30);
+        // opengm::TRWSi<Model, opengm::Minimizer> solver(gm, parameter);
+        // opengm::TRWSi<Model, opengm::Minimizer>::VerboseVisitorType verbose_visitor;
+        // solver.infer(verbose_visitor);
+        // solver.arg(selected_proposal_indices);
+        // cout << "energy: " << solver.value() << " lower bound: " << solver.bound() << endl;
 
-        double energy = solver.value();
+        // double energy = solver.value();
 
-        for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
-          fused_solution[pixel] = label_space_vec[pixel][selected_proposal_indices[pixel]];
+        // for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
+        //   fused_solution[pixel] = label_space_vec[pixel][selected_proposal_indices[pixel]];
 
-	LABELSPACE solution_label_space(fused_solution);
-        solution = make_pair(energy, solution_label_space);
+	// LABELSPACE solution_label_space(fused_solution);
+        // solution = make_pair(energy, solution_label_space);
       }
 
       if (true) {
