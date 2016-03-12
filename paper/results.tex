@@ -1,4 +1,5 @@
-\section{Experimental results} \label{section:results}
+\section{Experimental results}
+\label{section:results}
 We have implemented the algorithms in C++ and conducted the experiments
 on Linux PCs with Intel Core i7 processor with 4 cores, enabling 8 threads
 with the hyper threading technology. We have used the Graph-cuts
@@ -31,20 +32,22 @@ The figure illustrates the convergence rate of three competing methods
 our swarm fusion method (only binary fusion without proposal
 generation \chen{We generate proposals on the fly for optical flow and layered depth map. So the time actually includes proposal generation stage which can be ignored. I think we can just delete this sentence.}).
 
-\hang{figure file missing}
+%\hang{figure file missing}
 \begin{figure}[tb]
-%  \includegraphics[width=\columnwidth]{figure/optical_flow_convergence.pdf}
+  \includegraphics[width=\columnwidth]{figure/optical_flow_convergence.png}
   \caption{}\label{fig:optical_flow_convergence}
 \end{figure}
 \begin{figure}[tb]
- \includegraphics[width=\columnwidth]{figure/layered_depthmap_convergence.pdf}
+ \includegraphics[width=\columnwidth]{figure/layered_depthmap_convergence.png}
  \caption{}\label{fig:layered_depthmap_convergence}
 \end{figure}
 
 
 \chen{
   From the convergence plot of layered depth map estimation, we can see that, Fusion Move, Parallel Fusion Move, and FS-MF all stalk at a high energy state. The reason is binary fusion of solution proposals (either from others or self) is too limited to further decrease the energy due to the complexity of the problem itself. Only when multi-way fusion is used (in FS-SS and FS), it becomes possible for the energy to further decrease. This coincides with the observation in \cite{layered_depthmap} that binary fusion of proposal solutions is not as powerful as their subspace fusion which is a special form of multi-way fusion here.
+}
 
-  As shown in \ref{section:results}, the multi-way fusion and solution sharing enabled by our uniform framework play a key role for improving performance in different settings. For better understanding our framework, we examine the role played by each factor more closely by varying each factor while keeping others the same. There are four parameters in our framework: \textit{the number of threads}, \textit{the number }
+\chen{
+  As shown in \ref{section:results}, the multi-way fusion and solution sharing enabled by our uniform framework play a key role for improving performance in different settings. For better understanding our framework, we examine the role played by each factor more closely by varying each factor while keeping others the same. There are four parameters in our framework: \textit{the number of threads}, \textit{the number alpha}, \textit{the number beta}, \textit{the number of iterations between each solution sharing}.
 }
 
