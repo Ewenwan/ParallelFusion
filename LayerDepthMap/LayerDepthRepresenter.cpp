@@ -153,7 +153,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
     thread_options[i].kOtherThread = PIPELINE_PARAMS_.num_proposals_from_others;
     thread_options[i].solution_exchange_interval = PIPELINE_PARAMS_.solution_exchange_interval;
     if (i == option.num_threads - 1 && PIPELINE_PARAMS_.use_monitor_thread) {
-      thread_options[i].kTotal = 2;
+      thread_options[i].kTotal = 1;
       thread_options[i].kOtherThread = 0;
       thread_options[i].is_monitor = true;
     }

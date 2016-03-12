@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     thread_options[i].solution_exchange_interval = FLAGS_solution_exchange_interval;
     
     if (i == option.num_threads - 1 && FLAGS_use_monitor_thread) {
-      thread_options[i].kTotal = 2;
+      thread_options[i].kTotal = 1;
       //thread_options[i].kOtherThread = 2;
       //thread_options[i].solution_exchange_interval = 1;
       thread_options[i].is_monitor = true;

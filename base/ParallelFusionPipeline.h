@@ -260,7 +260,7 @@ namespace ParallelFusion {
                       proposals.appendSpace(s.second);
 		      
                       num_proposals_to_fuse++;
-                      if (num_proposals_to_fuse == thread_option.kTotal) {
+                      if (num_proposals_to_fuse == thread_option.kTotal + 1) {
                         SolutionType<LABELSPACE> curSolution;
                         solver->solve(proposals, current_solution, curSolution);
                         current_solution = curSolution;
@@ -381,7 +381,7 @@ namespace ParallelFusion {
                         write_flag[tid].store(true);
 
                     num_proposals_to_fuse++;
-                    if (num_proposals_to_fuse == thread_option.kTotal) {
+                    if (num_proposals_to_fuse == thread_option.kTotal + 1) {
                         SolutionType<LABELSPACE> curSolution;
                         solver->solve(proposals, current_solution, curSolution);
                         current_solution = curSolution;
