@@ -131,7 +131,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
   ParallelFusion::ParallelFusionOption option;
   option.num_threads = PIPELINE_PARAMS_.num_threads;
   option.max_iteration = PIPELINE_PARAMS_.num_iterations;
-  option.selectionMethod = ParallelFusion::ParallelFusionOption::BEST;
+  option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
   //option.synchronize = true;
   
 
