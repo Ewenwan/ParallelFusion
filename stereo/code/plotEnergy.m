@@ -3,9 +3,9 @@ function [plots_global, plots_thread] = plotEnergy(dataset, nt, max_time)
 % dataset: path to root of dataset
 % nt: number of threads
 set(0, 'DefaultAxesFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize', 25);
+set(0, 'DefaultAxesFontSize', 28);
 set(0, 'DefaultTextFontname', 'Times New Roman');
-set(0, 'DefaultTextFontSize', 25);
+set(0, 'DefaultTextFontSize', 28);
 
 method_name = {'Sequential', 'Swarn_multiway', 'Swarn', 'Victor_multiway', 'Victor', 'Hierarchy'};
 legend_name_global = {'Sequential alpha-expansion', 'SF', 'SF-MF', 'SF-SS', 'Parallel alpha-expansion', 'Hierarchy'};
@@ -53,7 +53,7 @@ for i=1:2
         thd_trun = thd(thd(:,1) < max_time / 2 & thd(:,1) > 0.01, :);
         plots_thread{i} = plot(thd_trun(:,1), log(thd_trun(:,2)), 'LineWidth', line_width);
     end
-    legend('Thread 1', 'Thread 2', 'Thread 2', 'Thread 4');
+    legend('Thread 1', 'Thread 2', 'Thread 3', 'Thread 4');
     xlabel('Time/s');
     ylabel('Energy');
     fig_thread.Position = [500,500,640,500];
