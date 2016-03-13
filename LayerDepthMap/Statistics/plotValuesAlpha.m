@@ -36,9 +36,12 @@ multiway_11 = convertValues(multiway_11_raw_values, 0);
 %2), '-.c', solution_exchange(:, 1), solution_exchange(:, 2), '-*b', multiway(:, 1), multiway(:, 2), '-og', full(:, 1), full(:, 2), '-+r');\
 figure(1);
 %plot(full(:, 1), log(full(:, 2)), 'c', full_5_3(:, 1), log(full_5_3(:, 2)), 'b', full_7_3(:, 1), log(full_7_3(:, 2)), 'g', full_9_3(:, 1), log(full_9_3(:, 2)), 'r');
-plot(Victor(:, 1), log(Victor(:, 2)), 'm', multiway(:, 1), log(multiway(:, 2)), 'c', multiway_5(:, 1), log(multiway_5(:, 2)), 'b', multiway_7(:, 1), log(multiway_7(:, 2)), 'g', multiway_9(:, 1), log(multiway_9(:, 2)), 'r', multiway_11(:, 1), log(multiway_11(:, 2)), 'y');
-legend('alpha=1', 'alpha=3', 'alpha=5', 'alpha=7', 'alpha=9', 'alpha=11');
-xlabel('time/s');
-ylabel('cost');
+plot(Victor(:, 1), log(Victor(:, 2)), multiway(:, 1), log(multiway(:, 2)), multiway_5(:, 1), log(multiway_5(:, 2)), multiway_7(:, 1), log(multiway_7(:, 2)), multiway_9(:, 1), log(multiway_9(:, 2)), multiway_11(:, 1), log(multiway_11(:, 2)), 'LineWidth', 2);
+legend('\alpha=1', '\alpha=3', '\alpha=5', '\alpha=7', '\alpha=9', '\alpha=11');
+xlabel('Time/s');
+ylabel('Energy');
+fig.Position = [500, 500, 1280, 720];
+
+
 
 
