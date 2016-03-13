@@ -29,5 +29,6 @@ if (use_final_fusion == 1)
     time_energy_values = time_energy_values(find(time_energy_values(:, 1) < final_fusion_time_energy_value(1)), :);
     time_energy_values = [time_energy_values; final_fusion_time_energy_value];
 end
-
+time_energy_values = time_energy_values(:, 1:2);
+time_energy_values = [0, 16733.3; time_energy_values];
 end
