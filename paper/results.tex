@@ -29,8 +29,7 @@ Kolmogorov~\cite{msr_link?,trw_link}.
 
 The figure illustrates the convergence rate of three competing methods
 (alpha expansion, parallel alpha expansion, hierarchical fusion) against
-our swarm fusion method (only binary fusion without proposal
-generation \chen{We generate proposals on the fly for optical flow and layered depth map. So the time actually includes proposal generation stage which can be ignored. I think we can just delete this sentence.}).
+our swarm fusion method.
 
 %\hang{figure file missing}
 \begin{figure}[tb]
@@ -53,6 +52,10 @@ generation \chen{We generate proposals on the fly for optical flow and layered d
   \includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
   \caption{}\label{fig:optical_flow_by_beta}
 \end{figure}
+\begin{figure}[tb]
+  \includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
+  \caption{}\label{fig:optical_flow_by_interval}
+\end{figure}
 
 
 \chen{
@@ -60,7 +63,7 @@ generation \chen{We generate proposals on the fly for optical flow and layered d
 }
 
 \chen{
-  To further understand the effect of solution sharing, we did two other experiments. In one experiment, we change the number of solutions each thread grabed from others from 0 to 3 (as there are 4 threads in total) while keeping others the same. The energy-time plot is shown in figure \ref{fig:optical_flow_by_beta}. In another experiment, we change the number of iterations between two consecutive solution sharing iterations as in figure \ref{fig:optical_flow_by_interval}.
+  To further understand the effect of solution sharing, we did two other experiments. In one experiment, we change the number of solutions each thread grabed from others from 0 to 3 (as there are 4 threads in total) while keeping others the same. The energy-time plots are shown in figure \ref{fig:optical_flow_by_beta}. As shown in the figure, energy decreases faster with solution sharing. While since we need to perform one fusion for sharing each solution, sharing more solution leads to unnecessary overhead in this problem setting. While sharing multiple solutions might be benefitial in some problem setting as it means each thread can get more global information early. In another experiment, we change the number of iterations between two consecutive solution sharing iterations as in figure \ref{fig:optical_flow_by_interval}. From the figure, we can see that although solution sharing generally speed up the optimization process, sharing solution too frequently is not a good practice. This is because When we share solution frequently, we have less time for generating and fusing new proposals. A good choice of the solution sharing frequency depends on specific problem setting.
 }
 
 \chen{
