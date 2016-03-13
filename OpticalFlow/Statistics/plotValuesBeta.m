@@ -15,7 +15,10 @@ solution_exchange_3_other = convertValues(solution_exchange_3_other_raw_values, 
 % dlmwrite('statistics_multiway.txt', multiway, '\t');
 % dlmwrite('statistics_full.txt', full, '\t');
 
-
+set(0, 'DefaultAxesFontName', 'Times New Roman');
+set(0, 'DefaultAxesFontSize', 30);
+set(0, 'DefaultTextFontName', 'Times New Roman');
+set(0, 'DefaultTextFontSize', 30);
 
 %plot(sequential(:, 1), sequential(:, 2), '-xm', Victor(:, 1), Victor(:,
 %2), '-.c', solution_exchange(:, 1), solution_exchange(:, 2), '-*b', multiway(:, 1), multiway(:, 2), '-og', full(:, 1), full(:, 2), '-+r');\
@@ -26,4 +29,5 @@ xlabel('Time/s');
 ylabel('Energy');
 fig.Position = [500, 500, 1280, 720];
 
+print(fig, '../../paper/figure/optical_flow_by_beta', '-dpng');
 

@@ -32,6 +32,10 @@ for (thread = 0:3)
 end
 %dlmwrite('thread_solution_exchange.txt', solution_exchange_by_thread, '\t');
 
+set(0, 'DefaultAxesFontName', 'Times New Roman');
+set(0, 'DefaultAxesFontSize', 30);
+set(0, 'DefaultTextFontName', 'Times New Roman');
+set(0, 'DefaultTextFontSize', 30);
 
 %plot(sequential(:, 1), sequential(:, 2), '-xm', Victor(:, 1), Victor(:,
 %2), '-.c', solution_exchange(:, 1), solution_exchange(:, 2), '-*b', multiway(:, 1), multiway(:, 2), '-og', full(:, 1), full(:, 2), '-+r');\
@@ -42,6 +46,9 @@ xlabel('Time/s');
 ylabel('Energy');
 %ylim([8, 9.8]);
 fig_1.Position = [500, 500, 1280, 720];
+
+print(fig_1, '../../paper/figure/layered_depthmap_convergence', '-dpng');
+
 fig_2 = figure(2);
 %plot(Victor_by_thread{1}(:, 1), log(Victor_by_thread{1}(:, 2)), '-+m', Victor_by_thread{2}(:, 1), log(Victor_by_thread{2}(:, 2)), '-om', Victor_by_thread{3}(:, 1), log(Victor_by_thread{3}(:, 2)), '-*m', Victor_by_thread{4}(:, 1), log(Victor_by_thread{4}(:, 2)), '-xm', solution_exchange_by_thread{1}(:, 1), log(solution_exchange_by_thread{1}(:, 2)), '-+b', solution_exchange_by_thread{2}(:, 1), log(solution_exchange_by_thread{2}(:, 2)), '-+b', solution_exchange_by_thread{3}(:, 1), log(solution_exchange_by_thread{3}(:, 2)), '-*b', solution_exchange_by_thread{4}(:, 1), log(solution_exchange_by_thread{4}(:, 2)), '-xb', 'LineWidth', 2)
 plot(Victor_by_thread{1}(:, 1), log(Victor_by_thread{1}(:, 2)), Victor_by_thread{2}(:, 1), log(Victor_by_thread{2}(:, 2)), Victor_by_thread{3}(:, 1), log(Victor_by_thread{3}(:, 2)), Victor_by_thread{4}(:, 1), log(Victor_by_thread{4}(:, 2)), 'LineWidth', 2);
@@ -50,7 +57,10 @@ xlabel('Time/s');
 ylabel('Energy');
 ylim([15.3, 16.3]);
 xlim([0, 450]);
-fig_2.Position = [500, 500, 1280, 720];
+fig_2.Position = [500, 500, 640, 500];
+
+print(fig_2, '../../paper/figure/layered_depthmap_PFM_threads', '-dpng');
+
 fig_3 = figure(3);
 plot(solution_exchange_by_thread{1}(:, 1), log(solution_exchange_by_thread{1}(:, 2)), solution_exchange_by_thread{2}(:, 1), log(solution_exchange_by_thread{2}(:, 2)), solution_exchange_by_thread{3}(:, 1), log(solution_exchange_by_thread{3}(:, 2)), solution_exchange_by_thread{4}(:, 1), log(solution_exchange_by_thread{4}(:, 2)), 'LineWidth', 2);
 legend('Thread 1', 'Thread 2', 'Thread 3', 'Thread 4');
@@ -58,4 +68,7 @@ xlabel('Time/s');
 ylabel('Energy');
 ylim([15.3, 16.3]);
 xlim([0, 450]);
-fig_3.Position = [500, 500, 1280, 720];
+fig_3.Position = [500, 500, 640, 500];
+
+print(fig_3, '../../paper/figure/layered_depthmap_SF_MF_threads', '-dpng');
+

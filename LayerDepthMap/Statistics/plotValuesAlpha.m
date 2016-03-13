@@ -30,17 +30,22 @@ multiway_11 = convertValues(multiway_11_raw_values, 0);
 % dlmwrite('statistics_multiway.txt', multiway, '\t');
 % dlmwrite('statistics_full.txt', full, '\t');
 
-
+set(0, 'DefaultAxesFontName', 'Times New Roman');
+set(0, 'DefaultAxesFontSize', 30);
+set(0, 'DefaultTextFontName', 'Times New Roman');
+set(0, 'DefaultTextFontSize', 30);
 
 %plot(sequential(:, 1), sequential(:, 2), '-xm', Victor(:, 1), Victor(:,
 %2), '-.c', solution_exchange(:, 1), solution_exchange(:, 2), '-*b', multiway(:, 1), multiway(:, 2), '-og', full(:, 1), full(:, 2), '-+r');\
-figure(1);
+fig = figure(1);
 %plot(full(:, 1), log(full(:, 2)), 'c', full_5_3(:, 1), log(full_5_3(:, 2)), 'b', full_7_3(:, 1), log(full_7_3(:, 2)), 'g', full_9_3(:, 1), log(full_9_3(:, 2)), 'r');
 plot(Victor(:, 1), log(Victor(:, 2)), multiway(:, 1), log(multiway(:, 2)), multiway_5(:, 1), log(multiway_5(:, 2)), multiway_7(:, 1), log(multiway_7(:, 2)), multiway_9(:, 1), log(multiway_9(:, 2)), multiway_11(:, 1), log(multiway_11(:, 2)), 'LineWidth', 2);
 legend('\alpha=1', '\alpha=3', '\alpha=5', '\alpha=7', '\alpha=9', '\alpha=11');
 xlabel('Time/s');
 ylabel('Energy');
 fig.Position = [500, 500, 1280, 720];
+
+print(fig, '../../paper/figure/layered_depthmap_by_alpha', '-dpng');
 
 
 
