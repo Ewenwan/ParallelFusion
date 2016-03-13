@@ -8,7 +8,7 @@ set(0, 'DefaultTextFontname', 'Times New Roman');
 set(0, 'DefaultTextFontSize', 30);
 
 method_name = {'Sequential', 'Victor', 'Hierarchy', 'Swarn', 'Victor_multiway', 'Swarn_multiway'};
-legend_name_global = {'Sequential alpha-expansion', 'Parallel alpha-expansion', 'Hierarchy', 'SF-MF(ours)', 'SF-SS(ours)', 'SF(ours)'};
+legend_name_global = {'Sequential alpha-expansion', 'PAE', 'HF', 'SF-MF(ours)', 'SF-SS(ours)', 'SF(ours)'};
 line_width = 2.0;
 %TODO:
 line_specs = {'--','--','--','','',''};
