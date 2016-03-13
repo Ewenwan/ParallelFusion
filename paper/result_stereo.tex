@@ -1,10 +1,12 @@
 \mysubsubsection{Stereo}
 
-We performed our experiments on the half-size Book sequence from Middlebury stereo
+We performed our experiments on the Book sequence from Middlebury stereo
 datasets.~\cite{middlebury_stereo}. We use 7 images with the
 resolution of $695\times555$ and optimize for 256 disparity labels. We
 recoreded both single thread energy and system energy (minimum energy
-so far from all threads) against time.
+so far from all threads) against time. Since the order of labels to be
+expanded or fused will have impact on minimization, we randomly
+shuffled 256 labels and provide this order to all methods.
 
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/stereo_global.eps}
