@@ -1,10 +1,10 @@
 \section{Swarm Fusion instantiation}
 We compare SF against competing approaches over three problems in
 Computer Vision. SF framework has high degrees of freedom and the
-challenge is to properly quantity the contributions of various
+challenge is to properly quantify the contributions of various
 algorithmic aspects. For this purpose, we have used the three SF
-architectures illustrated in Fig.~\ref{fig:model}. For some problems, we
-have further limited the capabilities of SF on purpose, to enable
+architectures illustrated in Fig.~\ref{fig:model}. For some problems,
+we have further limited the capabilities of SF on purpose, to enable
 effective and fair comparative evaluations. We now explain the details
 of the three problems.
 
@@ -13,8 +13,8 @@ of the three problems.
 
 \hang{To evaluate the effectness of different parallel structures, we
   plot the energy minimization process against time. We define the
-  energy of a parallel system at a certain time as the minimum
-  energy of all threads at that time.}
+  energy of a parallel system at a certain time as the minimum energy
+  of all threads at that time.}
 
 
 % We pick three representative problems in Computer Vision to evaluate the
@@ -27,36 +27,32 @@ of the three problems.
 %implementation of the Swarm Fusion method for three problems in Computer
 %Vision (See Fig.~\ref{fig:problem}).  5
 \begin{figure}[tb]
- \includegraphics[width=\columnwidth]{figure/problem.pdf} \caption{We
- compare our Swarm Fusion method against competing approaches on a
- depthmap stereo~\cite{middle_bury_stereo}, an optical
- flow~\cite{middlebury_optical_flow}, or a layered depthmap
- estimation~\cite{layered_depthmap} problem. In the layered depthmap
- problem, the input is an RGBD image, and the output is multiple layeres
- of depthmaps. Each layer is a piecewise smooth parametric surface
- model.}\label{fig:problem}
+  \includegraphics[width=\columnwidth]{figure/problem.pdf} \caption{We
+    compare our Swarm Fusion method against competing approaches on a
+    depthmap stereo~\cite{middle_bury_stereo}, an optical
+    flow~\cite{middlebury_optical_flow}, or a layered depthmap
+    estimation~\cite{layered_depthmap} problem. In the layered
+    depthmap problem, the input is an RGBD image, and the output is
+    multiple layeres of depthmaps. Each layer is a piecewise smooth
+    parametric surface model.}\label{fig:problem}
 \end{figure}
 
 
 
 \subsection{Swarm Fusion stereo}
 We start with a simple depthmap stereo problem with standard unary and
-pairwise terms. We employ submodular pairwise terms to make this stereo
-represent relatively ``easy'' MRF inference problems.
+pairwise terms. We employ submodular pairwise terms to make this
+stereo represent relatively ``easy'' MRF inference problems.
 %
 Unary terms are computed as the average robust photoconsistancy
-score~\cite{woodford} between the reference image and the others inside a $7\times 7$
-pixels window.
-\begin{equation}
-  \text{\hang{equation to fill in}}
-\end{equation}
-Pairwise terms are simple truncated absolute label
-difference with maximum label difference $\sigma_s=4$. The total energy is
-defined by the sum of the two, while scaling the pairwise term by a
-factor of $0.005$. For simplicity we don't enforce visibility constraint.
+score~\cite{woodford} between the reference image and the others
+inside a $7\times 7$ pixels window.  Pairwise terms are simple
+truncated absolute label difference with maximum label difference
+$\sigma_s=4$. The total energy is defined by the sum of the two, while
+scaling the pairwise term by a factor of $0.005$. For simplicity we
+don't enforce visibility constraint.
 
 %
-We performed our experiments on Book sequence from Middlebury stereo datasets.~\cite{middlebury_stereo}.
 
 \mysubsubsection{Competing methods}
 
@@ -67,15 +63,11 @@ fusion method (i.e., the use of proposal generation) rather makes it
 slow due to the overhead.\hang{Don't quite understand this
   sentence. Does the ``dominant'' means running time or energy? In my
   experiments, unary terms are pre-computed and are not counted into
-  the running time} Therefore, we have chosen Parallel Alpha
-Expansion~\cite{delong} and Hierarchical Fusion~\cite{delong,olga}
-with graph-cuts optimization as the competing methods.
+  the running time} Therefore, we have chosen standard sequential
+$\alpha$-expansion, Parallel Alpha Expansion(PAE)~\cite{delong} and
+Hierarchical Fusion~\cite{delong,olga} with graph-cuts optimization as
+the competing methods.
 
-Since the optimization in the above stereo problem is fairly easy, we
-compare our method with standard sequential alpha expansion, parallel
-alpha expansion \cite{first_fusion_viktor} and hierarchy fusion
-\cite{olga}. In all experiment, we use $\alpha$-expansion to fuse
-single label proposals, and QPBO to fuse multi-label proposals. 
 
 
 \mysubsubsection{Swarm Fusion architectures}
@@ -84,22 +76,24 @@ single label proposals, and QPBO to fuse multi-label proposals.
 been evaluated: SF-SS (SF without solution sharing), SF-MF (SF without
 multi-way fusion), and the standard SF.
 %
-SF-SS implies $\beta=0$, where $\alpha$ is the free parameter and set to
-2. SF-MF implies $\alpha+\beta=1$, where each thread iterates the step
-of ($\alpha=1, \beta=0$) or ($\alpha=0, \beta=1$) so that it can take a
-solution proposal in one step and a neighboring solution in the
-next. For standard SF, we have used ($\alpha=1, \beta=1$).
+SF-SS implies $\beta=0$, where $\alpha$ is the free parameter and set
+to 4. In this case one thread will fuse 4 labels by TRW-S per
+iteration and never exchanges solutions with other threads. SF-MF
+implies $\alpha+\beta=1$, where each thread will expand 3 labels
+(repeat $\alpha=1, \beta=0$ for 3 iterations) and then fuse one
+solution from other threads ($\alpha=0, \beta=1$) by QPBO. In the later
+case, a thread randomly chooses one target thread to grab solution
+from. For standard SF, we have used ($\alpha=4, \beta=1$). For the
+SF-SS architecture, we performed a final fuse of solutions from all
+thread by multiway fusion.
 
-
-after 4 iterations (alpha, beta),
-
 %
 %
 %
 %
-To make the comparison simple, we restrict our proposal
-generation to be constant-label proposals. Graph-cuts is used in fusing
-a constant-label proposal as the energy is submodular. QPBO is used in
+To make the comparison simple, we restrict our proposal generation to
+be constant-label proposals. Graph-cuts is used in fusing a
+constant-label proposal as the energy is submodular. QPBO is used in
 fusing a different solution from another thread as the energy is
 non-submodular.
 %

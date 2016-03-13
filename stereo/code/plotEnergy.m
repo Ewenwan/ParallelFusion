@@ -11,7 +11,7 @@ method_name = {'Sequential', 'Swarn_multiway', 'Swarn', 'Victor_multiway', 'Vict
 legend_name_global = {'Sequential alpha-expansion', 'SF', 'SF-MF', 'SF-SS', 'Parallel alpha-expansion', 'Hierarchy'};
 line_width = 2.0;
 %TODO:
-line_specs = [];
+line_specs = {'','','','','',''};
 
 %nm: number of methods
 nm = numel(method_name);
@@ -40,12 +40,12 @@ for i=1:nt
     disp(legend_name_thread{i});
 end
 
+hold off;
 
 for i=1:2
     fig_thread = figure(i+1);
     hold on;
     mid = i*2+1;
-    hold on;
     for j=1:nt
         filepath = sprintf('%s/temp/plot_%s_thread%d.txt', dataset, method_name{mid}, j-1);
         disp(filepath);
@@ -57,5 +57,6 @@ for i=1:2
     xlabel('Time/s');
     ylabel('Energy');
     fig_thread.Position = [500,500,640,500];
+    hold off;
 end
 end
