@@ -25,7 +25,7 @@ voxels~\cite{Joint3DSceneReconstructionandclassSegmentation}.
 %
 However, state-of-the-art algorithms are still inherently sequential in
 many Computer Vision problems. Take a Fusion Move method
-(FM)~\cite{viktor,second_order_stereo,else} for example, which has been
+(FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo} for example, which has been
 one of the most effective techniques for Markov Random Field (MRF)
 inference, including the above problems like image denoising, image
 stitching, or volumetric reconstruction.
@@ -45,7 +45,7 @@ variable in each fusion, either the current solution or a
 proposal~\cite{fusion_moves_for_markov_random_field_optimization}. Second,
 only a single proposal generation scheme is used in each fusion
 step.~\footnote{Recently, an extension of FM was proposed for layered
-depthmap estimation~\cite{chen_2016}, where a solution subspace, instead
+depthmap estimation~\cite{layered_depthmap}, where a solution subspace, instead
 of a single solution, is proposed and fused with the current
 solution. However, this approach is also limited to the use of one proposal
 generation scheme in each fusion.}
@@ -68,9 +68,8 @@ depthmap estimation.
 Our idea is very simple. We believe that the method is easily
 reproducible with minimal coding, and would have immediate impact on
 numerous Computer Vision researchers or engineers, who currently solve
-MRF problems.
-\chen{We will share our implementation of our pipeline with clear interface,
-  so that others can utilizing the parallel pipeline with minimal coding}
+MRF problems. We will share our implementation of our pipeline which provides
+parallism through simple interfaces.
 % will instantly benefit every Computer Vision researcher or
 % engineer, who currently uses fusion move algorithm on multi-core
 % environments to solve challenging problems.
