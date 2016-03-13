@@ -13,7 +13,7 @@ here focus our description on closely related topics.
 alpha-expansion technique, where multiple threads simultaneously fuses
 mutually exclusive sets of labels. Kumar et
 al.~\cite{hierarchical_graph_cuts_kumar_and_koller}, Delong et
-al.~\cite{delong}, and Veksler~\cite{olga} proposed an hierarchical
+al.~\cite{delong_hierarchical_fusion}, and Veksler~\cite{olga_hierarchical_alpha_expansion} proposed an hierarchical
 approach, where labels can be simultaneously fused from the bottom to
 the top in a tree of labels. 
 % 
@@ -30,7 +30,7 @@ approach is a generalization of FM.
 \mysubsubsection{Parallel MAP inference}
 
 \noindent The core MAP inference itself can be parallelized.  Strandmark
-et al. parallelized graph-cuts~\cite{strandmark2010parallel}.
+et al. parallelized graph-cuts~\cite{strandmark_parallel}.
 %
 Message passing algorithms are friendly to GPU implementation and can
 exploit the power of parallel computation.
@@ -54,16 +54,14 @@ easily reproducible by standard engineers.
 \mysubsubsection{Fusion Move Methods}
 
 \noindent FM was first introduced by Lempitsky et al. in solving an
-optical flow problem~\cite{first_fusion_viktor} \chen{This work focuses
-on fusion move and optical flow is just one of four applications this
-work mentioned.}. FM has been effectively used to solve challenging
+optical flow problem~\cite{fusion_flow}. FM has been effectively used to solve challenging
 problems in Computer Vision such as stereo with second order smoothness
-priors~\cite{woodford}, stereo with parameteric surface fitting and
+priors~\cite{second_order_stereo}, stereo with parameteric surface fitting and
 segmentation (i.e., Surface Stereo)~\cite{surface_stereo}, or multicut
-partitioning~\cite{fusionmovesforcorrelationclustering}.
+partitioning~\cite{fusion_moves_for_correlation_clustering}.
 %
 FM has two main advantages over the other general inference
-techniques~\cite{trw,loopy_belief_propagation}. First, FM allows us to
+techniques~\cite{TRW-S,loopy_belief_propagation}. First, FM allows us to
 exploit domain-specific knowledge in customizing proposal generation
 schemes. Second, FM can handle problems with very large label spaces
 (and even real-values variables), because the core optimization

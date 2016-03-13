@@ -210,6 +210,7 @@ namespace ParallelFusion {
             double lastEnergy = current_solution.first;
             double initTime = ((float)cv::getTickCount() - start_time) / (float)cv::getTickFrequency();
             globalProfile.addObservation(initTime, current_solution.first);
+            threadProfile[slaveThreadIds[id]].push_back(Observation(initTime, current_solution.first));
 
             for(int iter=0; iter < option.max_iteration; ++iter) {
                 if(terminate.load()){
