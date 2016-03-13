@@ -149,39 +149,36 @@ namespace simple_stereo {
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
     };
 
+
     class ParallelOptimize: public StereoOptimizer {
     public:
         ParallelOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_,
-                         const std::string method_ , const bool multiway_ = false) :
-                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_), multiway(multiway_) { }
+                         const std::string method_ , const std::vector<int>& labelList_, const bool multiway_ = false) :
+                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_), labelList(labelList_), multiway(multiway_) { }
 
         virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
-
-    private:
+        void splitLabel(std::vector<std::vector<int> >& labelSubLists) const;
+    protected:
         const int num_threads;
+        const std::vector<int>& labelList;
         const bool multiway;
     };
 
-    class HierarchyOptimize: public StereoOptimizer {
+    class VictorOptimize: public ParallelOptimize {
+    public:
+        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_,
+                       const std::string method_, const std::vector<int> &labelList_, const bool multiway_ = false) :
+                ParallelOptimize(file_io_, model_, num_threads_, method_, labelList_, multiway_){}
+        virtual double optimize(stereo_base::Depth &result, const int max_iter) const;
+    };
+
+    class HierarchyOptimize: public ParallelOptimize {
     public:
         HierarchyOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_,
-                         const std::string method_ = "Hierarchy") :
-                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_){ }
+                          const std::vector<int>& labelList_) :
+                ParallelOptimize(file_io_, model_, num_threads_, "Hierarchy", labelList_, false) { }
         virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
-    private:
-        const int num_threads;
     };
-
-    class VictorOptimize: public StereoOptimizer{
-    public:
-        VictorOptimize(const stereo_base::FileIO &file_io_, const MRFModel<int> *model_, const int num_threads_, const std::string method_, const bool multiway_ = false):
-                StereoOptimizer(file_io_, model_, method_), num_threads(num_threads_), multiway(multiway_){}
-        virtual double optimize(stereo_base::Depth& result, const int max_iter) const;
-    private:
-        const int num_threads;
-        const bool multiway;
-    };
-
 
     /////////////////////////////////////////////////////////////////////////
     //Solvers
@@ -220,23 +217,21 @@ namespace simple_stereo {
 
 
     /////////////////////////////////////////////////////////////////////////
-    //Proposal Generatos
+    //Proposal Generators
     /////////////////////////////////////////////////////////////////////////
     class SimpleStereoGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
     public:
-        SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_ = true);
+        SimpleStereoGenerator(const int nPix_, const std::vector<int>& labelSubList_): nPix(nPix_), labelTable(labelSubList_), nextLabel(0){}
         virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
     protected:
         const int nPix;
-        const bool randomOrder;
         std::vector<int> labelTable;
         int nextLabel;
     };
 
     class MultiwayStereoGenerator: public SimpleStereoGenerator{
     public:
-        MultiwayStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_ = true):
-                SimpleStereoGenerator(nPix_, startid_, interval_, num_, randomOrder_){}
+        MultiwayStereoGenerator(const int nPix_, const std::vector<int>& labelSubList_): SimpleStereoGenerator(nPix_, labelSubList_){}
         virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
     };
 

@@ -27,21 +27,21 @@ namespace simple_stereo{
 
         const int kPix = model->width * model->height;
 
+        vector<vector<int> > labelSubSpace;
+        splitLabel(labelSubSpace);
+        CHECK_EQ(labelSubSpace.size(), num_threads);
+
         //slave threads
         for(auto i=0; i<pipelineOption.num_threads; ++i){
-            const int startid = i * kLabelPerThread;
-//            const int interval = pipelineOption.num_threads;
-	    const int interval = 1;
             threadOptions[i].kTotal = kFusionSize;
             threadOptions[i].kOtherThread = 0;
             threadOptions[i].solution_exchange_interval = 1;
-            initials[i].init(kPix, vector<int>(1, startid));
-            printf("Thread %d, start: %d, interval:%d, num:%d\n", i, startid, pipelineOption.num_threads, kLabelPerThread);
+            initials[i].init(kPix, vector<int>(1, labelSubSpace[i].front()));
             if(multiway) {
-                generators[i] = shared_ptr<ProposalGenerator<Space> >(new MultiwayStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new MultiwayStereoGenerator(kPix, labelSubSpace[i]));
                 solvers[i] = shared_ptr<FusionSolver<Space> >(new MultiwayStereoSolver(model));
             }else{
-                generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(model->width * model->height, startid, interval, kLabelPerThread));
+                generators[i] = shared_ptr<ProposalGenerator<Space> >(new SimpleStereoGenerator(kPix, labelSubSpace[i]));
                 solvers[i] = shared_ptr<FusionSolver<Space> >(new SimpleStereoSolver(model));
             }
             printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));

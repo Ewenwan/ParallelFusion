@@ -16,31 +16,37 @@
 
 
 namespace simple_stereo {
-    class SimpleStereo{
+    class SimpleStereo {
     public:
-        SimpleStereo(const stereo_base::FileIO& file_io_, const int anchor_, const int dispResolution_, const int downsample_, const double weight_smooth_);
-        ~SimpleStereo(){
+        SimpleStereo(const stereo_base::FileIO &file_io_, const int anchor_, const int dispResolution_,
+                     const int downsample_, const double weight_smooth_, const int num_threads_);
+
+        ~SimpleStereo() {
             model->clear();
         }
+
         void initMRF();
+
         void computeMatchingCost();
+
         void assignSmoothWeight();
 
         void runStereo();
 
-        inline int getWidth() const {return width;}
-        inline int getHeight() const {return height;}
+        inline int getWidth() const { return width; }
+
+        inline int getHeight() const { return height; }
 
     private:
         typedef int EnergyType;
 
-        const stereo_base::FileIO& file_io;
+        const stereo_base::FileIO &file_io;
         const int anchor;
         const int downsample;
+        const int num_threads;
+
         std::vector<cv::Mat> images;
-
-        MRFModel<int>* model;
-
+        MRFModel<int> *model;
         stereo_base::Depth unaryDisp;
         int width;
         int height;
@@ -48,6 +54,6 @@ namespace simple_stereo {
     };
 
 
-}
+}//namespace simple_stereo
 
 #endif //PARALLELFUSION_SIMPLESTEREO_H
