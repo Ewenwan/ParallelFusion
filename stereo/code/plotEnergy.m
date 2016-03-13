@@ -53,7 +53,7 @@ for i=1:2
         thd_trun = thd(thd(:,1) < max_time / 2 & thd(:,1) > 0.01, :);
         plots_thread{i} = plot(thd_trun(:,1), log(thd_trun(:,2)), 'LineWidth', line_width);
     end
-    legend('Thread 1', 'Thread 2', 'Thread 2', 'Thread 4');
+    legend('Thread 1', 'Thread 2', 'Thread 3', 'Thread 4');
     xlabel('Time/s');
     ylabel('Energy');
     fig_thread.Position = [500,500,640,500];
