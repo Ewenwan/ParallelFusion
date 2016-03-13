@@ -3,9 +3,9 @@ function [plots_global, plots_thread] = plotEnergy(dataset, nt, max_time)
 % dataset: path to root of dataset
 % nt: number of threads
 set(0, 'DefaultAxesFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize', 25);
+set(0, 'DefaultAxesFontSize', 28);
 set(0, 'DefaultTextFontname', 'Times New Roman');
-set(0, 'DefaultTextFontSize', 25);
+set(0, 'DefaultTextFontSize', 28);
 
 method_name = {'Sequential', 'Swarn_multiway', 'Swarn', 'Victor_multiway', 'Victor', 'Hierarchy'};
 legend_name_global = {'Sequential alpha-expansion', 'SF', 'SF-MF', 'SF-SS', 'Parallel alpha-expansion', 'Hierarchy'};
