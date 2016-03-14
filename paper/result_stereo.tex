@@ -19,13 +19,21 @@ Fig.~\ref{fig:stereo_global} compares the converegence rate of the
 competing methods. Note that we define the energy of a multi-threading
 system to be the energy of the best solution found so far.
 %
+
 \begin{figure}[tb]
-  \includegraphics[width=\columnwidth]{figure/stereo_global.png}
- \caption{Energy plots for the stereo problem. The energy is in the log
- scale. For a multi-threading algorithm, the energy at a given moment is
- defined to be the best solution so far.} \label{fig:stereo_global}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{figure/stereo_global.png}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=\textwidth]{figure/stereo_global.png}
+\end{subfigure}       
+\caption{Energy plots for the stereo problem. The energy is in the log
+scale. For a multi-threading algorithm, the energy at a given moment is
+defined to be the best solution so far.}
+\label{fig:stereo_global}
 \end{figure}
 %
+
 One unusual outcome is that Sequential Alpha Expansion and Parallel
 Alpha Expansion (PAE) have the same convergence speed, indicating that
 the stereo problem is a very easy one.
@@ -59,9 +67,9 @@ converging to a solution before the final sequential fusion.
 %scenario where we need to query the best solution so far before the
 %whole optimization converges, SF-MF architecture is a better choice.
 \begin{figure}[tb]
-  \includegraphics[width=\columnwidth]{figure/stereo_threads.png}
-  \caption{Energy plots per thread for the stereo proble for SF-MF (left) and
- Parallel Alpha Expansion (right).
+\includegraphics[width=\columnwidth]{figure/stereo_threads.png}
+\caption{Energy plots per thread for the stereo proble for SF-MF (left) and
+Parallel Alpha Expansion (right).
 } \label{fig:stereo_threads}
 \end{figure}
 
