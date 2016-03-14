@@ -3,7 +3,7 @@
 \noindent
 %
 We have chosen the Dimetrodon image pair from the Middlebury flow
-dataset~\cite{middlebury_flow}. Figure~\ref{fig:optical_flow_convergence}
+dataset~\cite{middlebury_optical_flow}. Figure~\ref{fig:optical_flow_convergence}
 shows the energy plots of the three competing methods, Fusion Move
 (FM), parallel fusion move (PFM), and Hierarchical Fusion Move (HFM),
 against our swarm fusion methods (SF-MF, SF-SS, SF). A key observation
@@ -11,7 +11,7 @@ is that SF-MF converges quicker and better than PAE. This is indeed the
 benefits of solution sharing in our network. Optical flow is a more
 difficult problem and many solution proposals are not effective.
 The solution sharing (i.e., SF-MF) allows all the threads to exchange
-effective solution proposal information in the middle of the
+effective solution proposals in the middle of the
 optimization.
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/optical_flow_convergence.png}
@@ -61,23 +61,21 @@ relatively independent and fusing the solution space would not gain much
 benefit. It rather loses performance against QPBO~\cite{QPBO} due to the
 overhead of TRW-S.
 
-There are two factors influencing solution sharing: 1) \textit{the number
-of solutions to share} and 2) \textit{the frequency of solution
+There are two factors influencing solution sharing: 1) \textit{the
+number of solutions to share} and 2) \textit{the frequency of solution
 sharing}. Both factors are controlled by $\beta$. As mentioned in
-Section \label{optical_flow}, we have used $\beta = 1$ once in every five
-iterations ($\beta = 0$ for other iterations): We share solutions once in
-every five iterations.  To further understand the effects of solution
-sharing, we did two more experiments. First, we set $\beta$ to 0, 1, 2,
-or 3 in every five iterations,
+Section~\ref{section:algorithm}, we have used $\beta = 1$ (i.e., share
+solutions) once in every five iterations.  To further understand the
+effects of solution sharing, we did two more experiments. First, we set
+$\beta$ to 0, 1, 2, or 3 in every five iterations,
 % (when $\beta = 0$, it is the same with PFM without final merging).
 while keeping all other parameters the same (See
 Fig.~\ref{fig:optical_flow_by_beta}).  Second, we change the number of
 iterations $k$ between the two consecutive solution sharing iterations
 (See Fig.~\ref{fig:optical_flow_by_interval}).  The first experiment
-revealed that the converegence was faster with the solution sharing than
-without the solution sharing, regarless of $\beta$.
-However, too much solution sharing slows down the converence, and
-$\beta=1$ is the sweet spot for this problem.
+revealed that the solution sharing makes convergence faster regarless of
+$\beta$.  However, too much solution sharing slows down the converence,
+and $\beta=1$ is the sweet spot for this problem.
 %
 % , energy generally
 % decreases faster with solution sharing. But since we need to perform one
@@ -86,7 +84,7 @@ $\beta=1$ is the sweet spot for this problem.
 % might be useful in some other problem setting as it means each thread
 % can get more global information early.
 %
-The second experiment has revealed that too frequent solution sharing
+The second experiment has shown that too frequent solution sharing
 harms the converengece, simply because we have less time generating more
 proposals and exploring the solution space.
 % From this figure, we can see that
