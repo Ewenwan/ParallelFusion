@@ -51,22 +51,26 @@ through mulit-way fusion.
 %We recoreded both single thread energy and system energy against
 %time.
 %
-Fig. \ref{fig:stereo_threads} shows the energy plot per thread
-for SF-MF (ours) and PAE. The graph for PAE again confirms that the
-stereo is an easy problem, because all the threads are quickly
-converging to a solution before the final sequential fusion.
+Fig. \ref{fig:stereo_threads} shows the energy plot per thread for
+SF-MF (ours) and PAE. With solution sharing, the energy of a single
+thread in SF-MF decreases more uniformly, while in PAE the energy
+makes dramatic decrease at the final fusion.
+%
+%The graph for PAE again confirms that the
+%stereo is an easy problem, because all the threads are quickly
+%converging to a solution before the final sequential fusion.
 %shows the per-thread energy
 %minimization process in SF-MF and PAE. The per-thread energy in SF-MF
 %architecture decreases more uniformly than that of PAE. In the
 %scenario where we need to query the best solution so far before the
 %whole optimization converges, SF-MF architecture is a better choice.
 
-%% \begin{figure}[tb]
-%% \includegraphics[width=\columnwidth]{figure/stereo_threads.png}
-%% \caption{Energy plots per thread for the stereo proble for SF-MF (left) and
-%% Parallel Alpha Expansion (right).
-%% } \label{fig:stereo_threads}
-%% \end{figure}
+\begin{figure}[tb]
+\includegraphics[width=\columnwidth]{figure/stereo_threads.png}
+\caption{Energy plots per thread for the stereo proble for SF-MF (left) and
+Parallel Alpha Expansion (right).
+} \label{fig:stereo_threads}
+\end{figure}
 
 For an easy optimization problem such as stereo with strong unary terms
 and submodular pairwise terms, our full architecture with solution
