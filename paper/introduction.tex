@@ -1,9 +1,9 @@
 \section{Introduction}
 
 Parallel computation has changed the field of computing.  In the 90s,
-most processors had single cores. In 2016, most processors have multiple
-cores, often 4 or even 8. Cluster computing further expands the
-potential of parallel computation, where one can easily launch a
+most processors had single cores, while nowadays most processors have
+multiple cores, often 4 or even 8. Cluster computing further expands
+the potential of parallel computation, where one can easily launch a
 processing job using hundreds or even thousands of computational nodes
 in a cloud.
 %
@@ -21,17 +21,30 @@ panoramas~\cite{kopf2007capturing}, or solve volumetric reconstruction and
 segmentation problems over a billion ($=1024^3$)
 voxels~\cite{hane2013joint}.
 %
+%% However, state-of-the-art algorithms are still inherently
+%% sequential in many Computer Vision problems. Take a Fusion Move
+%% method
+%% (FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo}
+%% for example, which has been one of the most effective techniques
+%% for Markov Ran- dom Field (MRF) inference, including the above
+%% problems like image denoising, image stitching, or volumetric
+%% reconstruction. It sequentially improves solution by fusing the
+%% current solution with a solution proposal. Its successful applica-
+%% tions go beyond and also cover optical flow, stereo, image
+%% inpainting, or image segmentation
+%% problems~\cite{fusion_moves_for_markov_random_field_optimization} .
 %
-However, state-of-the-art algorithms are still inherently sequential
-in many Computer Vision problems. Take a Fusion Move method
+The MAP framework, which can be formulated as a Markov Random Field
+(MRF) in many low-level Computer Vision problems, provides a universal
+and powerful way to solve these problems. However, state-of-the-art
+algorithms for MRF inference are still inherently sequential. Take a
+Fusion Move method
 (FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo}
 for example, which has been one of the most effective techniques for
-Markov Random Field (MRF) inference, including the above problems like
-image denoising, image stitching, or volumetric reconstruction.
-%
-It sequentially improves solution by fusing the current solution with a
-solution proposal. Its successful applications go beyond and also cover
-optical flow, stereo, image inpainting, or image segmentation
+MRF inference, it sequentially improves solution by fusing the current solution with
+a solution proposal. Its successful applications cover not only above
+problems, but also popular problmes like optical flow, stereo, image
+inpainting, or image segmentation
 problems~\cite{fusion_moves_for_markov_random_field_optimization}.
 
 
@@ -54,7 +67,7 @@ few key distinctions from existing approaches: 1) Multiple threads (or
 computing nodes) simultaneously keep and improve solutions; and 2) Each
 fusion in each thread can take arbitrary number of proposals from
 arbitrary combination of proposal generation schemes, even concurrent
-solutions in the other threads, to be fused with the current solution.
+solutions in the other threads, to fuse with the current solution.
 %
 
 
@@ -64,10 +77,13 @@ depthmap estimation.
 %
 %Our approach outperforms all the other competing methods, especially for
 %challenging problems with a large label space.
-Our idea is very simple. We believe that the method is easily
-reproducible with minimal coding, and would have immediate impact on
-numerous Computer Vision researchers or engineers, who currently solve
-MRF problems.
+%
+%Our idea is very simple. We believe that the method is easily
+%reproducible with minimal coding
+%
+We believe that the method can be intergrated into existing algorithms
+with minimal coding, and would have immediate impact on numerous
+Computer Vision researchers or engineers.
 
 %We will share our implementation of our pipeline which provides
 %parallism through simple interfaces.

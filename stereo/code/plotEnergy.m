@@ -3,13 +3,13 @@ function plotEnergy(dataset, nt, max_time)
 % dataset: path to root of dataset
 % nt: number of threads
 set(0, 'DefaultAxesFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize',18);
+set(0, 'DefaultAxesFontSize',34);
 set(0, 'DefaultTextFontname', 'Times New Roman');
-set(0, 'DefaultTextFontSize', 18);
+set(0, 'DefaultTextFontSize', 34);
 
 method_name = {'Sequential', 'Victor', 'Hierarchy', 'Swarn', 'Victor_multiway', 'Swarn_multiway'};
 legend_name_global = {'AE', 'PAE', 'HF', 'SF-MF(ours)', 'SF-SS(ours)', 'SF(ours)'};
-line_width = 2.0;
+line_width = 4.0;
 %TODO:
 line_specs = {'--','--','--','','',''};
 
@@ -31,7 +31,7 @@ end
 legend(legend_name_global);
 xlabel('Time/s');
 ylabel('Energy(log scale)');
-fig_glb.Position = [500,500,640,360];
+fig_glb.Position = [500,500,1280,720];
 
 %subfigure for thread
 legend_name_thread = cell(nt);
