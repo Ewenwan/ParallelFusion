@@ -16,8 +16,8 @@ in \cite{fusion_flow}. In \textit{shift proposal}, the flow field in the
 current solution is shifted in either x or y directions for
 either 1, 2 or 3 pixels. In \textit{stagger proposal}, the flow field is
 shifted by a vector randomly drawn from a Gaussian distribution. In
-\textit{disturb proposal}, each flow value in the field is
-indenpendantly shifted by a vector randomly drawn from a Gaussian
+\textit{perturb proposal}, each flow value in the field is
+independently shifted by a vector randomly drawn from a Gaussian
 distribution. We choose schemes randomly when generating proposals.}
 
 \mysubsubsection{Competing methods}
@@ -44,7 +44,7 @@ fair.
 %solution proposals.
 %
 The last contender is the mix of the Hierarchical Fusion and the Fusion
-Move methods, dubbed ``Hierarchical Fusion Method''(HFM), where they
+Move methods, dubbed ``Hierarchical Fusion Move''(HFM), where they
 start from solution proposals as opposed to constant labels. One problem
 of HFM is that we need to generate all the proposals first to build the
 fusion tree. This undermines the power of fusion move that can
@@ -52,22 +52,22 @@ adaptively generate proposals based on the current solution. In our
 experiments, we have manually generate 250 proposals at the
 beginning.
 %We first generate 25 proposals using LK and Farneback algorithms which
-%are independant and generate other proposals based on these initial
+%are independent and generate other proposals based on these initial
 %proposals).
 The fusions are binary in these methods and we have used QPBO.
 
-\mysubsubsection{Swarm fusion architectures}
+\mysubsubsection{Swarm Fusion architectures}
 
 \noindent
 %The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
 %are used to evaluate the effectiveness of our method.
 The three swarm architectures in Fig.~\ref{fig:model} (SF-MF, SF-SS, SF)
 have been evaluated against the competing methods. For SF-MF, each
-thread repeats generating solution proposals ($\alpha=1, \beta=0$) for 4
+thread repeats generating solution proposals ($\alpha=1, \beta=0$) for four
 iterations and fuses with one solution from others ($\alpha=0, \beta=1$)
 in one iteration. This pattern is repeated. For SF-SS, each thread
 generates three solution proposals for fusion in each iteration
-($\alpha=3$, $\beta=0$). For SF, we repeat ($\alpha=3, \beta=0$) for 4
+($\alpha=3$, $\beta=0$). For SF, we repeat ($\alpha=3, \beta=0$) for four
 iterations and ($\alpha=0, \beta=3$) for one iteration.
 %%
 %Note that we have used the same set of proposal generation schemes as

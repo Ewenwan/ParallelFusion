@@ -42,7 +42,7 @@ fig = figure(1);
 plot(Victor(:, 1), log(Victor(:, 2)), multiway(:, 1), log(multiway(:, 2)), multiway_5(:, 1), log(multiway_5(:, 2)), multiway_7(:, 1), log(multiway_7(:, 2)), multiway_9(:, 1), log(multiway_9(:, 2)), multiway_11(:, 1), log(multiway_11(:, 2)), 'LineWidth', 2);
 legend('\alpha=1', '\alpha=3', '\alpha=5', '\alpha=7', '\alpha=9', '\alpha=11');
 xlabel('Time/s');
-ylabel('Energy');
+ylabel('Energy(log-scale)');
 fig.Position = [500, 500, 1280, 720];
 
 print(fig, '../../paper/figure/layered_depthmap_by_alpha', '-dpng');

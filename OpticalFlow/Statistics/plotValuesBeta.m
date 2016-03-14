@@ -26,7 +26,7 @@ fig = figure(1);
 plot(Victor(:, 1), log(Victor(:, 2)), solution_exchange(:, 1), log(solution_exchange(:, 2)), solution_exchange_2_other(:, 1), log(solution_exchange_2_other(:, 2)), solution_exchange_3_other(:, 1), log(solution_exchange_3_other(:, 2)), 'LineWidth', 2);
 legend('\beta=0', '\beta=1', '\beta=2', '\beta=3');
 xlabel('Time/s');
-ylabel('Energy');
+ylabel('Energy(log-scale)');
 fig.Position = [500, 500, 1280, 720];
 
 print(fig, '../../paper/figure/optical_flow_by_beta', '-dpng');

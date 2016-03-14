@@ -5,9 +5,9 @@
 We have chosen the Dimetrodon image pair from the Middlebury flow
 dataset~\cite{middlebury_optical_flow}. Figure~\ref{fig:optical_flow_convergence}
 shows the energy plots of the three competing methods, Fusion Move
-(FM), parallel fusion move (PFM), and Hierarchical Fusion Move (HFM),
-against our swarm fusion methods (SF-MF, SF-SS, SF). A key observation
-is that SF-MF converges quicker and better than PAE. This is indeed the
+(FM), Parallel Fusion Move (PFM), and Hierarchical Fusion Move (HFM),
+against our Swarm Fusion methods (SF-MF, SF-SS, SF). A key observation
+is that SF-MF converges quicker and better than PFM. This is indeed the
 benefits of solution sharing in our network. Optical flow is a more
 difficult problem and many solution proposals are not effective.
 The solution sharing (i.e., SF-MF) allows all the threads to exchange
@@ -107,6 +107,6 @@ Optimal parameter setting depends on each problem setting.
   \caption{Energy plots for optical flow with different solution sharing
   frequencies. Solution sharing is critical, but too frequent solution
   sharing (less $k$) slows down the convergence.}
- \label{fig:optical_flow_by_beta}\label{fig:optical_flow_by_interval}
+ \label{fig:optical_flow_by_interval}
 \end{figure}
 
