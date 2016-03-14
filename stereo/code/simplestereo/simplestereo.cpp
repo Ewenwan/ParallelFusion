@@ -158,54 +158,54 @@ namespace simple_stereo {
             labelList[i] = i;
         random_shuffle(labelList.begin(), labelList.end());
 
-        cout << "========================================" << endl;
-        cout << "Runing sequential alpha-expansion" << endl;
-        ParallelOptimize optimize_sequential(file_io, model, 1, "Sequential", labelList);
-        Depth result_sequential;
-        optimize_sequential.optimize(result_sequential, 2);
-        sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
-        result_sequential.saveImage(buffer);
+        // cout << "========================================" << endl;
+        // cout << "Runing sequential alpha-expansion" << endl;
+        // ParallelOptimize optimize_sequential(file_io, model, 1, "Sequential", labelList);
+        // Depth result_sequential;
+        // optimize_sequential.optimize(result_sequential, 2);
+        // sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
+        // result_sequential.saveImage(buffer);
 
-        cout << "========================================" << endl;
-        cout << "Runing parallel method with solution sharing" << endl;
-        ParallelOptimize optimize_parallel(file_io, model, num_threads, "Swarn", labelList);
-        Depth result_parallel;
-        optimize_parallel.optimize(result_parallel, 2);
-        sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
-        result_parallel.saveImage(buffer);
+        // cout << "========================================" << endl;
+        // cout << "Runing parallel method with solution sharing" << endl;
+        // ParallelOptimize optimize_parallel(file_io, model, num_threads, "Swarn", labelList);
+        // Depth result_parallel;
+        // optimize_parallel.optimize(result_parallel, 2);
+        // sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
+        // result_parallel.saveImage(buffer);
 
-        cout << "========================================" << endl;
-        cout << "Runing multiway fusion with solution sharing" << endl;
-        ParallelOptimize optimize_multiway(file_io, model, num_threads, "Swarn_multiway", labelList, true);
-        Depth result_multiway;
-        optimize_multiway.optimize(result_multiway, 2);
-        sprintf(buffer, "%s/temp/result_multiway.jpg", file_io.getDirectory().c_str());
-        result_multiway.saveImage(buffer);
+        // cout << "========================================" << endl;
+        // cout << "Runing multiway fusion with solution sharing" << endl;
+        // ParallelOptimize optimize_multiway(file_io, model, num_threads, "Swarn_multiway", labelList, true);
+        // Depth result_multiway;
+        // optimize_multiway.optimize(result_multiway, 2);
+        // sprintf(buffer, "%s/temp/result_multiway.jpg", file_io.getDirectory().c_str());
+        // result_multiway.saveImage(buffer);
 
         cout << "========================================" << endl;
         cout << "Runing Victor's method" << endl;
         VictorOptimize optimize_victor(file_io, model, num_threads, "Victor", labelList);
         Depth result_victor;
-        optimize_victor.optimize(result_victor, 2);
+        optimize_victor.optimize(result_victor, 1);
         sprintf(buffer, "%s/temp/result_victor.jpg", file_io.getDirectory().c_str());
         result_victor.saveImage(buffer);
 
-        cout << "========================================" << endl;
-        cout << "Runing Victor's method multiway" << endl;
-        VictorOptimize optimize_victor_multiway(file_io, model, num_threads, "Victor_multiway", labelList, true);
-        Depth result_victor_multiway;
-        optimize_victor_multiway.optimize(result_victor_multiway, 2);
-        sprintf(buffer, "%s/temp/result_victor_multiway.jpg", file_io.getDirectory().c_str());
-        result_victor_multiway.saveImage(buffer);
+        // cout << "========================================" << endl;
+        // cout << "Runing Victor's method multiway" << endl;
+        // VictorOptimize optimize_victor_multiway(file_io, model, num_threads, "Victor_multiway", labelList, true);
+        // Depth result_victor_multiway;
+        // optimize_victor_multiway.optimize(result_victor_multiway, 2);
+        // sprintf(buffer, "%s/temp/result_victor_multiway.jpg", file_io.getDirectory().c_str());
+        // result_victor_multiway.saveImage(buffer);
 
-        cout << "========================================" << endl;
-        cout << "Runing Hierarchy method" << endl;
-        HierarchyOptimize optimize_hierarchy(file_io, model, num_threads, labelList);
-        Depth result_hierarchy;
-        optimize_hierarchy.optimize(result_hierarchy, 1);
-        sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
-        cout << "Saving " << buffer << endl << flush;
-        result_hierarchy.saveImage(buffer);
+        // cout << "========================================" << endl;
+        // cout << "Runing Hierarchy method" << endl;
+        // HierarchyOptimize optimize_hierarchy(file_io, model, num_threads, labelList);
+        // Depth result_hierarchy;
+        // optimize_hierarchy.optimize(result_hierarchy, 1);
+        // sprintf(buffer, "%s/temp/result_hierarchy.jpg", file_io.getDirectory().c_str());
+        // cout << "Saving " << buffer << endl << flush;
+        // result_hierarchy.saveImage(buffer);
 
 
 //        FirstOrderOptimize optimize_firstOrder(file_io, model);

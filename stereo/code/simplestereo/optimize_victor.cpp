@@ -90,7 +90,7 @@ namespace simple_stereo{
         float total_t = ((float)getTickCount() - start_t) / (float)getTickFrequency();
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, total_t);
 
-        dumpOutData(victorFusionPipeline, file_io.getDirectory()+"/temp/plot_"+method);
+        //dumpOutData(victorFusionPipeline, file_io.getDirectory()+"/temp/plot_"+method);
 
         for(auto i=0; i<model->width * model->height; ++i){
             result.setDepthAtInd(i, solution.second(i,0));
