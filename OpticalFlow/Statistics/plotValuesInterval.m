@@ -28,6 +28,7 @@ plot(solution_exchange_2(:, 1), log(solution_exchange_2(:, 2)), solution_exchang
 legend('k=1', 'k=2', 'k=4', 'k=8', 'k=\infty');
 xlabel('Time/s');
 ylabel('Energy(log-scale)');
-fig.Position = [500, 500, 1280, 720];
+box off;
+fig.Position = [500, 500, 640, 500];
 
 print(fig, '../../paper/figure/optical_flow_by_interval', '-dpng');

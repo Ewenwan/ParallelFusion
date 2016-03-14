@@ -43,7 +43,8 @@ plot(Victor(:, 1), log(Victor(:, 2)), multiway(:, 1), log(multiway(:, 2)), multi
 legend('\alpha=1', '\alpha=3', '\alpha=5', '\alpha=7', '\alpha=9', '\alpha=11');
 xlabel('Time/s');
 ylabel('Energy(log-scale)');
-fig.Position = [500, 500, 1280, 720];
+box off;
+fig.Position = [500, 500, 640, 500];
 
 print(fig, '../../paper/figure/layered_depthmap_by_alpha', '-dpng');
 

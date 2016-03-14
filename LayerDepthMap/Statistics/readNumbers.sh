@@ -20,4 +20,5 @@ cat output_multiway_11| awk '{ print $5 "\t" $8 "\t" $7}' > output_values_multiw
 
 cat output_full_thread_1| awk '{ print $5 "\t" $8 "\t" $7}' > output_values_full_thread_1
 cat output_full_thread_2| awk '{ print $5 "\t" $8 "\t" $7}' > output_values_full_thread_2
+cat output_full_thread_3| awk '{ print $5 "\t" $8 "\t" $7}' > output_values_full_thread_3
 cat output_full_thread_8| awk '{ print $5 "\t" $8 "\t" $7}' > output_values_full_thread_8
