@@ -22,8 +22,7 @@ namespace simple_stereo{
 
         std::vector<Space> proposals((size_t)model->nLabel);
         for(auto i=0; i<proposals.size(); ++i)
-            proposals[i].getSingleLabel().push_back(i);
-        //std::random_shuffle(proposals.begin(), proposals.end());
+            proposals[i].getSingleLabel().push_back(labelList[i]);
 
         Space initial;
         initial.init(width * height, vector<int>(1,0));
@@ -35,10 +34,9 @@ namespace simple_stereo{
 
         const GlobalTimeEnergyProfile& profile = pipeline.getGlobalProfile();
         char buffer[1024] = {};
-        sprintf(buffer, "%s/temp/plot_hierarchy_global.txt", file_io.getDirectory().c_str());
+        sprintf(buffer, "%s/temp/plot_%s_global.txt", file_io.getDirectory().c_str(), method.c_str());
         ofstream globalOut(buffer);
         CHECK(globalOut.is_open());
-        globalOut << "Global" << endl << "Time\tEnergy" << endl;
         for(const auto& ob: profile.getProfile())
             globalOut << ob.first << '\t' << ob.second << endl;
         globalOut.close();

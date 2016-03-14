@@ -5,7 +5,6 @@
 
 #include "optimization.h"
 #include "../external/TRW_S/MRFEnergy.h"
-#include "../external/TRW_S/typeGeneral.h"
 #include "../external/QPBO1.4/QPBO.h"
 
 using namespace std;
@@ -13,17 +12,6 @@ using namespace cv;
 using namespace ParallelFusion;
 
 namespace simple_stereo{
-    SimpleStereoGenerator::SimpleStereoGenerator(const int nPix_, const int startid_, const int interval_, const int num_, const bool randomOrder_):
-            nPix(nPix_), randomOrder(randomOrder_), nextLabel(0){
-        labelTable.resize((size_t)num_);
-        CHECK(!labelTable.empty());
-        labelTable[0] = startid_;
-        for(auto i=1; i<labelTable.size(); ++i)
-            labelTable[i] = labelTable[i-1] + interval_;
-        if(randomOrder)
-            std::random_shuffle(labelTable.begin(), labelTable.end());
-    }
-
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
                                              const CompactLabelSpace &current_solution, const int N) {
         for(auto i=0; i<N; ++i){
@@ -235,7 +223,6 @@ namespace simple_stereo{
         sprintf(buffer, "%s_global.txt", prefix.c_str());
         ofstream globalOut(buffer);
         CHECK(globalOut.is_open());
-        globalOut << "Global\nTime\tEnergy" << endl;
         for(const auto& ob: profile.getProfile())
             globalOut << ob.first << '\t' << ob.second << endl;
         globalOut.close();
@@ -245,7 +232,6 @@ namespace simple_stereo{
             sprintf(buffer, "%s_thread%d.txt", prefix.c_str(), tid);
             ofstream threadOut(buffer);
             CHECK(threadOut.is_open());
-            threadOut << "Thread " << tid << endl << "Time\tEnergy" << endl;
             for(const auto& ob: threadProfiles[tid])
                 threadOut << ob.first << '\t' << ob.second << endl;
             threadOut.close();

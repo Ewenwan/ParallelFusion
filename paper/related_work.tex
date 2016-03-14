@@ -1,7 +1,7 @@
 \section{Related work}
 
 
-MRF inference has been a very active field in Computer Vision with the
+MRF inference has been a very active field in Computer Vision with
 extensive literature. We refer the readers to survey articles for
 comprehensive
 reviews~\cite{middlebury_mrf,comparative_study_of_modern_inference}, and
@@ -9,11 +9,11 @@ here focus our description on closely related topics.
 
 \mysubsubsection{Parallel Alpha-Expansion}
 
-\noindent Lempitsky et al. introduces parallel computation to an
+\noindent Lempitsky et al.~\cite{fusion_moves_for_markov_random_field_optimization} introduces parallel computation to an
 alpha-expansion technique, where multiple threads simultaneously fuses
 mutually exclusive sets of labels. Kumar et
 al.~\cite{hierarchical_graph_cuts_kumar_and_koller}, Delong et
-al.~\cite{delong}, and Veksler~\cite{olga} proposed an hierarchical
+al.~\cite{delong_hierarchical_fusion}, and Veksler et al.~\cite{olga_hierarchical_alpha_expansion} proposed an hierarchical
 approach, where labels can be simultaneously fused from the bottom to
 the top in a tree of labels. 
 % 
@@ -30,7 +30,7 @@ approach is a generalization of FM.
 \mysubsubsection{Parallel MAP inference}
 
 \noindent The core MAP inference itself can be parallelized.  Strandmark
-et al. parallelized graph-cuts~\cite{strandmark2010parallel}.
+et al.~\cite{strandmark_parallel} parallelized graph-cuts.
 %
 Message passing algorithms are friendly to GPU implementation and can
 exploit the power of parallel computation.
@@ -51,18 +51,17 @@ easily reproducible by standard engineers.
 % space~\cite{layered_depthmap}.}
 
 
-\mysubsubsection{Fusion Move Methods}
+\mysubsubsection{Fusion Move methods}
 
-\noindent FM was first introduced by Lempitsky et al. in solving an
-optical flow problem~\cite{first_fusion_viktor} \chen{This work focuses on fusion move and optical flow is just one of four applications this work mentioned.}. FM has been effectively
-used to solve challenging problems in Computer Vision such as stereo
-with second order smoothness priors~\cite{woodford}, stereo
-with parameteric surface fitting and segmentation (i.e., Surface
-Stereo)~\cite{surface_stereo}, or multicut
-partitioning~\cite{fusionmovesforcorrelationclustering}.
+\noindent FM was first introduced by Lempitsky et al.~\cite{fusion_flow} in solving an
+optical flow problem. FM has been effectively used to solve challenging
+problems in Computer Vision such as stereo with second order smoothness
+priors~\cite{second_order_stereo}, stereo with parameteric surface fitting and
+segmentation (i.e. Surface Stereo)~\cite{surface_stereo}, or multicut
+partitioning~\cite{fusion_moves_for_correlation_clustering}.
 %
 FM has two main advantages over the other general inference
-techniques~\cite{trw,loopy_belief_propagation}. First, FM allows us to
+techniques~\cite{TRW-S,loopy_belief_propagation}. First, FM allows us to
 exploit domain-specific knowledge in customizing proposal generation
 schemes. Second, FM can handle problems with very large label spaces
 (and even real-values variables), because the core optimization
@@ -72,10 +71,10 @@ In contrast, methods like message passing algorithms need to maintain
 messages and beliefs for the entire label space all the time.
 %
 Although conceptually straightforward, we are not aware of {\it Parallel
-Fusion move} algorithms that fuse solution proposals, as opposed to
+  Fusion Move (PFM)} algorithms that fuse solution proposals, as opposed to
 labels, in parallel. This paper seeks to fully unleash the power of
 parallel computation based on FM in the most general setting.
-%for the most general FM via a more general framework.
+% for the most general FM via a more general framework.
 
 
 \mysubsubsection{Evolutionary algorithms and Particle Swarm Optimization}
@@ -85,8 +84,8 @@ Genetic algorithms (GA)~\cite{ga} and Particle Swarm
 Optimization (PSO)~\cite{pso} maintain multiple solutions and improve
 them over time.
 %
-GA or PSO has been used to produce great empirical results, for example,
-hand tracking~\cite{pushmeet_hand_tracking}.
+GA or PSO has been used to produce great empirical results,
+hand tracking~\cite{pushmeet_hand_tracking} for example.
 %
 At high level, our strategy is similar in spirit. However, GA or PSO
 rather arbitrarily copies parts of the solutions or makes random movements

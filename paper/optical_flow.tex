@@ -1,20 +1,24 @@
 \subsection{Swarm Fusion optical flow}
 
-Fusion Move was first introduced by Lempitsky et al.~\cite{viktor} to
-solve the optical flow problem. \chen{Again, I think Lempitsky's work doesn't
-  aim at the optical flow problem.}
-%Optical flow was the problem, in which the Fusion Move method was first
+Fusion Move was first introduced by Lempitsky et al.~\cite{fusion_flow} to
+solve the optical flow problem.
+% Optical flow was the problem, in which the Fusion Move method was first
 %introduced by Lempitsky et al.~\cite{viktor}.
-We copy their problem setting and proposal generation schemes for
-our second problem.
-  We use images from the Middlebury optical flow
-benchmark~\cite{middlebury_optical_flow}.
-
-\chen{I made a mistake that I didn't use the same proposal generation schemes
-  with their work. Instead of HS algorithm, I use Farneback algorithm to generate proposals because it is right there in OpenCV. I also add a bunch of other less useful proposals to have more proposal generation schemes for more clear comparisons..
-  I think we could write in short as follows.}
-
-\chen{We share similar proposal generation schemes with Lempitsky et al ~\cite{viktor}, but instead of the HS algorithm, we use more recent Farneback algorithm and changes its pyramid levels from 1 to 5 and use different polyN {3, 5, 7}. Besides the clustering idea, ~\cite{viktor} also suggests to use more proposals generation schemes based on the current solution. We add three simple proposal generation schemes to better explore the power of our parallel pipeline. In \textit{shift proposal}, the flow field in the current solution is shifted in either x direction or y direction for either 1, 2 or 3 pixels. In \textit{stagger proposal}, the flow field is shifted by a vector randomly drawed from a Gaussian distribution. In \textit{disturb proposal}, each flow value in the field is indenpendantly shifted by a vector randomly drawed from a Gaussian distribution.}
+We copy their problem setting and use images from the Middlebury optical
+flow benchmark~\cite{middlebury_optical_flow}. We share similar proposal
+generation schemes with Lempitsky et al~\cite{fusion_flow}, but
+%instead of the HS algorithm, we
+use more recent Farneback algorithm with some modifications.~\footnote{First, we
+change the level of pyramids from 1 to 5, then use either 3, 5 or 7 for
+parameter ``polyN''. Besides the clustering idea, we add three simple
+proposal generation schemes based on the current solution as suggested
+in \cite{fusion_flow}. In \textit{shift proposal}, the flow field in the
+current solution is shifted in either x or y directions for
+either 1, 2 or 3 pixels. In \textit{stagger proposal}, the flow field is
+shifted by a vector randomly drawn from a Gaussian distribution. In
+\textit{perturb proposal}, each flow value in the field is
+independently shifted by a vector randomly drawn from a Gaussian
+distribution. We choose schemes randomly when generating proposals.}
 
 \mysubsubsection{Competing methods}
 
@@ -40,36 +44,40 @@ fair.
 %solution proposals.
 %
 The last contender is the mix of the Hierarchical Fusion and the Fusion
-Move methods, dubbed ``Hierarchical Fusion Method''(HFM), where they
+Move methods, dubbed ``Hierarchical Fusion Move''(HFM), where they
 start from solution proposals as opposed to constant labels. One problem
-of HFM is that the number of necessary solution proposals is unknown
-before solving the problem, and the tree of labels cannot be defined. In
-our experiments, we have manually picked a good number (X \yasu{how many
-  Hang?}) \chen{77 proposals in total (We first generate 11 proposals using LK and Farneback algorithms which do not require current solution and generate other proposals based on these initial proposals).} to generate proposals.
-%
+of HFM is that we need to generate all the proposals first to build the
+fusion tree. This undermines the power of fusion move that can
+adaptively generate proposals based on the current solution. In our
+experiments, we have manually generate 250 proposals at the
+beginning.
+%We first generate 25 proposals using LK and Farneback algorithms which
+%are independent and generate other proposals based on these initial
+%proposals).
 The fusions are binary in these methods and we have used QPBO.
 
-\mysubsubsection{Swarm fusion architectures}
+\mysubsubsection{Swarm Fusion architectures}
 
 \noindent
 %The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
 %are used to evaluate the effectiveness of our method.
-The three swarm architectures in Fig.~\ref{fig:model} (SF-SS, SF-MF, SF)
-have been evaluated against the competing methods. The same
-configurations as in the stereo problem have been used for optical flow,
-that is, $\alpha=2$ ($\beta=0$) for SF-SS, the iteration of
-($\alpha=1, \beta=0$) and ($\alpha=0, \beta=1$) for SF-MF, and
-($\alpha=1, \beta=1$) \chen{($\alpha=2, \beta=0$) and ($\alpha=0, \beta=2$)} for SF.
-%
-Note that we have used the same set of proposal generation schemes as
-the competing methods. We have used TRW-S for multi-way fusion and QPBO
-for binary fusion. \chen{Just for clarification, I always use TRW-S and just set the number of
-  labels to be 2. It is the same with QPBO as mentioned by Pushmeet.}
-%, while our fusions are multi-way, for which we have used TRW-S.
+The three swarm architectures in Fig.~\ref{fig:model} (SF-MF, SF-SS, SF)
+have been evaluated against the competing methods. For SF-MF, each
+thread repeats generating solution proposals ($\alpha=1, \beta=0$) for four
+iterations and fuses with one solution from others ($\alpha=0, \beta=1$)
+in one iteration. This pattern is repeated. For SF-SS, each thread
+generates three solution proposals for fusion in each iteration
+($\alpha=3$, $\beta=0$). For SF, we repeat ($\alpha=3, \beta=0$) for four
+iterations and ($\alpha=0, \beta=3$) for one iteration.
+%%
+%Note that we have used the same set of proposal generation schemes as
+%the competing methods.
+We have used TRW-S for multi-way fusion and QPBO for binary fusion.
+% , while our fusions are multi-way, for which we have used TRW-S.
 %
 % The full swarm fusion model (at the bottom right in
 % Fig.~\ref{fig:model}) will be used to evaluate the effectiveness of our
 % method. We will also try the other two Swarm fusion variants in
 % Fig.~\ref{fig:model} with restrictions.
-
-2 k-way 1 solution sharing. \chen{?}
+%
+% 2 k-way 1 solution sharing. \chen{?}
