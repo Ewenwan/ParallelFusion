@@ -28,7 +28,7 @@ DEFINE_bool(write_log, true, "Write log file or not.");
 DEFINE_bool(evaluation, false, "Write log file or not.");
 //DEFINE_string(dataset_category, "other-data", "The dataset image category.");
 
-DEFINE_int32(num_threads, 2, "The number of threads.");
+DEFINE_int32(num_threads, 4, "The number of threads.");
 DEFINE_int32(num_iterations, 30, "The number of iterations.");
 
 DEFINE_int32(num_proposals_in_total, 1, "The number of proposals in total.");
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
   ParallelFusion::ParallelFusionOption option;
   option.num_threads = FLAGS_num_threads;
   option.max_iteration = FLAGS_num_iterations;
-  option.selectionMethod = ParallelFusion::ParallelFusionOption::ALL;
+  option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
   //option.synchronize = true;
   
   
