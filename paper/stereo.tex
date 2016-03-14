@@ -3,10 +3,10 @@ We compare SF against competing approaches over three problems in
 Computer Vision. SF framework has high degrees of freedom and the
 challenge is to properly quantify the contributions of various
 algorithmic aspects. For this purpose, we have used the three SF
-architectures illustrated in Fig.~\ref{fig:model}. For some problems,
-we have further limited the capabilities of SF on purpose, to enable
-effective and fair comparative evaluations. We now explain the details
-of the three problems.
+architectures illustrated in Fig.~\ref{fig:model}.
+%% For some problems, we have further limited the capabilities of SF
+%% on purpose, to enable effective and fair comparative
+%% evaluations. We now explain the details of the three problems.
 
 \hang{Better to explain the methology we used, either here or in
   Result part. For example:}
@@ -63,10 +63,12 @@ fusion method (i.e., the use of proposal generation) rather makes it
 slow due to the overhead.\hang{Don't quite understand this
   sentence. Does the ``dominant'' means running time or energy? In my
   experiments, unary terms are pre-computed and are not counted into
-  the running time} Therefore, we have chosen standard sequential
-$\alpha$-expansion, Parallel Alpha Expansion(PAE)~\cite{delong} and
-Hierarchical Fusion~\cite{delong_hierarchical_fusion,olga_hierarchical_alpha_expansion} with graph-cuts optimization as
-the competing methods.
+  the running time} Therefore, we have chosen single thread Alpha
+Expansion(AE), Parallel Alpha
+Expansion(PAE)~\cite{fusion_moves_for_markov_random_field_optimization}
+and Hierarchical
+Fusion~\cite{delong_hierarchical_fusion,olga_hierarchical_alpha_expansion}
+with graph-cuts optimization as the competing methods.
 
 
 
@@ -91,10 +93,11 @@ thread by multiway fusion.
 %
 %
 %
-To make the comparison simple, we restrict our proposal generation to
-be constant-label proposals. Graph-cuts is used in fusing a
-constant-label proposal as the energy is submodular. QPBO is used in
-fusing a different solution from another thread as the energy is
+To make the comparison simple, we restrict our proposal generator
+in each thread to only generate constant-label proposals within a
+subset of all labels. Graph-cuts is used in fusing a constant-label
+proposal as the energy is submodular. QPBO is used in fusing a
+different solution from another thread as the energy is typically
 non-submodular.
 %
 % Due to the lack of multi-way fusion, the swarm fusion architecture for
