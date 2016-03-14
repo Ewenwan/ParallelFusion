@@ -3,7 +3,7 @@
 \noindent
 %
 We have chosen the Dimetrodon image pair from the Middlebury flow
-dataset~\cite{middlebury_optical_flow}. Figure~\ref{fig:optical_flow_convergence}
+dataset~\cite{middlebury_optical_flow}. Fig.~\ref{fig:optical_flow_convergence}
 shows the energy plots of the three competing methods, Fusion Move
 (FM), Parallel Fusion Move (PFM), and Hierarchical Fusion Move (HFM),
 against our Swarm Fusion methods (SF-MF, SF-SS, SF). A key observation
@@ -36,7 +36,7 @@ optimization.
     \label{fig:optical_flow_SF_MF_threads}
   \end{subfigure}
   \caption{Energy plots per thread for (a) Parallel Fusion  
-    Move (PFM) and (b) our FS-MF.}
+    Move (PFM) and (b) our SF-MF.}
   \label{fig:optical_flow_by_threads}  
 \end{figure}
 
@@ -54,7 +54,7 @@ optimization.
 %contribute to further decrease of this low energy state. To further
 %demonstrate what is happening here,
 To further investigate the effectiveness of solution sharing,
-Figure~\ref{fig:optical_flow_by_threads} shows the energy plots of PFM
+Fig.~\ref{fig:optical_flow_by_threads} shows the energy plots of PFM
 and SF-MF per thread. As evident from the plot, in PFM, one thread found
 a better solution than others, but other threads keep working
 independently at higher energy states. SF-MF, on the other hand,
