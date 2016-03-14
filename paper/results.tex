@@ -2,10 +2,9 @@
 \label{section:results}
 We have implemented the algorithms with multithreading supporting from
 C++ 11 and conducted the experiments on Linux PCs with Intel Core i7
-4790 processor with 4 cores, enabling 8 threads with the hyper
-threading technology. We have used the Graph-cuts optimization code
-written by Veksler, using the libraries provided by Boykov and
-Kolmogorov~\cite{middlebury_mrf,alpha_expansion,what_energy_can_be_min_by_gc, mrf_experimental}.
+4790 processor with 4 cores. We have used the Graph-cuts optimization
+code written by Veksler, using the libraries provided by Boykov and
+Kolmogorov~\cite{middlebury_mrf,alpha_expansion,what_energy_can_be_min_by_gc,mrf_experimental}.
 % [2] Fast Approximate Energy Minimization via Graph Cuts.
 %         Y. Boykov, O. Veksler, and R. Zabih.
 %         In IEEE Transactions on Pattern Analysis and Machine Intelligence
@@ -25,6 +24,11 @@ Kolmogorov~\cite{middlebury_mrf,alpha_expansion,what_energy_can_be_min_by_gc, mr
 %         (PAMI), vol. 26, no. 9, pages 1124-1137, September 2004. 
 We have used the QPBO and TRW-S implementations by
 Kolmogorov~\cite{QPBO, TRW-S_implementation}.
+
+To evaluate the effectness of different parallel structures, we plot
+the energy minimization process against time. We define the energy of
+a parallel optimization system at a certain time as the minimum energy
+of all threads at that time.
 
 \input{result_stereo}
 \input{result_optical_flow}
