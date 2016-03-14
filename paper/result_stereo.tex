@@ -20,9 +20,9 @@ system to be the energy of the best solution found so far.
 %
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/stereo_global.png}
- \caption{Energy plots for the stereo problem. The energy is in the
- log scale. For a multi-threading algorithm, the energy at any given
- moment is defined to be the best solution so far.} \label{fig:stereo_global}
+ \caption{Energy plots for the stereo problem. The energy is in the log
+ scale. For a multi-threading algorithm, the energy at a given moment is
+ defined to be the best solution so far.} \label{fig:stereo_global}
 \end{figure}
 %
 One unusual outcome is that Sequential Alpha Expansion and Parallel
@@ -59,11 +59,10 @@ converging to a solution before the final sequential fusion.
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/stereo_threads.png}
   \caption{\yasu{Put a text in the figures showing which one is
-  SF-MF(ours) and which one is parallel alpha expansion} Per thread
-  energy. The left and right figures show the energy minimization
-  process on each working thread of our method in SF-MF configuration
-  and parallel $\alpha$-expansion method, respectively. The energy is in
-  $\log$ scale} \label{fig:stereo_threads}
+  SF-MF(ours) and which one is parallel alpha expansion}
+ Energy plots per thread for the stereo problem for SF-MF (left) and
+ Parallel Alpha Expansion (right).
+} \label{fig:stereo_threads}
 \end{figure}
 
 For an easy optimization problem such as stereo with strong unary terms
