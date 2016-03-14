@@ -13,6 +13,36 @@ multi-way fusion here. Lastly, solution sharing also plays an important
 role for this challenging problem for exactly the same reason, as SF
 performs much better than SF-SS.
 
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=0.8\columnwidth]{figure/layered_depthmap_convergence.png}
+  \caption{Energy plots for the layered depthmap estimation
+    problem. Both the multi-way fusion and the solution sharing are important
+    for this challenging problem.}\label{fig:layered_depthmap_convergence}
+\end{figure}
+
+
+\begin{figure}[!h]
+  \centering
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \centering
+    \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_alpha.png}
+    \caption{}
+    \label{fig:layered_depthmap_by_alpha}
+  \end{subfigure}  
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \centering
+    \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_N.png}
+    \caption{}
+    \label{fig:layered_depthmap_by_N}
+  \end{subfigure}
+  \caption{(a) Energy plots for layered depthmap estimation with varying
+    $\alpha$. More multi-way fusion takes longer to converge but finds a better   
+    solution at the end. (b) Energy plots for layered depthmap estimation with varying number of threads N. More threads find lower energy faster.}
+  \label{fig:layered_depthmap_by_alpha_N}
+\end{figure}
+
+
 %
 %From the plot, we can see that, Fusion Move, Parallel Fusion Move, and
 %SF-MF all stalk at a high energy state.
@@ -32,32 +62,3 @@ At the end we examined the role of multi-threading by varying the number of thre
 %We can see that as the number of
 %ways to fuse becomes larger, each fusion step takes longer time, but the
 %chance of finding a lower energy state increases.
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=0.8\columnwidth]{figure/layered_depthmap_convergence.png}
-  \caption{Energy plots for the layered depthmap estimation
- problem. Both the multi-way fusion and the solution sharing are important
- for this challenging problem.}\label{fig:layered_depthmap_convergence}
-\end{figure}
-
-\begin{figure}[tb]
-  \centering
-  \begin{subfigure}[b]{0.49\columnwidth}
-    \centering
-    \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_alpha.png}
-    \caption{}
-    \label{fig:optical_flow_by_alpha}
-  \end{subfigure}  
-  \begin{subfigure}[b]{0.49\columnwidth}
-    \centering
-    \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_N.png}
-    \caption{}
-    \label{fig:optical_flow_by_N}
-  \end{subfigure}
-  \caption{(a) Energy plots for layered depthmap estimation with varying
-    $\alpha$. More multi-way fusion takes longer to converge but finds a better   
-    solution at the end. (b) Energy plots for layered depthmap estimation with varying number of threads N. More threads find lower energy faster.}
-  \label{fig:layered_depthmap_by_alpha_N}
-\end{figure}
-
