@@ -35,28 +35,28 @@ our swarm fusion method.
 %\hang{figure file missing}
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/optical_flow_convergence.png}
-  \caption{}\label{fig:optical_flow_convergence}
+  \caption{The energy minimization process for optical flow estimation of different methods. FS-MF has the best performance because of the solution sharing in early stage.}\label{fig:optical_flow_convergence}
 \end{figure}
 \begin{figure}[tb]
  \includegraphics[width=\columnwidth]{figure/layered_depthmap_convergence.png}
- \caption{}\label{fig:layered_depthmap_convergence}
+ \caption{The energy minimization process for layered depthmap estimation of different methods. Multi-way fusion is shown to be more effectvie than binary fusion in this problem setting.}\label{fig:layered_depthmap_convergence}
 \end{figure}
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_alpha.png}
-  \caption{}\label{fig:layered_depthmap_by_alpha}
+  \caption{The energy minimization process for layered depthmap estimation with different $\alpha$ values. Multi-way fusion generally performs better than binary fusion, but the optimization becomes harder for using more ways in each step.}\label{fig:layered_depthmap_by_alpha}
 \end{figure}
 \begin{figure}[tb]
-  \includegraphics[width=\columnwidth * 0.5]{figure/optical_flow_PFM_threads.png}
-  \includegraphics[width=\columnwidth * 0.5]{figure/optical_flow_SF_MF_threads.png}
-  \caption{}\label{fig:optical_flow_by_threads}
+  \includegraphics[width=0.5\columnwidth]{figure/optical_flow_SF_MF_threads.png}
+  \includegraphics[width=0.5\columnwidth]{figure/optical_flow_PFM_threads.png}
+  \caption{Per thread energy. The left and right figures show the energy minimization process on each working thread of our method in SF-MF configuration and parallel fusion move, respectively.}\label{fig:optical_flow_by_threads}
 \end{figure}
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
-  \caption{}\label{fig:optical_flow_by_beta}
+  \caption{The energy minimization process for optical flow estimation with different $\beta$ values. Solution sharing generally makes energy minimization faster, but more solution sharing also means less time for exploring new solution proposals.}\label{fig:optical_flow_by_beta}
 \end{figure}
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
-  \caption{}\label{fig:optical_flow_by_interval}
+  \caption{The energy minimization process for optical flow estimation with different solution sharing frequency. Solution sharing generally makes energy minimization faster, but frequent solution sharing also means less time for exploring new solution proposals.}\label{fig:optical_flow_by_beta}\label{fig:optical_flow_by_interval}
 \end{figure}
 
 
