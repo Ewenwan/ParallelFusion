@@ -6,7 +6,8 @@ experiment~\cite{middlebury_stereo}. The number of disparity labels is
 set to 256.
 %
 Since the order of labels is important for the expansion techniques,
-we have picked a random order to avoid any bias.
+we have used the same random order for all algorithms to avoid any
+bias.
 %
 % In PAE, SF-MF, SF-SS and SF algorithms, the proposal generator in each
 % thread can only generate constant-label proposals within a evenly split
@@ -14,7 +15,7 @@ we have picked a random order to avoid any bias.
 
 
 
-Figure~\ref{fig:stereo_global} compares the converegence rate of the
+Fig.~\ref{fig:stereo_global} compares the converegence rate of the
 competing methods. Note that we define the energy of a multi-threading
 system to be the energy of the best solution found so far.
 %
@@ -48,7 +49,7 @@ through mulit-way fusion.
 %We recoreded both single thread energy and system energy against
 %time.
 %
-Figure \ref{fig:stereo_threads} shows the energy plot per thread
+Fig. \ref{fig:stereo_threads} shows the energy plot per thread
 for SF-MF (ours) and PAE. The graph for PAE again confirms that the
 stereo is an easy problem, because all the threads are quickly
 converging to a solution before the final sequential fusion.
@@ -59,9 +60,7 @@ converging to a solution before the final sequential fusion.
 %whole optimization converges, SF-MF architecture is a better choice.
 \begin{figure}[tb]
   \includegraphics[width=\columnwidth]{figure/stereo_threads.png}
-  \caption{\yasu{Put a text in the figures showing which one is
-  SF-MF(ours) and which one is parallel alpha expansion}
- Energy plots per thread for the stereo problem for SF-MF (left) and
+  \caption{Energy plots per thread for the stereo proble for SF-MF (left) and
  Parallel Alpha Expansion (right).
 } \label{fig:stereo_threads}
 \end{figure}
