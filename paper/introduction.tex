@@ -1,5 +1,4 @@
 \section{Introduction}
-\hang{Should we use $\alpha$-expansion instead of alpha-expansion?}
 
 Parallel computation has changed the field of computing.  In the 90s,
 most processors had single cores. In 2016, most processors have multiple
@@ -10,7 +9,7 @@ in a cloud.
 %
 In the recent work on the AI program playing the ancient Chinese board
 game of {\it Go}, parallelization plays a key role in the Monte-Carlo
-tree search~\cite{nature_alpha_go}.
+tree search~\cite{silver2016mastering}.
 
 
 Parallel computation offers tremendous potential for Computer Vision. As
@@ -18,17 +17,17 @@ image sensing technologies have gone through revolutions, we are in
 ever growing demands in solving very large problems. One may need to
 apply image denoising to 50 Megapixel images from latest digital
 SLRs (e.g., Canon EOS 5DS), stitch thousands of images to generate gigapixel
-panoramas~\cite{gigapan}, or solve volumetric reconstruction and
+panoramas~\cite{kopf2007capturing}, or solve volumetric reconstruction and
 segmentation problems over a billion ($=1024^3$)
-voxels~\cite{Joint3DSceneReconstructionandclassSegmentation}.
+voxels~\cite{hane2013joint}.
 %
 %
-However, state-of-the-art algorithms are still inherently sequential in
-many Computer Vision problems. Take a Fusion Move method
-(FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo} for example, which has been
-one of the most effective techniques for Markov Random Field (MRF)
-inference, including the above problems like image denoising, image
-stitching, or volumetric reconstruction.
+However, state-of-the-art algorithms are still inherently sequential
+in many Computer Vision problems. Take a Fusion Move method
+(FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo}
+for example, which has been one of the most effective techniques for
+Markov Random Field (MRF) inference, including the above problems like
+image denoising, image stitching, or volumetric reconstruction.
 %
 It sequentially improves solution by fusing the current solution with a
 solution proposal. Its successful applications go beyond and also cover
@@ -68,8 +67,10 @@ depthmap estimation.
 Our idea is very simple. We believe that the method is easily
 reproducible with minimal coding, and would have immediate impact on
 numerous Computer Vision researchers or engineers, who currently solve
-MRF problems. We will share our implementation of our pipeline which provides
-parallism through simple interfaces.
+MRF problems.
+
+%We will share our implementation of our pipeline which provides
+%parallism through simple interfaces.
 % will instantly benefit every Computer Vision researcher or
 % engineer, who currently uses fusion move algorithm on multi-core
 % environments to solve challenging problems.

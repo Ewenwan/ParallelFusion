@@ -1,21 +1,21 @@
 \section{Swarm Fusion instantiation}
+% \hang{I didn't understand the organization of this section at the
+%   first glance. Should it be clearer if we put 'Swarm fusion
+%   architectures' in front of 'Competing methods' in each problem?}
+
 We compare SF against competing approaches over three problems in
-Computer Vision. SF framework has high degrees of freedom and the
-challenge is to properly quantify the contributions of various
-algorithmic aspects. For this purpose, we have used the three SF
-architectures illustrated in Fig.~\ref{fig:model}. For some problems,
-we have further limited the capabilities of SF on purpose, to enable
-effective and fair comparative evaluations. We now explain the details
-of the three problems.
+Computer Vision, namely, stereo, optical flow, and layered depthmap
+estimation.
 
-\hang{Better to explain the methology we used, either here or in
-  Result part. For example:}
+% SF framework has high degrees of freedom and the
+%challenge is to properly quantify the contributions of various
+%algorithmic aspects.
 
-\hang{To evaluate the effectness of different parallel structures, we
-  plot the energy minimization process against time. We define the
-  energy of a parallel system at a certain time as the minimum energy
-  of all threads at that time.}
-
+%For this purpose, we have used the three SF architectures illustrated in
+%Fig.~\ref{fig:model}.
+%% For some problems, we have further limited the capabilities of SF
+%% on purpose, to enable effective and fair comparative
+%% evaluations. We now explain the details of the three problems.
 
 % We pick three representative problems in Computer Vision to evaluate the
 % effectiveness of the Fusion swarm methods against existing methods. We
@@ -45,28 +45,31 @@ pairwise terms. We employ submodular pairwise terms to make this
 stereo represent relatively ``easy'' MRF inference problems.
 %
 Unary terms are computed as the average robust photoconsistancy
-score~\cite{woodford} between the reference image and the others
+score~\cite{second_order_stereo} between the reference image and the others
 inside a $7\times 7$ pixels window.  Pairwise terms are simple
 truncated absolute label difference with maximum label difference
 $\sigma_s=4$. The total energy is defined by the sum of the two, while
 scaling the pairwise term by a factor of $0.005$. For simplicity we
-don't enforce visibility constraint.
+do not enforce the visibility constraint.
 
 %
 
 \mysubsubsection{Competing methods}
 
 \noindent The sophistication of photometric consistency
-function~\cite{mvs_furukawa_survey} makes unary terms dominant in most
-stereo problems.  Our experiments have also supported this, where the
-fusion method (i.e., the use of proposal generation) rather makes it
-slow due to the overhead.\hang{Don't quite understand this
-  sentence. Does the ``dominant'' means running time or energy? In my
-  experiments, unary terms are pre-computed and are not counted into
-  the running time} Therefore, we have chosen standard sequential
-$\alpha$-expansion, Parallel Alpha Expansion(PAE)~\cite{delong} and
-Hierarchical Fusion~\cite{delong_hierarchical_fusion,olga_hierarchical_alpha_expansion} with graph-cuts optimization as
-the competing methods.
+function~\cite{mvs_furukawa_survey} makes unary terms highly informative
+in most stereo problems.  Our experiments have also supported this,
+where the fusion method (i.e., the use of proposal generation) rather
+makes it slow due to the overhead.
+%\hang{Don't quite understand this sentence. Does the ``dominant'' means
+%running time or energy? In my experiments, unary terms are pre-computed
+%and are not counted into the running time}
+Therefore, we have chosen single thread Alpha Expansion(AE), Parallel
+Alpha
+Expansion(PAE)~\cite{fusion_moves_for_markov_random_field_optimization}
+and Hierarchical
+Fusion(HF)~\cite{delong_hierarchical_fusion,olga_hierarchical_alpha_expansion}
+with graph-cuts optimization as the competing methods.
 
 
 
@@ -76,26 +79,26 @@ the competing methods.
 been evaluated: SF-SS (SF without solution sharing), SF-MF (SF without
 multi-way fusion), and the standard SF.
 %
-SF-SS implies $\beta=0$, where $\alpha$ is the free parameter and set
-to 4. In this case one thread will fuse 4 labels by TRW-S per
-iteration and never exchanges solutions with other threads. SF-MF
-implies $\alpha+\beta=1$, where each thread will expand 3 labels
-(repeat $\alpha=1, \beta=0$ for 3 iterations) and then fuse one
-solution from other threads ($\alpha=0, \beta=1$) by QPBO. In the later
-case, a thread randomly chooses one target thread to grab solution
-from. For standard SF, we have used ($\alpha=4, \beta=1$). For the
-SF-SS architecture, we performed a final fuse of solutions from all
-thread by multiway fusion.
+SF-SS implies $\beta=0$, where $\alpha$ is the free parameter and set to
+4. In this case one thread will fuse 4 labels by TRW-S per iteration and
+never exchanges solutions with other threads. SF-MF implies
+$\alpha+\beta=1$, where each thread will expand 3 labels (repeat
+$\alpha=1, \beta=0$ for 3 iterations) and then fuse one solution from
+other threads ($\alpha=0, \beta=1$) by QPBO. In the later case, a thread
+randomly chooses one target thread to take its solution for fusion. For standard SF,
+we have used ($\alpha=4, \beta=1$). For the SF-SS architecture, we
+perform a multi-way fusion at the end to fuse solutions from all the threads.
 
 %
 %
 %
 %
-To make the comparison simple, we restrict our proposal generation to
-be constant-label proposals. Graph-cuts is used in fusing a
-constant-label proposal as the energy is submodular. QPBO is used in
-fusing a different solution from another thread as the energy is
-non-submodular.
+To make the comparison simple, we restrict our proposal generator
+in each thread to only generate constant-label proposals within a
+subset of all labels. Graph-cuts is used in fusing a constant-label
+proposal as the energy is submodular. QPBO is used in fusing a
+different solution from another thread as the energy is
+non-submodular in general.
 %
 % Due to the lack of multi-way fusion, the swarm fusion architecture for
 % the stereo problem is represented by the middle example at the bottom of

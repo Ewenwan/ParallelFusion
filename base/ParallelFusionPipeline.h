@@ -193,8 +193,8 @@ namespace ParallelFusion {
                                                           GeneratorPtr generator,
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
-        try {
-            srand(id + 1);
+      try {
+	srand(id);
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);
@@ -205,12 +205,12 @@ namespace ParallelFusion {
             SolutionType<LABELSPACE> current_solution;
             current_solution.first = solver->evaluateEnergy(initial);
             current_solution.second = initial;
-            bestSolutions[id].set(current_solution);
+            //bestSolutions[id].set(current_solution);
 
             double lastEnergy = current_solution.first;
             double initTime = ((float)cv::getTickCount() - start_time) / (float)cv::getTickFrequency();
-            globalProfile.addObservation(initTime, current_solution.first);
-            threadProfile[slaveThreadIds[id]].push_back(Observation(initTime, current_solution.first));
+//            globalProfile.addObservation(initTime, current_solution.first);
+//            threadProfile[slaveThreadIds[id]].push_back(Observation(initTime, current_solution.first));
 
             for(int iter=0; iter < option.max_iteration; ++iter) {
                 if(terminate.load()){
@@ -269,9 +269,9 @@ namespace ParallelFusion {
                                 num_proposals_to_fuse = 1;
                             }
                         }
-                        float dt = ((float)cv::getTickCount() - start_time) / (float)cv::getTickFrequency();
-                        threadProfile[slaveThreadIds[id]].push_back(Observation(dt, current_solution.first));
-                        globalProfile.addObservation(dt, current_solution.first);
+//                        float dt = ((float)cv::getTickCount() - start_time) / (float)cv::getTickFrequency();
+//                        threadProfile[slaveThreadIds[id]].push_back(Observation(dt, current_solution.first));
+//                        globalProfile.addObservation(dt, current_solution.first);
 
                         generator->writeSolution(current_solution, slaveThreadIds[id], iter);
 
@@ -282,7 +282,7 @@ namespace ParallelFusion {
                                 std::this_thread::yield();
                         }
 
-                        bestSolutions[id].set(current_solution);
+                        //bestSolutions[id].set(current_solution);
                         //if(option.synchronize) //Always set this flag so that a minotor could know whether results are ready, synchronization is guaranteed it the minotor thread set the flag to true.
                         write_flag[id].store(false);
 
