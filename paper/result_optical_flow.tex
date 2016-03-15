@@ -26,17 +26,13 @@ optimization.
   \begin{subfigure}[b]{0.49\columnwidth}
     \centering
     \includegraphics[width=\columnwidth]{figure/optical_flow_PFM_threads.png}
-    \caption{}
-    \label{fig:optical_flow_PFM_threads}
   \end{subfigure}  
   \begin{subfigure}[b]{0.49\columnwidth}
     \centering
     \includegraphics[width=\columnwidth]{figure/optical_flow_SF_MF_threads.png}
-    \caption{}
-    \label{fig:optical_flow_SF_MF_threads}
   \end{subfigure}
-  \caption{Energy plots per thread for (a) Parallel Fusion  
-    Move (PFM) and (b) our SF-MF.}
+  \caption{Energy plots per thread. Left: Parallel Fusion  
+    Move (PFM). Right: SF-MF(ours).}
   \label{fig:optical_flow_by_threads}  
 \end{figure}
 
@@ -87,9 +83,9 @@ effects of solution sharing, we conducted two more experiments. First,
 we set $\beta$ to 0, 1, 2, or 3 in every five iterations,
 % (when $\beta = 0$, it is the same with PFM without final merging).
 while keeping all other parameters the same (See
-Fig.~\ref{fig:optical_flow_by_beta}).  Second, we change the number of
+Fig.~\ref{fig:opticalflow_configuration}(left)).  Second, we change the number of
 iterations $k$ between the two consecutive solution sharing iterations
-(See Fig.~\ref{fig:optical_flow_by_interval}).  The first experiment
+(See Fig.~\ref{fig:opticalflow_configuration}(right)).  The first experiment
 revealed that the solution sharing makes convergence faster regardless of
 $\beta$.  However, too much solution sharing slows down the convergence,
 and $\beta=1$ is the sweet spot for this problem.
@@ -115,20 +111,19 @@ Optimal parameter setting depends on each problem setting.
 
 
 \begin{figure}[!h]
-  \centering
-  \begin{subfigure}[b]{0.49\columnwidth}
-    \centering
-    \includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
-    \caption{}
-    \label{fig:optical_flow_by_beta}
-  \end{subfigure}  
-  \begin{subfigure}[b]{0.49\columnwidth}
-    \centering
-    \includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
-    \caption{}
-    \label{fig:optical_flow_by_interval}
-  \end{subfigure}
-  \caption{Energy plots for optical flow with (a) varying
-    $\beta$ and (b) varying solution sharing
-    frequencies. Solution sharing achieves better convergence, but sharing too many solutions (larger $\beta$) or sharing solutions too frequently (less $k$) slows down the convergence, as it reduces the time for exploration.}
+\centering
+\begin{subfigure}[b]{0.49\columnwidth}
+\includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\columnwidth}
+\includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
+\end{subfigure}
+\caption{Energy
+  plots for optical flow under difference configurations. Left:
+  varying $\beta$; right: varying solution sharing
+  frequencies. Solution sharing achieves better convergence, but
+  sharing too many solutions (larger $\beta$) or sharing solutions too
+  frequently (less $k$) slows down the convergence, as it reduces the
+  time for exploration.}
+  \label{opticalflow_configuration}
 \end{figure}

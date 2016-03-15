@@ -26,18 +26,14 @@ SF-SS.
   \begin{subfigure}[b]{0.49\columnwidth}
     \centering
     \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_alpha.png}
-    \caption{}
-    \label{fig:layered_depthmap_by_alpha}
   \end{subfigure}  
   \begin{subfigure}[b]{0.49\columnwidth}
     \centering
     \includegraphics[width=\columnwidth]{figure/layered_depthmap_by_N.png}
-    \caption{}
-    \label{fig:layered_depthmap_by_N}
   \end{subfigure}
   \caption{(a) Energy plots for layered depthmap estimation with varying
     $\alpha$. (b) Energy plots for layered depthmap estimation with varying number of threads N.}
-  \label{fig:layered_depthmap_by_alpha_N}
+  \label{fig:layered_depthmap_configuration}
 \end{figure}
 
 
@@ -47,7 +43,7 @@ SF-SS.
 To further study the effects of multi-way fusion, we have varied the
 value of $\alpha$ which controls the number of solution proposals to be
 fused in SF-SS model (See
-Fig.~\ref{fig:layered_depthmap_by_alpha}). Note that we have used SF-SS
+Fig.~\ref{fig:layered_depthmap_configuration}(left)). Note that we have used SF-SS
 instead of SF to disable solution sharing and better observe the effects
 of multi-way fusion.
 % SF-SS model (disable solution sharing to
@@ -58,7 +54,7 @@ converge, but finds a lower energy state at the end.
 
 Finally, we have examined the role of multi-threading by varying the
 number of threads N in our most general model SF (See
-Fig.~\ref{fig:layered_depthmap_by_N})~\footnote{While keeping other
+Fig.~\ref{fig:layered_depthmap_configuration}(right))~\footnote{While keeping other
 parameters the same, we have to change $\beta$ with $N$ because of the
 constraint $\beta \leq N-1$. We have always used $\beta = N-1$ in this
 experiment.}. More threads lead to faster convergence as expected,
