@@ -20,7 +20,7 @@ for i = 2:size(raw_values, 1)
         end
         previous_energy = raw_values(i, 2);
     end
-    if (raw_values(i, 1) > start_time + 420)
+    if (raw_values(i, 1) > start_time + 4200)
         break;
     end
 end
