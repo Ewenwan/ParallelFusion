@@ -1,11 +1,10 @@
 \section{Introduction}
 
 Parallel computation has changed the field of computing.  In the 90s,
-most processors had single cores, while nowadays processors with 4 or
-8 cores are commonly used. Cluster computing further expands the
-potential of parallel computation, where one can easily launch a
-processing job using hundreds or even thousands of computational nodes
-in a cloud.
+most processors had single cores. In 2016, processors have often 4 cores,
+or even 8. Cluster computing further expands the potential
+of parallel computation, where one can easily launch a processing job
+using hundreds or even thousands of computational nodes in a cloud.
 %
 In the recent work on the AI program playing the ancient Chinese board
 game of {\it Go}, parallelization plays a key role in the Monte-Carlo
@@ -34,17 +33,16 @@ voxels~\cite{hane2013joint}.
 %% inpainting, or image segmentation
 %% problems~\cite{fusion_moves_for_markov_random_field_optimization} .
 %
-Markov Random Field (MRF) provides a universal and powerful way to
-solve many low-level Computer Vision problems. However,
-state-of-the-art algorithms for MRF inference are still inherently
-sequential. Take a Fusion Move method
+Markov Random Field (MRF) has been a very successful framework to solve
+these problems in Computer Vision. However, state-of-the-art algorithms
+for MRF inference are still inherently sequential. Take a Fusion Move
+method
 (FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo}
-for example, which has been one of the most effective techniques for
-MRF inference. It sequentially improves solution by fusing the current
-solution with a solution proposal. Its successful applications cover
-not only above problems, but also popular problems like optical flow,
-stereo, image inpainting, or image segmentation
-problems~\cite{fusion_moves_for_markov_random_field_optimization}.
+for example, which has been one of the most effective techniques for MRF
+inference. It sequentially improves solution by fusing the current
+solution with a solution proposal. It has been successfully applied to
+many problems such as optical flow, stereo, image inpainting, or image
+segmentation~\cite{fusion_moves_for_markov_random_field_optimization}.
 
 
 Unleashing the power of parallel computation for effective MRF inference
@@ -61,17 +59,17 @@ of a single solution, is proposed and fused with the current
 solution. However, this approach is also limited to the use of one proposal
 generation scheme in each fusion.}
 %
-Our approach, dubbed {\it Swarm Fusion} method (SF), makes a
-few key distinctions from existing approaches: 1) Multiple threads (or
-computing nodes) simultaneously keep and improve solutions; and 2) Each
-fusion in each thread can take arbitrary number of proposals from
-arbitrary combination of proposal generation schemes, even concurrent
-solutions in the other threads, to fuse with the current solution.
+Our approach, dubbed {\it Swarm Fusion} method (SF), makes a few key
+distinctions from existing approaches: 1) Multiple threads (or computing
+nodes) simultaneously keep and improve solutions; and 2) Each fusion in
+each thread can generate arbitrary number of solution proposals and use
+arbitrary number of concurrent solutions in the other threads, to be fused
+with the current solution.
 %
 
 
 We have evaluated the effectiveness of our approach over three problems
-in Computer Vision, stereo, optical flow, and layered
+in Computer Vision, specifically, stereo, optical flow, and layered
 depthmap estimation.
 %
 %Our approach outperforms all the other competing methods, especially for
@@ -80,9 +78,11 @@ depthmap estimation.
 %Our idea is very simple. We believe that the method is easily
 %reproducible with minimal coding
 %
-We believe that the method can be integrated into existing algorithms
-with minimal coding, and would have immediate benefit to numerous
-Computer Vision researchers or engineers.
+Our idea is extremely simple and the new inference framework can be
+integrated into existing system with minimal coding. We believe that
+this paper would have immediate impact on numerous Computer Vision
+researchers or engineers, currently solving MRF problems with
+conventional methods.
 
 %We will share our implementation of our pipeline which provides
 %parallism through simple interfaces.
