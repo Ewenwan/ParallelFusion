@@ -193,8 +193,8 @@ namespace ParallelFusion {
                                                           GeneratorPtr generator,
                                                           SolverPtr solver,
                                                           const ThreadOption &thread_option){
-      try {
-	srand(id);
+        try {
+            srand(id);
             printf("Thread %d lauched\n", id);
             std::default_random_engine seed;
             std::uniform_int_distribution<int> distribution(1, (int)slaveThreadIds.size() - 1);
@@ -205,12 +205,12 @@ namespace ParallelFusion {
             SolutionType<LABELSPACE> current_solution;
             current_solution.first = solver->evaluateEnergy(initial);
             current_solution.second = initial;
-            //bestSolutions[id].set(current_solution);
+            bestSolutions[id].set(current_solution);
 
             double lastEnergy = current_solution.first;
             double initTime = ((float)cv::getTickCount() - start_time) / (float)cv::getTickFrequency();
-//            globalProfile.addObservation(initTime, current_solution.first);
-//            threadProfile[slaveThreadIds[id]].push_back(Observation(initTime, current_solution.first));
+            globalProfile.addObservation(initTime, current_solution.first);
+            threadProfile[slaveThreadIds[id]].push_back(Observation(initTime, current_solution.first));
 
             for(int iter=0; iter < option.max_iteration; ++iter) {
                 if(terminate.load()){

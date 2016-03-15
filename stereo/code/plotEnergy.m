@@ -3,13 +3,13 @@ function plotEnergy(dataset, nt, max_time)
 % dataset: path to root of dataset
 % nt: number of threads
 set(0, 'DefaultAxesFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize',18);
+set(0, 'DefaultAxesFontSize',34);
 set(0, 'DefaultTextFontname', 'Times New Roman');
-set(0, 'DefaultTextFontSize', 18);
+set(0, 'DefaultTextFontSize', 34);
 
 method_name = {'Sequential', 'Victor', 'Hierarchy', 'Swarn', 'Victor_multiway', 'Swarn_multiway'};
 legend_name_global = {'AE', 'PAE', 'HF', 'SF-MF(ours)', 'SF-SS(ours)', 'SF(ours)'};
-line_width = 2.0;
+line_width = 4.0;
 %TODO:
 line_specs = {'--','--','--','','',''};
 
@@ -30,8 +30,8 @@ for i=1:nm
 end
 legend(legend_name_global);
 xlabel('Time/s');
-ylabel('Energy(log scale)');
-fig_glb.Position = [500,500,640,360];
+ylabel('Energy(log-scale)');
+fig_glb.Position = [500,500,1280,720];
 
 %subfigure for thread
 legend_name_thread = cell(nt);
@@ -42,23 +42,32 @@ end
 
 hold off;
 
-% for i=2:2:4
-%     fig_thread = figure(i+1);
-%     hold on;
-%     mid = i;
-%     for j=1:nt
-%         filepath = sprintf('%s/plot_%s_thread%d.txt', dataset, method_name{mid}, j-1);
-%         disp(filepath);
-%         thd = dlmread(filepath);
-%         thd_trun = thd(thd(:,1) < max_time / 2, :);
-%         plot(thd_trun(:,1), log(thd_trun(:,2)), 'LineWidth', line_width);
-%     end
-%     legend('Thread 1', 'Thread 2', 'Thread 3', 'Thread 4');
-%     xlabel('Time/s');
-%     ylabel('Energy');
-%     fig_thread.Position = [500,500,640,500];
-%     hold off;
-% end
+set(0, 'DefaultAxesFontName', 'Times New Roman');
+set(0, 'DefaultAxesFontSize',30);
+set(0, 'DefaultTextFontname', 'Times New Roman');
+set(0, 'DefaultTextFontSize', 30);
+line_width = 2.0;
+for i=4:-2:2
+    fig_thread = figure(i+1);
+    hold on;
+    mid = i;
+    for j=1:nt
+        filepath = sprintf('%s/plot_%s_thread%d.txt', dataset, method_name{mid}, j-1);
+        disp(filepath);
+        thd = dlmread(filepath);
+        thd_trun = thd(thd(:,1) < max_time / 2, :);
+        plot(thd_trun(:,1), log(thd_trun(:,2)), 'LineWidth', line_width);
+    end
+    if i==2
+        legend('PAE Thread 1', 'PAE Thread 2', 'PAE Thread 3', 'PAE Thread 4');
+    else
+        legend('SM-MF(ours) Thread 1', 'SM-MF(ours) Thread 2', 'SM-MF(ours) Thread 3', 'SM-MF(ours) Thread 4');
+    end
+    xlabel('Time/s');
+    ylabel('Energy(log-scale)');
+    fig_thread.Position = [500,500,640,500];
+    hold off;
+end
 
 %draw energy vs. number of threads
 % figure_nthreads = figure(10);

@@ -6,19 +6,21 @@ solve the optical flow problem.
 %introduced by Lempitsky et al.~\cite{viktor}.
 We copy their problem setting and use images from the Middlebury optical
 flow benchmark~\cite{middlebury_optical_flow}. We share similar proposal
-generation schemes with Lempitsky et al~\cite{fusion_flow}, but
+generation schemes with Lempitsky et al~\cite{fusion_flow}
 %instead of the HS algorithm, we
-use more recent Farneback algorithm with some modifications.~\footnote{First, we
-change the level of pyramids from 1 to 5, then use either 3, 5 or 7 for
-parameter ``polyN''. Besides the clustering idea, we add three simple
-proposal generation schemes based on the current solution as suggested
-in \cite{fusion_flow}. In \textit{shift proposal}, the flow field in the
-current solution is shifted in either x or y directions for
-either 1, 2 or 3 pixels. In \textit{stagger proposal}, the flow field is
-shifted by a vector randomly drawn from a Gaussian distribution. In
-\textit{perturb proposal}, each flow value in the field is
-independently shifted by a vector randomly drawn from a Gaussian
-distribution. We choose schemes randomly when generating proposals.}
+ with some modifications.~\footnote{First, we use more recent
+   Farneback algorithm and change the level of pyramids from 1 to 5,
+   then use either 3, 5 or 7 for parameter ``polyN''. Besides the
+   clustering idea, we add three simple proposal generation schemes
+   based on the current solution as suggested in
+   \cite{fusion_flow}. In \textit{shift proposal}, the flow field in
+   the current solution is shifted in either x or y directions for
+   either 1, 2 or 3 pixels. In \textit{stagger proposal}, the flow
+   field is shifted by a vector randomly drawn from a Gaussian
+   distribution. In \textit{perturb proposal}, each flow value in the
+   field is independently shifted by a vector randomly drawn from a
+   Gaussian distribution. We choose schemes randomly when generating
+   proposals.}
 
 \mysubsubsection{Competing methods}
 
@@ -61,14 +63,15 @@ The fusions are binary in these methods and we have used QPBO.
 \noindent
 %The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
 %are used to evaluate the effectiveness of our method.
-The three swarm architectures in Fig.~\ref{fig:model} (SF-MF, SF-SS, SF)
-have been evaluated against the competing methods. For SF-MF, each
-thread repeats generating solution proposals ($\alpha=1, \beta=0$) for four
-iterations and fuses with one solution from others ($\alpha=0, \beta=1$)
-in one iteration. This pattern is repeated. For SF-SS, each thread
-generates three solution proposals for fusion in each iteration
-($\alpha=3$, $\beta=0$). For SF, we repeat ($\alpha=3, \beta=0$) for four
-iterations and ($\alpha=0, \beta=3$) for one iteration.
+The three swarm architectures in Fig.~\ref{fig:model} (SF-MF, SF-SS,
+SF) have been evaluated against the competing methods. For SF-MF, each
+thread repeats generating solution proposals ($\alpha=1, \beta=0$) for
+four iterations and fuses with one solution from others ($\alpha=0,
+\beta=1$) in one iteration. This pattern is repeated. For SF-SS, each
+thread generates three solution proposals for fusion in each iteration
+($\alpha=3$, $\beta=0$). For SF, we repeat the pattern of four
+iterations with ($\alpha=3, \beta=0$) plus one iteration with ($\alpha=0,
+\beta=3$).
 %%
 %Note that we have used the same set of proposal generation schemes as
 %the competing methods.

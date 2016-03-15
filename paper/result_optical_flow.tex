@@ -3,7 +3,7 @@
 \noindent
 %
 We have chosen the Dimetrodon image pair from the Middlebury flow
-dataset~\cite{middlebury_optical_flow}. Figure~\ref{fig:optical_flow_convergence}
+dataset~\cite{middlebury_optical_flow}. Fig.~\ref{fig:optical_flow_convergence}
 shows the energy plots of the three competing methods, Fusion Move
 (FM), Parallel Fusion Move (PFM), and Hierarchical Fusion Move (HFM),
 against our Swarm Fusion methods (SF-MF, SF-SS, SF). A key observation
@@ -13,18 +13,34 @@ difficult problem and many solution proposals are not effective.
 The solution sharing (i.e., SF-MF) allows all the threads to exchange
 effective solution proposals in the middle of the
 optimization.
-\begin{figure}[tb]
-  \includegraphics[width=\columnwidth]{figure/optical_flow_convergence.png}
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=0.8\columnwidth]{figure/optical_flow_convergence.png}
   \caption{Energy plots for optical flow estimation. SF-MF has the best
  performance due to its solution sharing strategy.}\label{fig:optical_flow_convergence}
 \end{figure}
-\begin{figure}[tb]
-  \includegraphics[width=0.5\columnwidth]{figure/optical_flow_SF_MF_threads.png}
-  \includegraphics[width=0.5\columnwidth]{figure/optical_flow_PFM_threads.png}
- \caption{Energy plots per thread for SF-MF (left) and Parallel Fusion
- Move (right).}\label{fig:optical_flow_by_threads}
+
+\begin{figure}[!h]
+  \centering
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \centering
+    \includegraphics[width=\columnwidth]{figure/optical_flow_PFM_threads.png}
+    \caption{}
+    \label{fig:optical_flow_PFM_threads}
+  \end{subfigure}  
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \centering
+    \includegraphics[width=\columnwidth]{figure/optical_flow_SF_MF_threads.png}
+    \caption{}
+    \label{fig:optical_flow_SF_MF_threads}
+  \end{subfigure}
+  \caption{Energy plots per thread for (a) Parallel Fusion  
+    Move (PFM) and (b) our SF-MF.}
+  \label{fig:optical_flow_by_threads}  
 \end{figure}
-%
+
+% 
 % This is because some solution proposals are more effective than others,
 % so once a thread grabs an effective solution proposal, it find a lower
 % energy quickly. Since there is no solution sharing in PFM model, other
@@ -38,7 +54,7 @@ optimization.
 %contribute to further decrease of this low energy state. To further
 %demonstrate what is happening here,
 To further investigate the effectiveness of solution sharing,
-Figure~\ref{fig:optical_flow_by_threads} shows the energy plots of PFM
+Fig.~\ref{fig:optical_flow_by_threads} shows the energy plots of PFM
 and SF-MF per thread. As evident from the plot, in PFM, one thread found
 a better solution than others, but other threads keep working
 independently at higher energy states. SF-MF, on the other hand,
@@ -71,10 +87,10 @@ $\beta$ to 0, 1, 2, or 3 in every five iterations,
 % (when $\beta = 0$, it is the same with PFM without final merging).
 while keeping all other parameters the same (See
 Fig.~\ref{fig:optical_flow_by_beta}).  Second, we change the number of
-iterations $k$ between the two consecutive solution sharing iterations
+iterations $k$ between two consecutive solution sharing iterations
 (See Fig.~\ref{fig:optical_flow_by_interval}).  The first experiment
-revealed that the solution sharing makes convergence faster regarless of
-$\beta$.  However, too much solution sharing slows down the converence,
+revealed that the solution sharing makes convergence faster regardless of
+$\beta$.  However, too much solution sharing slows down the convergence,
 and $\beta=1$ is the sweet spot for this problem.
 %
 % , energy generally
@@ -85,7 +101,7 @@ and $\beta=1$ is the sweet spot for this problem.
 % can get more global information early.
 %
 The second experiment has shown that too frequent solution sharing
-harms the converengece, simply because we have less time generating more
+harms the convergence, simply because we have less time generating more
 proposals and exploring the solution space.
 % From this figure, we can see that
 % although solution sharing generally speeds up the optimization process,
@@ -95,18 +111,23 @@ proposals and exploring the solution space.
 Optimal parameter setting depends on each problem setting.
 %A good choice of the solution sharing frequency depends on specific
 %problem setting.
-\begin{figure}[tb]
-  \includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
-  \caption{Energy plots for optical flow with different values of
-  $\beta$. Solution sharing achieves better convergence. However, too
-  much solution sharing slows down the converence, as it reduces the
- time for exploration.}\label{fig:optical_flow_by_beta}
-\end{figure}
-\begin{figure}[tb]
-  \includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
-  \caption{Energy plots for optical flow with different solution sharing
-  frequencies. Solution sharing is critical, but too frequent solution
-  sharing (less $k$) slows down the convergence.}
- \label{fig:optical_flow_by_interval}
-\end{figure}
 
+
+\begin{figure}[!h]
+  \centering
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \centering
+    \includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
+    \caption{}
+    \label{fig:optical_flow_by_beta}
+  \end{subfigure}  
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \centering
+    \includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
+    \caption{}
+    \label{fig:optical_flow_by_interval}
+  \end{subfigure}
+  \caption{Energy plots for optical flow with (a) varying
+    $\beta$ and (b) varying solution sharing
+    frequencies. Solution sharing achieves better convergence, but sharing too many solutions (larger $\beta$) or sharing solutions too frequently (less $k$) slows down the convergence, as it reduces the time for exploration.}
+\end{figure}

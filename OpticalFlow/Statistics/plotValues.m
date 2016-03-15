@@ -38,19 +38,23 @@ end
 %figureHandle = gcf;
 
 set(0, 'DefaultAxesFontName', 'Times New Roman');
-set(0, 'DefaultAxesFontSize', 30);
+set(0, 'DefaultAxesFontSize', 34);
 set(0, 'DefaultTextFontName', 'Times New Roman');
-set(0, 'DefaultTextFontSize', 30);
+set(0, 'DefaultTextFontSize', 34);
 
 fig_1 = figure(1);
-plot(sequential(:, 1), log(sequential(:, 2)), '--', Victor(:, 1), log(Victor(:, 2)), '--', hierarchy(:, 1), log(hierarchy(:, 2)), '--', solution_exchange(:, 1), log(solution_exchange(:, 2)), multiway(:, 1), log(multiway(:, 2)), full(:, 1), log(full(:, 2)), 'LineWidth', 2);
+plot(sequential(:, 1), log(sequential(:, 2)), '--', Victor(:, 1), log(Victor(:, 2)), '--', hierarchy(:, 1), log(hierarchy(:, 2)), '--', solution_exchange(:, 1), log(solution_exchange(:, 2)), multiway(:, 1), log(multiway(:, 2)), full(:, 1), log(full(:, 2)), 'LineWidth', 3);
 l = legend('FM', 'PFM', 'HFM', 'SF-MF(ours)', 'SF-SS(ours)', 'SF(ours)');
 xlabel('Time/s');
 ylabel('Energy(log-scale)');
 %ylim([8, 9.8]);
+box off;
 fig_1.Position = [500, 500, 1280, 720];
 
 print(fig_1, '../../paper/figure/optical_flow_convergence', '-dpng');
+
+set(0, 'DefaultAxesFontSize', 30);
+set(0, 'DefaultTextFontSize', 30);
 
 fig_2 = figure(2);
 %plot(Victor_by_thread{1}(:, 1), log(Victor_by_thread{1}(:, 2)), '-+m', Victor_by_thread{2}(:, 1), log(Victor_by_thread{2}(:, 2)), '-om', Victor_by_thread{3}(:, 1), log(Victor_by_thread{3}(:, 2)), '-*m', Victor_by_thread{4}(:, 1), log(Victor_by_thread{4}(:, 2)), '-xm', solution_exchange_by_thread{1}(:, 1), log(solution_exchange_by_thread{1}(:, 2)), '-+b', solution_exchange_by_thread{2}(:, 1), log(solution_exchange_by_thread{2}(:, 2)), '-+b', solution_exchange_by_thread{3}(:, 1), log(solution_exchange_by_thread{3}(:, 2)), '-*b', solution_exchange_by_thread{4}(:, 1), log(solution_exchange_by_thread{4}(:, 2)), '-xb', 'LineWidth', 2)
@@ -59,6 +63,7 @@ legend('PFM Thread 1', 'PFM Thread 2', 'PFM Thread 3', 'PFM Thread 4');
 xlabel('Time/s');
 ylabel('Energy(log-scale)');
 ylim([8, 9.6]);
+box off;
 fig_2.Position = [500, 500, 640, 500];
 
 print(fig_2, '../../paper/figure/optical_flow_PFM_threads', '-dpng');
@@ -69,6 +74,7 @@ legend('SF-MF(ours) Thread 1', 'SF-MF(ours) Thread 2', 'SF-MF(ours) Thread 3', '
 xlabel('Time/s');
 ylabel('Energy(log-scale)');
 ylim([8, 9.6]);
+box off;
 fig_3.Position = [500, 500, 640, 500];
 
 print(fig_3, '../../paper/figure/optical_flow_SF_MF_threads', '-dpng');
