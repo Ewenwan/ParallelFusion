@@ -14,14 +14,14 @@ The solution sharing (i.e., SF-MF) allows all the threads to exchange
 effective solution proposals in the middle of the
 optimization.
 
-\begin{figure}[!h]
+\begin{figure}[!ht]
   \centering
   \includegraphics[width=0.8\columnwidth]{figure/optical_flow_convergence.png}
   \caption{Energy plots for optical flow estimation. SF-MF has the best
  performance due to its solution sharing strategy.}\label{fig:optical_flow_convergence}
 \end{figure}
 
-\begin{figure}[!h]
+\begin{figure}[!ht]
   \centering
   \begin{subfigure}[b]{0.49\columnwidth}
     \centering
@@ -110,7 +110,7 @@ Optimal parameter setting depends on each problem setting.
 %problem setting.
 
 
-\begin{figure}[!h]
+\begin{figure}[!ht]
 \centering
 \begin{subfigure}[b]{0.49\columnwidth}
 \includegraphics[width=\columnwidth]{figure/optical_flow_by_beta.png}
@@ -124,6 +124,5 @@ Optimal parameter setting depends on each problem setting.
   frequencies. Solution sharing achieves better convergence, but
   sharing too many solutions (larger $\beta$) or sharing solutions too
   frequently (less $k$) slows down the convergence, as it reduces the
-  time for exploration.}
-  \label{opticalflow_configuration}
+  time for exploration.} \label{fig:opticalflow_configuration}
 \end{figure}

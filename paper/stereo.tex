@@ -69,7 +69,7 @@ single thread Alpha Expansion(AE), Parallel Alpha
 Expansion(PAE)~\cite{fusion_moves_for_markov_random_field_optimization}
 and Hierarchical Fusion(HF)~\cite{olga_hierarchical_alpha_expansion} to
 be competing methods. For HF, we use Alpha-Expansion at the leaf node of
-the label tree or QPBO in the other cases.
+the label tree and QPBO in the other cases.
 %when either of the
 %child node is leaf node (constant label) and QPBO for all other nodes.
 
@@ -87,20 +87,17 @@ for one iteration by QPBO.
 %Expansion and then fuse one solution from other threads ($\alpha=0,
 %\beta=1$) by QPBO.
 In the later case, a thread randomly chooses one solution from the
-solution pool for fusion. SF-SS implies $\beta=0$, where $\alpha$ is the
-free parameter and set to 4. In this case one thread will fuse 4 labels,
-together with current solution by TRW-S per iteration and never
-exchanges solutions with other threads. We perform a multi-way fusion
-of solutions from all the threads at the end to obtain a final solution
+solution pool for fusion. SF-SS implies $\beta=0$, where $\alpha$ is
+the free parameter and set to 4. In this case one thread will fuse 4
+labels, together with current solution in that thread by TRW-S in each
+iteration and never exchanges solutions with other threads. We perform
+a multi-way fusion of solutions from all the threads at the end to
+obtain a final solution
 % at
 % the end to fuse solutions from all the threads to a single solution
-(similar to PAE). For standard SF, we have used ($\alpha=4, \beta=1$).
-%
-%
-%
-%
-To make the comparison simple, we restrict our solution proposals
-to be constant-label proposals.
+(similar to PAE). For standard SF architecture, we have used
+($\alpha=4, \beta=1$).  To make the comparison simple, we restrict our
+solution proposals to be constant-label proposals.
 %
 % Due to the lack of multi-way fusion, the swarm fusion architecture for
 % the stereo problem is represented by the middle example at the bottom of
