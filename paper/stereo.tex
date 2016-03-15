@@ -44,12 +44,12 @@ We start with a simple depthmap stereo problem with standard unary and
 pairwise terms. We employ submodular pairwise terms to make this
 stereo represent relatively ``easy'' MRF inference problems.
 %
-Unary terms are computed as the average robust photoconsistancy
+The unary terms are computed as the average robust photoconsistancy
 score~\cite{second_order_stereo} between the reference image and the others
-inside a $7\times 7$ pixels window.  Pairwise terms are simple
+inside a $7\times 7$ pixels window. The pairwise terms are simple
 truncated absolute label difference with maximum label difference
 $\sigma_s=4$. The total energy is defined by the sum of the two, while
-scaling the pairwise term by a factor of $0.005$. For simplicity we
+scaling the pairwise terms by a factor of $0.005$. For simplicity we
 do not enforce the visibility constraint.
 
 %
