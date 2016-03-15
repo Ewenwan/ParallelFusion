@@ -57,7 +57,7 @@ of multi-way fusion.
 It is interesting to see that more multi-way fusion takes longer to
 converge, but finds a lower energy state at the end.
 
-At the end we examined the role of multi-threading by varying the number of threads N in our most general model SF (See Fig.~\ref{fig:layered_depthmap_by_N})~\footnote{While keeping other parameters the same, we have to change $beta$ with $N$ because of the constraint $\beta \leq N-1$. We always use $\beta = N-1$ in this experiment.}. The plot shows that SF finds low energy faster with more threads. In Fusion Move like methods, parallism speed up convergence by exploring solution proposals faster. Due to the inherited randomness in the proposal generation scheme, the speed up is often not proportional to the number of threads.
+At the end we examined the role of multi-threading by varying the number of threads N in our most general model SF (See Fig.~\ref{fig:layered_depthmap_by_N})~\footnote{While keeping other parameters the same, we have to change $\beta$ with $N$ because of the constraint $\beta \leq N-1$. We always use $\beta = N-1$ in this experiment.}. The plot shows that SF finds low energy faster with more threads. In Fusion Move like methods, parallelism speeds up convergence by exploring solution proposals faster. Due to the inherited randomness in the proposal generation scheme, the speed up is often not proportional to the number of threads.
 %We can see that as the number of
 %ways to fuse becomes larger, each fusion step takes longer time, but the
 %chance of finding a lower energy state increases.
