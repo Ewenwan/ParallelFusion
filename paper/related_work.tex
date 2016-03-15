@@ -9,13 +9,15 @@ here focus our description on closely related topics.
 
 \mysubsubsection{Parallel Alpha-Expansion}
 
-\noindent Lempitsky et al.~\cite{fusion_moves_for_markov_random_field_optimization} introduces parallel computation to an
-alpha-expansion technique, where multiple threads simultaneously fuses
-mutually exclusive sets of labels. Kumar et
-al.~\cite{hierarchical_graph_cuts_kumar_and_koller}, Delong et
-al.~\cite{delong_hierarchical_fusion}, and Veksler et al.~\cite{olga_hierarchical_alpha_expansion} proposed an hierarchical
-approach, where labels can be simultaneously fused from the bottom to
-the top in a tree of labels. 
+\noindent Lempitsky et
+al.~\cite{fusion_moves_for_markov_random_field_optimization}
+introduces parallel computation to the alpha-expansion technique,
+where multiple threads simultaneously fuse mutually exclusive sets of
+labels. Kumar et al.~\cite{hierarchical_graph_cuts_kumar_and_koller},
+Delong et al.~\cite{delong_hierarchical_fusion}, and Veksler et
+al.~\cite{olga_hierarchical_alpha_expansion} investigated hierarchical
+approachs, where labels can be simultaneously fused from the bottom to
+the top in a tree of labels.
 % 
 Instead of taking a hierarchical approach, Batra et
 al.~\cite{Dhruv_pushmeet_making_the_right_move} adaptively computed an
@@ -53,16 +55,16 @@ easily reproducible by standard engineers.
 
 \mysubsubsection{Fusion Move methods}
 
-\noindent FM was first introduced by Lempitsky et al.~\cite{fusion_flow} in solving an
+\noindent FM was first introduced by Lempitsky et al.~\cite{fusion_flow} in solving the
 optical flow problem. FM has been effectively used to solve challenging
 problems in Computer Vision such as stereo with second order smoothness
 priors~\cite{second_order_stereo}, stereo with parameteric surface fitting and
-segmentation (i.e. Surface Stereo)~\cite{surface_stereo}, or multicut
+segmentation (i.e. Surface Stereo)~\cite{surface_stereo}, and multicut
 partitioning~\cite{fusion_moves_for_correlation_clustering}.
 %
 FM has two main advantages over other general inference
 techniques~\cite{TRW-S,loopy_belief_propagation}. First, FM allows us to
-exploit domain-specific knowledge in customizing proposal generation
+exploit domain-specific knowledge by customizing proposal generation
 schemes. Second, FM can handle problems with very large label spaces
 (and even real-values variables), because the core optimization
 solves a sequence of binary decision problems.
@@ -85,7 +87,7 @@ Optimization (PSO)~\cite{pso} maintain multiple solutions and improve
 them over time.
 %
 GA or PSO has been used to produce great empirical results,
-hand tracking~\cite{pushmeet_hand_tracking} for example.
+e.g. in hand tracking~\cite{pushmeet_hand_tracking}.
 %
 At high level, our strategy is similar in spirit. However, GA or PSO
 rather arbitrarily copies parts of the solutions or makes random movements
