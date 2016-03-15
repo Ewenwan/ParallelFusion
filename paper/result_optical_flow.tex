@@ -17,8 +17,8 @@ optimization.
 \begin{figure}[!ht]
   \centering
   \includegraphics[width=0.8\columnwidth]{figure/optical_flow_convergence.png}
-  \caption{Energy plots for optical flow estimation. SF-MF has the best
- performance due to its solution sharing strategy.}\label{fig:optical_flow_convergence}
+  \caption{Energy plots for the optical flow problem. SF-MF has the best
+    performance due to its solution sharing strategy.}\label{fig:optical_flow_convergence}
 \end{figure}
 
 \begin{figure}[!ht]
@@ -31,7 +31,7 @@ optimization.
     \centering
     \includegraphics[width=\columnwidth]{figure/optical_flow_SF_MF_threads.png}
   \end{subfigure}
-  \caption{Energy plots per thread. Left: Parallel Fusion  
+  \caption{Energy plots per thread for the optical flow problem. Left: Parallel Fusion  
     Move (PFM). Right: SF-MF(ours).}
   \label{fig:optical_flow_by_threads}  
 \end{figure}
@@ -119,8 +119,8 @@ Optimal parameter setting depends on each problem setting.
 \includegraphics[width=\columnwidth]{figure/optical_flow_by_interval.png}
 \end{subfigure}
 \caption{Energy
-  plots for optical flow under difference configurations. Left:
-  varying $\beta$; right: varying solution sharing
+  plots for optical flow under different configurations. Left:
+  varying $\beta$; Right: varying solution sharing
   frequencies. Solution sharing achieves better convergence, but
   sharing too many solutions (larger $\beta$) or sharing solutions too
   frequently (less $k$) slows down the convergence, as it reduces the

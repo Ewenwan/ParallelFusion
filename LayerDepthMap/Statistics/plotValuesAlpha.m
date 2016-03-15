@@ -12,7 +12,7 @@ full_15_3_raw_values = load('output_values_full_15_3');
 full_15_3= convertValues(full_15_3_raw_values, 0);
 
 Victor_raw_values = load('output_values_Victor');
-Victor = convertValues(Victor_raw_values, 1);
+Victor = convertValues(Victor_raw_values, 0);
 multiway_raw_values = load('output_values_multiway');
 multiway = convertValues(multiway_raw_values, 0);
 multiway_5_raw_values = load('output_values_multiway_5');
