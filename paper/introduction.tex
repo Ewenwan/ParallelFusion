@@ -1,9 +1,9 @@
 \section{Introduction}
 
 Parallel computation has changed the field of computing.  In the 90s,
-most processors had single cores, while nowadays most processors have
-multiple cores, often 4 or even 8. Cluster computing further expands
-the potential of parallel computation, where one can easily launch a
+most processors had single cores, while nowadays processors with 4 or
+8 cores are commonly used. Cluster computing further expands the
+potential of parallel computation, where one can easily launch a
 processing job using hundreds or even thousands of computational nodes
 in a cloud.
 %
@@ -34,17 +34,16 @@ voxels~\cite{hane2013joint}.
 %% inpainting, or image segmentation
 %% problems~\cite{fusion_moves_for_markov_random_field_optimization} .
 %
-The MAP framework, which can be formulated as a Markov Random Field
-(MRF) in many low-level Computer Vision problems, provides a universal
-and powerful way to solve these problems. However, state-of-the-art
-algorithms for MRF inference are still inherently sequential. Take a
-Fusion Move method
+Markov Random Field (MRF) provides a universal and powerful way to
+solve many low-level Computer Vision problems. However,
+state-of-the-art algorithms for MRF inference are still inherently
+sequential. Take a Fusion Move method
 (FM)~\cite{fusion_flow,fusion_moves_for_markov_random_field_optimization,second_order_stereo}
 for example, which has been one of the most effective techniques for
-MRF inference, it sequentially improves solution by fusing the current solution with
-a solution proposal. Its successful applications cover not only above
-problems, but also popular problems like optical flow, stereo, image
-inpainting, or image segmentation
+MRF inference. It sequentially improves solution by fusing the current
+solution with a solution proposal. Its successful applications cover
+not only above problems, but also popular problems like optical flow,
+stereo, image inpainting, or image segmentation
 problems~\cite{fusion_moves_for_markov_random_field_optimization}.
 
 
@@ -82,7 +81,7 @@ depthmap estimation.
 %reproducible with minimal coding
 %
 We believe that the method can be integrated into existing algorithms
-with minimal coding, and would have immediate impact on numerous
+with minimal coding, and would have immediate benefit to numerous
 Computer Vision researchers or engineers.
 
 %We will share our implementation of our pipeline which provides
