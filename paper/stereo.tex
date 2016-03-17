@@ -4,8 +4,8 @@
 %   architectures' in front of 'Competing methods' in each problem?}
 
 We compare SF against competing approaches over three problems in
-Computer Vision, namely, stereo, optical flow, and layered depthmap
-estimation.
+Computer Vision, specifically, stereo, optical flow, and layered
+depthmap estimation (see Fig.~\ref{fig:problem}).
 
 % SF framework has high degrees of freedom and the
 %challenge is to properly quantify the contributions of various
@@ -32,44 +32,46 @@ estimation.
     depthmap stereo~\cite{middlebury_stereo}, the optical
     flow~\cite{middlebury_optical_flow} and the layered depthmap
     estimation~\cite{layered_depthmap} problem. In the layered
-    depthmap problem, the input is an RGBD image, and the output is
+    depthmap problem, the input is a RGBD image, and the output is
     multiple layers of depthmaps. Each layer is a piecewise smooth
     parametric surface model.}\label{fig:problem}
 \end{figure}
-
-
-
+%
+%
+%
 \subsection{Swarm Fusion stereo}
 We start with a simple depthmap stereo problem with standard unary and
 pairwise terms. We employ submodular pairwise terms to make this
-stereo represent relatively ``easy'' MRF inference problems.
+stereo represent relatively ``easy'' MRF inference problem.
 %
-Unary terms are computed as the average robust photoconsistancy
+The unary terms are computed as the average robust photoconsistancy
 score~\cite{second_order_stereo} between the reference image and the others
-inside a $7\times 7$ pixels window.  Pairwise terms are simple
+inside a $7\times 7$ pixels window. The pairwise terms are simple
 truncated absolute label difference with maximum label difference
 $\sigma_s=4$. The total energy is defined by the sum of the two, while
-scaling the pairwise term by a factor of $0.005$. For simplicity we
+scaling the pairwise terms by a factor of $0.005$. For simplicity we
 do not enforce the visibility constraint.
 
 %
 
 \mysubsubsection{Competing methods}
 
-\noindent For simple stereo problems with submodular energy as ours,
-the sophistication of photometric consistency
+\noindent For simple stereo problems with submodular energy as ours, the
+sophistication of photometric consistency
 function~\cite{mvs_furukawa_survey} makes unary terms highly
-informative, where highly efficient algorithms such as graph-cuts
-exist. Our experiments have also supported this, where the fusion
-method (i.e., the use of proposal generation) rather makes it slow due
-to the overhead, while not improving final energy. Therefore, we have
-chosen algorithms based on Alpha-Expansion, namely single thread Alpha
-Expansion(AE), Parallel Alpha
+informative, where efficient inference algorithms such as graph-cuts
+exist.
+%Our experiments have also supported this, where the fusion method
+%(i.e., the use of proposal generation) rather makes it slow due to the
+%overhead, while not improving final energy.
+Therefore, we have chosen algorithms based on Alpha-Expansion, namely
+single thread Alpha Expansion(AE), Parallel Alpha
 Expansion(PAE)~\cite{fusion_moves_for_markov_random_field_optimization}
-and Hierarchical Fusion(HF)~\cite{olga_hierarchical_alpha_expansion}
-to be competing methods. For HF, we use Alpha-Expansion when either of
-the child node is leaf node (constant label) and QPBO for all other
-nodes.
+and Hierarchical Fusion(HF)~\cite{olga_hierarchical_alpha_expansion} to
+be competing methods. For HF, we use Alpha-Expansion at the leaf node of
+the label tree and QPBO in the other cases.
+%when either of the
+%child node is leaf node (constant label) and QPBO for all other nodes.
 
 \mysubsubsection{Swarm Fusion architectures}
 
@@ -77,24 +79,25 @@ nodes.
 been evaluated: SF-MF (SF without multi-way fusion), SF-SS (SF without
 solution sharing), and the standard SF.
 %
-SF-MF implies $\alpha+\beta=1$, where each thread will expand 4 labels
-(repeat $\alpha=1, \beta=0$ for 4 iterations) with Alpha Expansion and
-then fuse one solution from other threads ($\alpha=0, \beta=1$) by
-QPBO. In the later case, a thread randomly chooses one solution from
-the solution pool for fusion. SF-SS implies $\beta=0$, where $\alpha$
-is the free parameter and set to 4. In this case one thread will fuse
-4 labels, together with current solution by TRW-S per iteration and
-never exchanges solutions with other threads. We perform a multi-way
-fusion at the end to fuse solutions from all the threads (similar to
-PAE). For standard SF, we have used ($\alpha=4, \beta=1$).
-
-%
-%
-%
-%
-To make the comparison simple, we restrict our proposal generator
-in each thread to only generate constant-label proposals within a
-subset of all labels.
+SF-MF implies $\alpha+\beta=1$, where each thread repeats
+fusing a solution proposal ($\alpha=1, \beta=0$) for four iterations
+by Graph-cuts and fusing a concurrent solution  ($\alpha=0, \beta=1$)
+for one iteration by QPBO.
+%expand 4 labels (repeat $\alpha=1, \beta=0$ for 4 iterations) with Alpha
+%Expansion and then fuse one solution from other threads ($\alpha=0,
+%\beta=1$) by QPBO.
+In the later case, a thread randomly chooses one solution from the
+solution pool for fusion. SF-SS implies $\beta=0$, where $\alpha$ is
+the free parameter and set to 4. In this case one thread will fuse 4
+labels, together with current solution in that thread by TRW-S in each
+iteration and never exchanges solutions with other threads. We perform
+a multi-way fusion of solutions from all the threads at the end to
+obtain a final solution
+% at
+% the end to fuse solutions from all the threads to a single solution
+(similar to PAE). For standard SF architecture, we have used
+($\alpha=4, \beta=1$).  To make the comparison simple, we restrict our
+solution proposals to be constant-label proposals.
 %
 % Due to the lack of multi-way fusion, the swarm fusion architecture for
 % the stereo problem is represented by the middle example at the bottom of

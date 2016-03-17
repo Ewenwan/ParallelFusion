@@ -6,12 +6,14 @@
 #include "optimization.h"
 #include "../external/TRW_S/MRFEnergy.h"
 #include "../external/QPBO1.4/QPBO.h"
+#include "../stereo_base/depth.h"
 
 using namespace std;
 using namespace cv;
 using namespace ParallelFusion;
 
 namespace simple_stereo{
+
     void SimpleStereoGenerator::getProposals(CompactLabelSpace &proposals,
                                              const CompactLabelSpace &current_solution, const int N) {
         for(auto i=0; i<N; ++i){
@@ -81,6 +83,51 @@ namespace simple_stereo{
             }
         }
         return e;
+    }
+
+    void SimpleStereoMonitor::initSolver(const CompactLabelSpace &initial) {
+        SimpleStereoSolver::initSolver(initial);
+        start_time = (float)getTickCount();
+    }
+    void SimpleStereoMonitor::solve(const CompactLabelSpace &proposals,
+                                    const ParallelFusion::SolutionType<CompactLabelSpace> &current_solution,
+                                    ParallelFusion::SolutionType<CompactLabelSpace> &solution) {
+        CHECK_EQ(proposals.getLabelSpace().size(), kPix);
+        const int nProposals = (int)proposals.getLabelSpace()[0].size();
+        CompactLabelSpace bestS;
+        double minEnergy = numeric_limits<double>::max();
+        for(auto i=0; i<nProposals; ++i){
+            CompactLabelSpace curs;
+            curs.init(kPix, vector<int>(1,0));
+            for(auto j=0; j<kPix; ++j)
+                curs(j,0) = proposals(j,i);
+            double curE = evaluateEnergy(curs);
+            if(curE < minEnergy){
+                minEnergy = curE;
+                bestS = curs;
+            }
+        }
+        float curt = ((float)getTickCount() - start_time) / (float)getTickFrequency();
+        observations.push_back(Observation(curt, minEnergy));
+        stereo_base::Depth depth;
+        depth.initialize(model->width, model->height, -1.0);
+        for(auto i=0; i<kPix; ++i)
+            depth.setDepthAtInd(i, bestS(i,0));
+        depths.push_back(depth);
+    }
+
+    void SimpleStereoMonitor::dumpData(const std::string& path) const {
+        char buffer[1024] = {};
+        CHECK_EQ(depths.size(), observations.size());
+        sprintf(buffer, "%s/monitorProfile.txt", path.c_str());
+        ofstream fout(buffer);
+        CHECK(fout.is_open());
+        for(auto i=0; i<depths.size(); ++i){
+            fout << observations[i].first << '\t' << observations[i].second << endl;
+            sprintf(buffer, "%s/depth%03d.jpg", path.c_str(), i);
+            depths[i].saveImage(string(buffer));
+        }
+        fout.close();
     }
 
 

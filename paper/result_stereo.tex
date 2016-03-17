@@ -1,9 +1,9 @@
 \mysubsubsection{Stereo}
 
 \noindent We have chosen 7 images with the resolution of $695\times555$
-from the Book sequence of Middlebury stereo dataset~\cite{middlebury_stereo} for our
-experiment. The number of disparity labels is
-set to 256. 
+from the Book sequence of Middlebury stereo
+dataset~\cite{middlebury_stereo}. The number of disparity labels is set
+to 256.
 %
 Since the order of labels is important for the expansion techniques,
 we have used the same random order for all algorithms to avoid any
@@ -13,11 +13,10 @@ bias.
 % thread can only generate constant-label proposals within a evenly split
 % subset of all labels.
 
-Fig.~\ref{fig:stereo_global} compares the converegence rate of the
+Figure~\ref{fig:stereo_global} compares the converegence rate of the
 competing methods. Note that we define the energy of a multi-threading
 system to be the energy of the best solution found so far.
 %
-
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.8\textwidth]{figure/stereo_global.png}
@@ -26,20 +25,19 @@ defined to be the best solution so far.}
 \label{fig:stereo_global}
 \end{figure}
 %
-
 %One unusual outcome is that Sequential Alpha Expansion and Parallel
 %Alpha Expansion (PAE) have the same convergence speed, indicating that
 %the stereo problem is a very easy one.
-PAE and SF-MF converges faster than the single thread AE. However, the
+PAE and SF-MF converge faster than the single thread AE. However, the
 speedup is not significant, which confirms the fact that the problem
 is an easy one.
 %This is well known in a community and this fact was rather expected.
 Our approaches with multi-way fusion (SF-SS or SF) are the slowest
 kind, because the TRW-S for multi-way fusion is slower than multiple
 Alpha Expansion steps, and this stereo problem is too easy to gain
-benefits through mulit-way fusion. HF doesn't perform well because the
-algorithm has to perform QPBO for all nodes with two non-leaf
-children.
+benefits through mulit-way fusion.
+%HF does not perform well because the algorithm has to perform QPBO for
+%all nodes with two non-leaf children.
 %
 %Another interesting observation is that the Hierarchical Fusion can
 %achieve good energy only when they merge solutions at the top of the
@@ -55,7 +53,7 @@ children.
 %We recoreded both single thread energy and system energy against
 %time.
 %
-Fig. \ref{fig:stereo_threads} shows the energy plot per thread for
+Figure~\ref{fig:stereo_threads} shows the energy plot per thread for
 SF-MF (ours) and PAE. With solution sharing, the energy in SF-MF
 decreases more uniformly, while in PAE the energy makes dramatic
 decrease at the final fusion.
@@ -73,21 +71,19 @@ decrease at the final fusion.
 \centering
 \begin{subfigure}{0.49\textwidth}
 \includegraphics[width=\textwidth]{figure/stereo_thread_pae.png}
-\caption{}
 \end{subfigure}
 \begin{subfigure}{0.49\textwidth}
 \includegraphics[width=\textwidth]{figure/stereo_thread_sf.png}
-\caption{}
 \end{subfigure}
-\caption{Energy plots per thread for the stereo problem for (a) PAE and (b)
-SF-MF.}
+\caption{Energy plots per thread for the stereo problem. Left: PAE. Right: SF-MF(ours).}
 \label{fig:stereo_threads}
 \end{figure}
 
 For an easy optimization problem such as stereo with strong unary
 terms and submodular pairwise terms, our full architecture with
 solution sharing and multi-way fusion actually makes convergence
-slower compared with PAE due to overhead of sophisticated fusion.
+slower compared with PAE due to its overhead.
+% of sophisticated fusion.
 
 
 % over-sophisticated fusion algorihtm and multi-threading

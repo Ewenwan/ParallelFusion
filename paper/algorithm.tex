@@ -1,7 +1,7 @@
 \section{Multi-way particle swarm fusion} \label{section:algorithm}
 Multi-way Particle Swarm Fusion is a natural extension of the Fusion
 Move method (FM). We call our method Swarm Fusion (SF) in short. Let us
-take a multi-threading environment to explain our idea, while the
+take multi-threading environment to explain our idea, while the
 technique is also applicable to other parallel programming model such as
 {\it MapReduce} in cloud computing.
 %
@@ -33,7 +33,7 @@ In our base configuration, the solution pool remembers $N$ best
 solutions, one from each thread.
 
 SF has two main parameters $\alpha_i$, $\beta_i$ (for each thread
-$T_i$), determining its processing flow: In each fusion step, a thread
+$T_i$), determining its behaviors: In each fusion step, a thread
 generates $\alpha_i$ solution proposals using its proposal generator, and collects
 % \chen{A proposal pool sounds confusing. We often don't
 % really maintain such a pool as many proposals are
@@ -43,9 +43,9 @@ generates $\alpha_i$ solution proposals using its proposal generator, and collec
 % fly. This is different with the solution pool which is
 % really there.}
 $\beta_i$ solutions from the solution pool, based on a user-defined
-strategy or at random to be simple. The value of $\alpha_i$ and
-$\beta_i$ can vary in each iteration to encourage different behaviors.
-The thread then fuse all these solutions together to find a solution
+strategy or at random to be simple. The values of $\alpha_i$ and
+$\beta_i$ can vary per iteration for flexibility.
+The thread then fuse all these proposals and/or solutions to find a solution
 with lower energy state and update the solution pool accordingly.
 %
 % One can further customize how to pick certain proposal generation
@@ -84,7 +84,7 @@ The bottom right architecture is the most general one, in which
 threads conduct multi-way fusion of their current solution, proposals
 from their own proposal generators and/or concurrent solutions.
 %
-For general non-submodular energy, we use TRW-S~\cite{TRW-S, opengm} for inference.
+For general non-submodular energy, we use TRW-S~\cite{TRW-S} for inference.
 %% And the energy is not submodular
 %% in general, for which effective inference techniques such as
 %% TRW-S~\cite{TRW-S,opengm} exist.

@@ -1,5 +1,5 @@
 \subsection{Swarm Fusion optical flow}
-
+\label{section:optical_flow}
 Fusion Move was first introduced by Lempitsky et al.~\cite{fusion_flow} to
 solve the optical flow problem.
 % Optical flow was the problem, in which the Fusion Move method was first
@@ -63,15 +63,14 @@ The fusions are binary in these methods and we have used QPBO.
 \noindent
 %The three swarm fusion models (at the bottom of Fig.~\ref{fig:model})
 %are used to evaluate the effectiveness of our method.
-The three swarm architectures in Fig.~\ref{fig:model} (SF-MF, SF-SS,
-SF) have been evaluated against the competing methods. For SF-MF, each
+The three swarm architectures in Fig.~\ref{fig:model} (SF-MF, SF-SS, SF)
+have been evaluated against the competing methods. For SF-MF, each
 thread repeats generating solution proposals ($\alpha=1, \beta=0$) for
 four iterations and fuses with one solution from others ($\alpha=0,
-\beta=1$) in one iteration. This pattern is repeated. For SF-SS, each
+\beta=1$) for one iteration. This pattern is repeated. For SF-SS, each
 thread generates three solution proposals for fusion in each iteration
-($\alpha=3$, $\beta=0$). For SF, we repeat the pattern of four
-iterations with ($\alpha=3, \beta=0$) plus one iteration with ($\alpha=0,
-\beta=3$).
+($\alpha=3$, $\beta=0$). For SF, we repeat four iterations of
+($\alpha=3, \beta=0$) and  one iteration of ($\alpha=0, \beta=3$).
 %%
 %Note that we have used the same set of proposal generation schemes as
 %the competing methods.

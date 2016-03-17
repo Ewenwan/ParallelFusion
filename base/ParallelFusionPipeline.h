@@ -60,12 +60,12 @@ namespace ParallelFusion {
         }
 
         //slave threads
-        void workerThread(const int id,
+        virtual void workerThread(const int id,
                           const LABELSPACE& initial,
                           GeneratorPtr generator,
                           SolverPtr solver,
                           const ThreadOption &thread_option);
-        void monitorThread(const int id, GeneratorPtr generator, SolverPtr solver, const ThreadOption &thread_option);
+        virtual void monitorThread(const int id, GeneratorPtr generator, SolverPtr solver, const ThreadOption &thread_option);
 
         inline const ParallelFusionOption &getOption() const { return option; }
 
@@ -75,7 +75,7 @@ namespace ParallelFusion {
 
         ParallelFusionPipeline &operator=(const ParallelFusionPipeline &) = delete;
 
-    private:
+    protected:
         //store current best solutions from each thread. The array can be access by multiples threads
         //each solution store a vector of labeling, and corresponding energy
         std::vector<SynSolution<LABELSPACE> > bestSolutions;
