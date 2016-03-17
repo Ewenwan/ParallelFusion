@@ -19,7 +19,7 @@ namespace simple_stereo {
         const int kFusionSize = 4;
 
         ParallelFusionOption pipelineOption;
-        pipelineOption.num_threads = num_threads;
+        pipelineOption.num_threads = num_threads + 1;
         pipelineOption.max_iteration = model->nLabel / num_threads / kFusionSize * max_iter;
         const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
 
@@ -35,7 +35,7 @@ namespace simple_stereo {
 
         //slave threads
         const int kOtherThread = std::min(num_threads-1, 1);
-        for(auto i=0; i<pipelineOption.num_threads; ++i){
+        for(auto i=0; i<pipelineOption.num_threads - 1; ++i){
             const int startid = labelSubSpace[i].front();
             initials[i].init(kPix, vector<int>(1, startid));
             threadOptions[i].kTotal = kFusionSize + kOtherThread;
@@ -52,8 +52,11 @@ namespace simple_stereo {
             printf("Initial energy on thread %d: %.5f\n", i, solvers[i]->evaluateEnergy(initials[i]));
         }
 
-        Pipeline parallelFusionPipeline(pipelineOption);
+        //monitor thread
+        threadOptions.back().is_monitor = true;
 
+
+        StereoPipeline parallelFusionPipeline(pipelineOption);
         float t = (float)getTickCount();
         printf("Start runing parallel optimization\n");
         parallelFusionPipeline.runParallelFusion(initials, generators, solvers, threadOptions);

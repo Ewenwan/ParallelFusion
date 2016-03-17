@@ -18,10 +18,10 @@
 #include "../stereo_base/file_io.h"
 
 #include "../external/MRF2.2/GCoptimization.h"
-#include "../../../base/LabelSpace.h"
 #include "../../../base/FusionSolver.h"
 #include "../../../base/ParallelFusionPipeline.h"
 #include "../../../base/ProposalGenerator.h"
+#include "stereo_pipeline.h"
 
 namespace simple_stereo {
     template<typename T>
@@ -73,54 +73,6 @@ namespace simple_stereo {
         }
     };
 
-    class CompactLabelSpace: public ParallelFusion::LabelSpace<int>{
-    public:
-        inline size_t getNumSingleLabel() const{
-            return singleLabel.size();
-        }
-
-        std::vector<int>& getSingleLabel(){
-            return singleLabel;
-        }
-
-        const std::vector<int>& getSingleLabel() const{
-            return singleLabel;
-        }
-
-        inline int operator[](const int id) const{
-            CHECK_LT(id, singleLabel.size());
-            return singleLabel[id];
-        }
-
-        const void appendSpace(const CompactLabelSpace& rhs){
-            CHECK(!(rhs.getLabelSpace().empty() && rhs.getSingleLabel().empty()));
-            if(num_nodes_ == 0 && rhs.getNumNode() > 0){
-                label_space_.resize((size_t)rhs.getNumNode());
-                num_nodes_ = (int)label_space_.size();
-            }
-            if(rhs.getNumNode() > 0) {
-                for (auto i = 0; i < label_space_.size(); ++i) {
-                    for (auto j = 0; j < rhs.getLabelOfNode(i).size(); ++j)
-                        label_space_[i].push_back(rhs(i, j));
-                }
-            }
-            if(rhs.getSingleLabel().size() > 0) {
-                for (auto i = 0; i < rhs.getSingleLabel().size(); ++i)
-                    singleLabel.push_back(rhs.getSingleLabel()[i]);
-            }
-        }
-
-        inline virtual bool empty() const{
-            return singleLabel.empty() && label_space_.empty();
-        }
-
-        inline virtual void clear(){
-            ParallelFusion::LabelSpace<int>::clear();
-            singleLabel.clear();
-        }
-    private:
-        std::vector<int> singleLabel;
-    };
 
     class StereoOptimizer{
     public:
@@ -214,6 +166,18 @@ namespace simple_stereo {
                            ParallelFusion::SolutionType<CompactLabelSpace>& solution);
     };
 
+    class SimpleStereoMonitor: public SimpleStereoSolver{
+    public:
+        SimpleStereoMonitor(const MRFModel<int>* model_): SimpleStereoSolver(model_){}
+        virtual void initSolver(const CompactLabelSpace& initial);
+        virtual void solve(const CompactLabelSpace &proposals, const ParallelFusion::SolutionType<CompactLabelSpace>& current_solution,
+                           ParallelFusion::SolutionType<CompactLabelSpace>& solution);
+        void dumpData(const std::string& path) const;
+    private:
+        std::vector<ParallelFusion::Observation> observations;
+        std::vector<stereo_base::Depth> depths;
+        float start_time;
+    };
 
 
     /////////////////////////////////////////////////////////////////////////
