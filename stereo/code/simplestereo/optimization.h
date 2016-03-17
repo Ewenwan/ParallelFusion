@@ -199,6 +199,12 @@ namespace simple_stereo {
         virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N);
     };
 
+    //generator for monitor thread, does nothing
+    class DummyGenerator: public ParallelFusion::ProposalGenerator<CompactLabelSpace>{
+    public:
+        virtual void getProposals(CompactLabelSpace& proposals, const CompactLabelSpace& current_solution, const int N){}
+    };
+
     void fuseTwoSolution(CompactLabelSpace& s1, const CompactLabelSpace& s2, const int pid, const MRFModel<int>* model);
     void multiwayFusionByTRWS(const CompactLabelSpace& proposals, const MRFModel<int>* model, CompactLabelSpace& solution);
     void dumpOutData(const ParallelFusion::ParallelFusionPipeline<CompactLabelSpace>& pipeline, const std::string& prefix);
