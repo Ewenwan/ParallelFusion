@@ -158,29 +158,29 @@ namespace simple_stereo {
             labelList[i] = i;
         random_shuffle(labelList.begin(), labelList.end());
 
-        // cout << "========================================" << endl;
-        // cout << "Runing sequential alpha-expansion" << endl;
-        // ParallelOptimize optimize_sequential(file_io, model, 1, "Sequential", labelList);
-        // Depth result_sequential;
-        // optimize_sequential.optimize(result_sequential, 2);
-        // sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
-        // result_sequential.saveImage(buffer);
-
-        // cout << "========================================" << endl;
-        // cout << "Runing parallel method with solution sharing" << endl;
-        // ParallelOptimize optimize_parallel(file_io, model, num_threads, "Swarn", labelList);
-        // Depth result_parallel;
-        // optimize_parallel.optimize(result_parallel, 2);
-        // sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
-        // result_parallel.saveImage(buffer);
+//         cout << "========================================" << endl;
+//         cout << "Runing sequential alpha-expansion" << endl;
+//         ParallelOptimize optimize_sequential(file_io, model, 1, "Sequential", labelList);
+//         Depth result_sequential;
+//         optimize_sequential.optimize(result_sequential, 2);
+//         sprintf(buffer, "%s/temp/result_sequential.jpg", file_io.getDirectory().c_str());
+//         result_sequential.saveImage(buffer);
 
          cout << "========================================" << endl;
-         cout << "Runing multiway fusion with solution sharing" << endl;
-         ParallelOptimize optimize_multiway(file_io, model, num_threads, "Swarn_multiway", labelList, true);
-         Depth result_multiway;
-         optimize_multiway.optimize(result_multiway, 2);
-         sprintf(buffer, "%s/temp/result_multiway.jpg", file_io.getDirectory().c_str());
-         result_multiway.saveImage(buffer);
+         cout << "Runing parallel method with solution sharing" << endl;
+         ParallelOptimize optimize_parallel(file_io, model, num_threads, "Swarn", labelList);
+         Depth result_parallel;
+         optimize_parallel.optimize(result_parallel, 2);
+         sprintf(buffer, "%s/temp/result_parallel.jpg", file_io.getDirectory().c_str());
+         result_parallel.saveImage(buffer);
+
+//         cout << "========================================" << endl;
+//         cout << "Runing multiway fusion with solution sharing" << endl;
+//         ParallelOptimize optimize_multiway(file_io, model, num_threads, "Swarn_multiway", labelList, true);
+//         Depth result_multiway;
+//         optimize_multiway.optimize(result_multiway, 2);
+//         sprintf(buffer, "%s/temp/result_multiway.jpg", file_io.getDirectory().c_str());
+//         result_multiway.saveImage(buffer);
 
 //        cout << "========================================" << endl;
 //        cout << "Runing Victor's method" << endl;

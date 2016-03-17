@@ -23,7 +23,6 @@ namespace simple_stereo{
     }
 
     void SimpleStereoSolver::initSolver(const CompactLabelSpace &initial) {
-        CHECK_EQ(initial.getNumNode(), model->width * model->height);
         dataCost = shared_ptr<DataCost>(new DataCost(const_cast<int*>(model->MRF_data)));
         smoothnessCost = shared_ptr<SmoothnessCost>(new SmoothnessCost(1, 4, model->weight_smooth,
                                                                        const_cast<int*>(model->hCue),
@@ -118,6 +117,7 @@ namespace simple_stereo{
 
     void SimpleStereoMonitor::dumpData(const std::string& path) const {
         char buffer[1024] = {};
+        printf("Monitor dumping out data...\n");
         CHECK_EQ(depths.size(), observations.size());
         sprintf(buffer, "%s/monitorProfile.txt", path.c_str());
         ofstream fout(buffer);

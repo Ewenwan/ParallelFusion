@@ -54,7 +54,8 @@ namespace simple_stereo {
 
         //monitor thread
         threadOptions.back().is_monitor = true;
-
+        solvers.back() = shared_ptr<FusionSolver<Space> >(new SimpleStereoMonitor(model));
+        generators.back() = shared_ptr<ProposalGenerator<Space> >(new DummyGenerator());
 
         StereoPipeline parallelFusionPipeline(pipelineOption);
         float t = (float)getTickCount();
@@ -66,6 +67,8 @@ namespace simple_stereo {
         parallelFusionPipeline.getBestLabeling(solution);
 
         printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
+
+        std::dynamic_pointer_cast<SimpleStereoMonitor>(solvers.back())->dumpData(file_io.getDirectory() + "/temp");
 
         dumpOutData(parallelFusionPipeline, file_io.getDirectory()+"/temp/plot_"+method);
 
