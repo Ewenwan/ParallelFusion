@@ -24,7 +24,7 @@ namespace ParallelFusion {
     public:
         //solver should be read only
         ParallelFusionPipeline(const ParallelFusionOption &option_) : option(option_), bestSolutions((size_t)option_.num_threads),
-                                                                      terminate(false), write_flag((size_t)option_.num_threads),
+	terminate(false), write_flag((size_t)option_.num_threads),
                                                                       threadProfile((size_t)option_.num_threads){
             start_time = (float)cv::getTickCount();
         }
@@ -224,6 +224,7 @@ namespace ParallelFusion {
                 const int num_proposals_from_others = (iter + 1) % thread_option.solution_exchange_interval == 0 ? thread_option.kOtherThread : 0;
 
                 bool grabbed_solution_from_self = false;
+		std::vector<int> selected_threads;
                 if (num_proposals_from_others > 0) {
                     if (option.selectionMethod == ParallelFusionOption::RANDOM) {
                         for(auto pid=0; pid < num_proposals_from_others; ++pid) {
@@ -232,6 +233,8 @@ namespace ParallelFusion {
                             SolutionType<LABELSPACE> s;
                             bestSolutions[tid].get(s);
                             proposals.appendSpace(s.second);
+
+			    selected_threads.push_back(slaveThreadIds[tid]);
                         }
                     } else if (option.selectionMethod == ParallelFusionOption::BEST) { //
                         std::vector<std::pair<double, int> > solution_energy_index_pairs;
@@ -248,18 +251,22 @@ namespace ParallelFusion {
                             SolutionType<LABELSPACE> s;
                             bestSolutions[tid].get(s);
                             proposals.appendSpace(s.second);
+
+			    selected_threads.push_back(slaveThreadIds[tid]);
                         }
                     } else if (option.selectionMethod == ParallelFusionOption::ALL) { //
                         proposals.appendSpace(current_solution.second);
                         int num_proposals_to_fuse = 1;
                         for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
                             if (tid == id)
-                                continue;
-
+			      continue;
+			    
                             SolutionType<LABELSPACE> s;
                             bestSolutions[tid].get(s);
                             proposals.appendSpace(s.second);
 
+			    selected_threads.push_back(slaveThreadIds[tid]);
+			    
                             num_proposals_to_fuse++;
                             if (num_proposals_to_fuse == thread_option.kTotal + 1) {
                                 SolutionType<LABELSPACE> curSolution;
@@ -273,7 +280,7 @@ namespace ParallelFusion {
 //                        threadProfile[slaveThreadIds[id]].push_back(Observation(dt, current_solution.first));
 //                        globalProfile.addObservation(dt, current_solution.first);
 
-                        generator->writeSolution(current_solution, slaveThreadIds[id], iter);
+                        generator->writeSolution(current_solution, slaveThreadIds[id], iter, selected_threads);
 
                         //if synchronization is needed, thread won't submit solution unless
                         //last submitted solution is read by the monitor thread.
@@ -327,7 +334,7 @@ namespace ParallelFusion {
                 /*   bestSolutions[selected_thread_id].get(current_solution); */
                 /* } */
 
-                generator->writeSolution(curSolution, slaveThreadIds[id], iter);
+                generator->writeSolution(curSolution, slaveThreadIds[id], iter, selected_threads);
 
                 //if synchronization is needed, thread won't submit solution unless
                 //last submitted solution is read by the monitor thread.
@@ -396,7 +403,7 @@ namespace ParallelFusion {
                 threadProfile[monitorThreadIds[id]].push_back(Observation(dt, current_solution.first));
                 globalProfile.addObservation(dt, current_solution.first);
 
-                generator->writeSolution(current_solution, monitorThreadIds[id], iter);
+                generator->writeSolution(current_solution, monitorThreadIds[id], iter, std::vector<int>());
                 iter++;
             }
         }catch(const std::exception& e){

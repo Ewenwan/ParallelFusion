@@ -92,19 +92,20 @@ namespace flow_fusion {
     return vector<pair<double, double> >(IMAGE_WIDTH_ * IMAGE_HEIGHT_);
   }
 
-  void OpticalFlowProposalGenerator::writeSolution(const std::pair<double, LABELSPACE> &solution, const int thread_index, const int iteration) const
+  void OpticalFlowProposalGenerator::writeSolution(const std::pair<double, LABELSPACE> &solution, const int thread_index, const int iteration, const std::vector<int> &selected_threads)
   {
     const int NUM_PIXELS = IMAGE_WIDTH_ * IMAGE_HEIGHT_;
     vector<pair<double, double> > solution_labels(NUM_PIXELS);
     for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
       solution_labels[pixel] = solution.second.getLabelOfNode(pixel)[0];
 
-    Mat solution_image = drawFlows(solution_labels, IMAGE_WIDTH_, IMAGE_HEIGHT_);
-    imwrite("Test/solution_image_" + to_string(iteration) + "_" + to_string(thread_index) + ".png", solution_image);
+    //Mat solution_image = drawFlows(solution_labels, IMAGE_WIDTH_, IMAGE_HEIGHT_);
+    //imwrite("Test/solution_image_" + to_string(iteration) + "_" + to_string(thread_index) + ".png", solution_image);
     //      cout << "error: " << calcFlowsDiff(solution, ground_truth_flows_, IMAGE_WIDTH_, IMAGE_HEIGHT_) << endl;
     //  writeFlows(solution, IMAGE_WIDTH_, IMAGE_HEIGHT_,
     //             "Cache/flows_" + to_string(iteration) + "_" + to_string(thread_index) + ".flo");
-
+    double error = calcFlowsDiff(solution_labels, ground_truth_flows_, IMAGE_WIDTH_, IMAGE_HEIGHT_);
+    
     time_t timer;
     time(&timer);
     struct tm today = {0};
@@ -112,9 +113,13 @@ namespace flow_fusion {
     today.tm_mon = 2;
     today.tm_mday = 9;
     today.tm_year = 116;
-    LOG(INFO) << difftime(timer, mktime(&today)) << '\t' << iteration << '\t' << thread_index << '\t' << solution.first << endl;
-  }
+    int time = difftime(timer, mktime(&today));
+    //LOG(INFO) << time << '\t' << iteration << '\t' << thread_index << '\t' << solution.first << '\t' << error << endl;
+    //time_solution_map_[time] = solution_labels;
 
+    solutions_.push_back(Solution(thread_index, time, solution.first, error, selected_threads, solution_labels));
+  }
+  
   void OpticalFlowProposalGenerator::generateProposalPyrLK(LABELSPACE& proposal_label_space) {
     cout << "generate proposal PyrLK" << endl;
     proposal_name_ = "PryLK";
@@ -124,7 +129,7 @@ namespace flow_fusion {
 
     num_proposed_solutions_++;
 
-    imwrite("Test/proposal_flows_PyrLK.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+    //imwrite("Test/proposal_flows_PyrLK.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     proposal_label_space.setSingleLabels(proposal_flows);
   }
 
@@ -139,7 +144,7 @@ namespace flow_fusion {
 
     num_proposed_solutions_++;
 
-    imwrite("Test/proposal_flows_Farneback.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+    //imwrite("Test/proposal_flows_Farneback.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     proposal_label_space.setSingleLabels(proposal_flows);
   }
 
@@ -153,7 +158,7 @@ namespace flow_fusion {
 
     num_proposed_solutions_++;
 
-    imwrite("Test/proposal_flows_LayerWise.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+    //imwrite("Test/proposal_flows_LayerWise.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     proposal_label_space.setSingleLabels(proposal_flows);
   }
 
@@ -165,7 +170,7 @@ namespace flow_fusion {
     vector<pair<double, double> > proposal_flows = calcFlowsNearestNeighbor(image_1_, image_2_, WINDOW_SIZE);
 
     num_proposed_solutions_++;
-    imwrite("Test/proposal_flows_NearestNeighbor.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+    //imwrite("Test/proposal_flows_NearestNeighbor.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     proposal_label_space.setSingleLabels(proposal_flows);
   }
 
@@ -189,8 +194,8 @@ namespace flow_fusion {
 								shift_x, shift_y);
       proposal_label_space.appendSpace(LabelSpace<pair<double, double> >(proposal_flows));
 
-      imwrite("Test/proposal_flows_MoveAround_" + to_string(proposal_solution_index) + ".png",
-	      drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+      //imwrite("Test/proposal_flows_MoveAround_" + to_string(proposal_solution_index) + ".png",
+      //      drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     }
   }
 
@@ -213,8 +218,8 @@ namespace flow_fusion {
 								shift_x, shift_y);
       proposal_label_space.appendSpace(LabelSpace<pair<double, double> >(proposal_flows));
 
-      imwrite("Test/proposal_flows_Shift_" + to_string(proposal_solution_index) + ".png",
-	      drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+      //imwrite("Test/proposal_flows_Shift_" + to_string(proposal_solution_index) + ".png",
+      //      drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     }
   }
 
@@ -225,7 +230,7 @@ namespace flow_fusion {
     const double DISTURB_STDDEV = 1;
     vector<pair<double, double> > proposal_flows = disturbFlows(current_solution_, IMAGE_WIDTH_, IMAGE_HEIGHT_,
 								DISTURB_STDDEV);
-    imwrite("Test/proposal_flows_disturb.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+    //imwrite("Test/proposal_flows_disturb.png", drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     num_proposed_solutions_++;
     proposal_label_space.setSingleLabels(proposal_flows);
   }
@@ -268,8 +273,8 @@ namespace flow_fusion {
       }
       proposal_label_space.appendSpace(LabelSpace<pair<double, double> >(proposal_flows));
 
-      imwrite("Test/proposal_flows_Cluster_" + to_string(proposal_solution_index) + ".png",
-	      drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
+      //imwrite("Test/proposal_flows_Cluster_" + to_string(proposal_solution_index) + ".png",
+      //drawFlows(proposal_flows, IMAGE_WIDTH_, IMAGE_HEIGHT_));
     }
   }
 
