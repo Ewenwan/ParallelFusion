@@ -176,6 +176,7 @@ namespace simple_stereo {
     private:
         std::vector<ParallelFusion::Observation> observations;
         std::vector<stereo_base::Depth> depths;
+        std::vector<std::vector<stereo_base::Depth> > depths_threads;
         float start_time;
     };
 
