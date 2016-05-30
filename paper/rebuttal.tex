@@ -1,0 +1,190 @@
+% #BIBTEX /Library/Tex/texbin/bibtex eccv2016
+% last updated in April 2002 by Antje Endemann
+% Based on CVPR 07 and LNCS, with modifications by DAF, AZ and elle, 2008 and AA, 2010, and CC, 2011; TT, 2014; AAS, 2016
+
+\documentclass[runningheads]{llncs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{amsmath,amssymb} % define this before the line numbering.
+\usepackage{ruler}
+\usepackage{color}
+% \usepackage{tensor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{ulem}
+\usepackage{url}
+\usepackage{cite}
+
+\usepackage[width=122mm,left=12mm,paperwidth=146mm,height=193mm,top=12mm,paperheight=217mm]{geometry}
+
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+\newcommand{\mysubsubsection}[1]{\vspace{0.2cm} \noindent
+  \underline{{\bf #1}} \vspace{0.1cm}}
+\newcommand{\mysubsubsubsection}[1]{\vspace{0.1cm} \noindent {\bf #1}:}
+
+% \newcommand{\pushmeet}[1]{\textcolor{blue}{pushmeet:{#1}}}
+% \newcommand{\yasu}[1]{\textcolor{magenta}{[yasu: {#1}]}}
+\newcommand{\chen}[1]{\textcolor{cyan}{[chen: {#1}]}}
+% \newcommand{\hang}[1]{\textcolor{green}{[hang: {#1}]}}
+% \newcommand{\pushmeet}[1]{}
+% \newcommand{\chen}[1]{}
+% \newcommand{\yasu}[1]{}
+% \newcommand{\hang}[1]{}
+
+\ifx\pdfoptionalwaysusepdfpagebox\relax\else
+\pdfoptionalwaysusepdfpagebox5
+\fi
+
+\begin{document}
+% \renewcommand\thelinenumber{\color[rgb]{0.2,0.5,0.8}\normalfont\sffamily\scriptsize\arabic{linenumber}\color[rgb]{0,0,0}}
+% \renewcommand\makeLineNumber {\hss\thelinenumber\ \hspace{6mm} \rlap{\hskip\textwidth\ \hspace{6.5mm}\thelinenumber}}
+% \linenumbers
+\pagestyle{headings}
+\mainmatter
+\def\ECCV16SubNumber{1569}  % Insert your submission number here
+
+% \title{Parallelizing Hypothesis Fusion for Rapid MAP inference}
+\title{Multi-way Particle Swarm Fusion}
+
+\maketitle
+\thispagestyle{empty}
+
+
+%%%%%%%%% BODY TEXT - ENTER YOUR RESPONSE BELOW
+We thank the reviewers for insightful comments. Major comments are
+the limitation of using only 4 threads and the problem specific choice of architectures. We first address these major comments.
+
+\vspace{0.15cm}
+\noindent {\bf The lack of technical contribution:} We
+believe that this paper proposes an effective parallel
+framework which, based on the novel concept of solution
+sharing and multi-way fusion, generalizes several existing
+methods. With simple parameter tuning, our framework can be
+specialized as an effective parallel architecture for any
+given MRF inference tasks. We will also make our framework implementation public, so that researchers can utilize maximum parallelism by simply providing the energy function and solution proposals. So the
+impact of this work would be huge.
+
+\vspace{0.15cm}
+\noindent {\bf The choice of architectures:} We agree with
+R1 and R3 that the best fusing architecture is problem
+specific. However, our parallel framework is general,
+achieving all the architectures mentioned in the paper via
+different parameter settings. This is indeed an advantage of
+our framework because the best architecture can be found by
+simple grid search over parameter space in the same
+framework instead of trying various existing methods. And
+existing methods, as the special cases of our framework, are
+very unlikely to be the best architecture for any problem
+settings. Note that there are only three parameters
+($\alpha$, $\beta$, and the frequency of solution sharing)
+controlling the parallel architecture, and all these three
+are small integer numbers, so the grid search space can be
+easily conducted. Note that in order to illustrate the
+intuition behind solution sharing and multi-way fusion, we
+only presented three special architecture of our framework
+in the paper, namely SF-SS, SF-MF, and SF (despite of its
+name, we use maximal solution sharing and multi-way fusion
+in all our experiments). But to solve a
+problem in practice, a grid search is required to find the best
+parameter setting. We will add the discussion here to the
+paper and provide codes for automatic parameter tuning.
+
+\vspace{0.15cm} We believe that this paper proposes a novel
+parallel framework which will benefit many researchers with
+more effective parallel architectures over existing
+methods. The best architecture for any given problem can be
+found via simple grid search in the parameter space. Now, we
+answer remaining questions from each reviewer. We will
+clarify these points in the paper, too.
+
+\vspace{0.15cm}
+\noindent {\bf Reviewer 1}
+
+\vspace{0.15cm}
+\noindent $\bullet$ (The number of threads:) Note that the
+complexity for each thread is independent of the number of
+threads in total. With this nature, we can apply our
+parallel scheme to any number of threads or even distributed
+systems. To make comparison fair in our experiments, we only
+use 4 threads to make sure all threads including the
+additional monitor thread run on its own physical core. The
+experiments focus more on the intuition behind solution
+sharing and multi-way fusion instead of pursuing best performance. But in
+practice, our current implementation allows the usage of any
+number of threads. A future work would be implementing our
+parallel scheme on distributed environments.
+
+\noindent $\bullet$ (Compliants about Fig. 3:) Thanks for
+pointing it out. This figure is indeed incomplete as we want
+to stress speed difference and explain this intuition of
+solution sharing. The complete figure is shown in Fig. 1
+here. As the energy is submodular in this problem setting,
+all the architectures can find the global minimum at the
+end.
+
+\noindent $\bullet$ (Line 416-417 statement contradicts SF-MF in Fig. 1:) As indicated by the red arrows, the last thread of SF-MF on the figure (far right) also explores solutions generated by other thread (which is not shown on the figure). We will make the figure more clear.
+
+\noindent $\bullet$ (Underlining paragraph titles:) Thanks for pointing it out. We will change the format.
+
+% \section{R2}
+\vspace{0.15cm}
+\noindent {\bf Reviewer 2}
+\noindent $\bullet$ (Missing reference:) We thank R2 for
+pointing out this paper, Simultaneous Fusion Moves for
+3D­Label Stereo. However, to our understanding, the
+multi-label fusion move proposed in this paper is different
+with out multi-way fusion. Their multi-label fusion move
+conduct one single TRW inference (with many iterations) to
+fuse all proposals together, whereas our multi-way fusion
+conduct one TRW inference to fuse only a subset of proposals
+and repeat the fusion until convergence. When the energy
+function becomes more complex or the number of proposals is
+large, a single TRW over all proposals is very hard to
+converge, but our multi-way fusion will still work by
+repeatedly fusing small subset of proposals.
+
+\chen{\noindent $\bullet$ (The benefit of multi-threading:)
+  We admit that the multi-threading does not help the
+  algorithm for some applications if run to
+  convergence. However, it consistently benefits online
+  optimization as it provides better results at each
+  timestamp.}
+  
+\vspace{0.15cm}
+\noindent {\bf Reviewer 3}
+
+\noindent $\bullet$ (The intuition behind Swarm Fusion:) We
+illustrate the benefit of utilizing solution sharing and
+multi-way fusion through experiments and explain the
+intution behind. The Swarm Fusion combines both ideas and is
+a general scheme. These two ideas are intuitive and
+effective. We are not aware of other relevant ideas.
+
+\noindent $\bullet$ (Lack of exciting results:) We
+appreciate the comment that some results we show are not
+exciting. However, our experiments use extreme cases to
+illustrate the idea of solution sharing and multi-way
+fusion. While in practice, the best parameter setting is
+unlikely to be any of these extreme cases and should be
+found by a grid search over parameter space. However,
+instead of achieving the best performance, we are more
+excited about the effectivenss and applicability of our
+framework, which makes it a handy tool for speeding up many
+MRF inference problem. We will add relevant discussion in
+the paper.
+
+\noindent $\bullet$ (Dependent on proposal generations:) We
+agree with R3 that the performance is highly dependent on
+proposal generation scheme. This fact causes trouble for
+fair comparison as some proposals are not applicable or
+despite certain architectures. To make the comparison fair,
+we often discard certain proposal generation schemes
+in the cost of performance.
+
+\noindent $\bullet$ (Proposal generation schemes from [15]:) \chen{I am not sure what this compliant is about as none of our experiments is about [15]}
+
+\end{document}
