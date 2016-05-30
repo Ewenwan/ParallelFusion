@@ -93,10 +93,21 @@ namespace simple_stereo{
                                     ParallelFusion::SolutionType<CompactLabelSpace> &solution) {
         CHECK_EQ(proposals.getLabelSpace().size(), kPix);
         const int nProposals = (int)proposals.getLabelSpace()[0].size();
+        if(depths_threads.empty())
+            depths_threads.resize(nProposals);
+        else
+            CHECK_EQ(depths_threads.size(), nProposals);
         CompactLabelSpace bestS;
         double minEnergy = numeric_limits<double>::max();
         for(auto i=0; i<nProposals; ++i){
+            stereo_base::Depth deptht;
+            deptht.initialize(model->width, model->height, -1.0);
+            for(auto j=0; j<kPix; ++j)
+                deptht.setDepthAtInd(j, proposals(j,i));
+            depths_threads[i].push_back(deptht);
+
             CompactLabelSpace curs;
+
             curs.init(kPix, vector<int>(1,0));
             for(auto j=0; j<kPix; ++j)
                 curs(j,0) = proposals(j,i);
@@ -126,6 +137,13 @@ namespace simple_stereo{
             fout << observations[i].first << '\t' << observations[i].second << endl;
             sprintf(buffer, "%s/depth%03d.jpg", path.c_str(), i);
             depths[i].saveImage(string(buffer));
+        }
+
+        for(auto i=0; i<depths_threads.size(); ++i){
+            for(auto j=0; j<depths_threads[i].size(); ++j){
+                sprintf(buffer, "%s/depth_t%d_f%03d.jpg", path.c_str(), i, j);
+                depths_threads[i][j].saveImage(buffer);
+            }
         }
         fout.close();
     }

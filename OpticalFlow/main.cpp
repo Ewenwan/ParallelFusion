@@ -6,6 +6,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/video.hpp>
+#include <opencv2/videoio/videoio.hpp>
 #include <memory>
 #include <ctime>
 
@@ -46,7 +47,7 @@ int main(int argc, char *argv[])
 {
   google::ParseCommandLineFlags(&argc, &argv, true);
   FLAGS_log_dir = "Log";
-  //FLAGS_logtostderr = false;
+  FLAGS_logtostderr = false;
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << FLAGS_dataset_name;
   LOG(INFO) << FLAGS_num_threads << '\t' << FLAGS_num_iterations << '\t' << FLAGS_num_proposals_in_total << '\t' << FLAGS_num_proposals_from_others << '\t' << FLAGS_solution_exchange_interval << '\t' << FLAGS_use_monitor_thread << endl;
@@ -58,7 +59,8 @@ int main(int argc, char *argv[])
   today.tm_mon = 2;
   today.tm_mday = 9;
   today.tm_year = 116;
-  LOG(INFO) << difftime(timer, mktime(&today)) << '\t' << -1 << '\t' << -1 << '\t' << 0 << endl;
+  int start_time = difftime(timer, mktime(&today));
+  LOG(INFO) << start_time << '\t' << -1 << '\t' << -1 << '\t' << 0 << endl;
   
   //srand(0);
   //  PipelineParams pipeline_params(FLAGS_num_threads, FLAGS_num_fusion_iterations);
@@ -82,6 +84,10 @@ int main(int argc, char *argv[])
   //GaussianBlur(image_1, image_1, cv::Size(5, 5), 0, 0);
   //GaussianBlur(image_2, image_2, cv::Size(5, 5), 0, 0);
 
+  
+  vector<pair<double, double> > ground_truth_flows = FLAGS_evaluation ? vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT) : readFlows("other-gt-flow/Dimetrodon/flow10.flo");
+
+  
   if (false)
   {
     typedef ParallelFusion::LabelSpace<pair<double, double> > LABELSPACE;
@@ -89,7 +95,7 @@ int main(int argc, char *argv[])
     option.num_threads = FLAGS_num_threads;
     //option.synchronize = true;
   
-    OpticalFlowProposalGenerator generator(image_1, image_2);
+    OpticalFlowProposalGenerator generator(image_1, image_2, ground_truth_flows);
     vector<LABELSPACE> all_proposals;
     generator.getAllProposals(all_proposals);
     vector<shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> > > solvers((size_t)option.num_threads);
@@ -118,14 +124,13 @@ int main(int argc, char *argv[])
   option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
   //option.synchronize = true;
   
-  
   vector<shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE> > > generators((size_t)option.num_threads);
   vector<shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> > > solvers((size_t)option.num_threads);
   vector<LABELSPACE> initials((size_t)option.num_threads);
   vector<ParallelFusion::ThreadOption> thread_options((size_t)option.num_threads);
 
   for (auto i = 0; i < option.num_threads; ++i) {
-    generators[i] = shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE> >(new OpticalFlowProposalGenerator(image_1, image_2));
+    generators[i] = shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE> >(new OpticalFlowProposalGenerator(image_1, image_2, ground_truth_flows));
     solvers[i] = shared_ptr<ParallelFusion::FusionSolver<LABELSPACE> >(new OpticalFlowFusionSolver(image_1, image_2));
     initials[i].setSingleLabels(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT));
 
@@ -140,7 +145,117 @@ int main(int argc, char *argv[])
       thread_options[i].is_monitor = true;
     }
   }
-  
+
+  // for (auto i = 0; i < option.num_threads - FLAGS_use_monitor_thread; ++i) {
+  //   imwrite("Test/solution_image_" + to_string(i) + "_0.png", drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT));
+  // }
+
+  if (true) {
+    const int BORDER_WIDTH = 10;
+    const int FPS = 5;
+    Rect flow_ROI(BORDER_WIDTH, BORDER_WIDTH, IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2);
+    vector<vector<Solution> > thread_solutions(option.num_threads - FLAGS_use_monitor_thread);
+    for (auto thread_id = 0; thread_id < option.num_threads - FLAGS_use_monitor_thread; ++thread_id) {
+      ifstream in_str("Test/solutions_" + to_string(thread_id));
+      int num_solutions = 0;
+      in_str >> num_solutions;
+      thread_solutions[thread_id].resize(num_solutions);
+      for (int i = 0; i < num_solutions; i++)
+	in_str >> thread_solutions[thread_id][i];
+    }
+    
+    map<int, Solution> time_global_solution_map;
+    for (auto thread_id = 0; thread_id < option.num_threads - FLAGS_use_monitor_thread; ++thread_id)
+      for (vector<Solution>::iterator solution_it = thread_solutions[thread_id].begin(); solution_it != thread_solutions[thread_id].end(); solution_it++)
+	time_global_solution_map[solution_it->time] = *solution_it;
+
+    int max_time = 0;
+    double previous_energy = std::numeric_limits<double>::max();
+    map<int, Solution> new_time_global_solution_map;
+    for (map<int, Solution>::iterator time_solution_it = time_global_solution_map.begin(); time_solution_it != time_global_solution_map.end(); time_solution_it++) {
+      if (time_solution_it->second.energy < previous_energy) {
+	new_time_global_solution_map[time_solution_it->first] = time_solution_it->second;
+	previous_energy = time_solution_it->second.energy;
+	max_time = time_solution_it->first;
+      }
+    }
+
+    max_time += 10;
+    cout << max_time << endl;
+
+    auto addText = [](const Mat &image, const string &text) {
+      const int IMAGE_WIDTH = image.cols;
+      const int IMAGE_HEIGHT = image.rows;
+      Mat image_with_padding;
+      
+      vconcat(image, Mat::zeros(IMAGE_HEIGHT * 0.1, IMAGE_WIDTH, CV_8UC3), image_with_padding);
+      //      copyMakeBorder(image, image_with_padding, 0, IMAGE_HEIGHT * 0.1, 0, 0, BORDER_CONSTANT, Scalar(0, 0, 0));
+      
+      if (text.size() > 0)
+	putText(image_with_padding, text, Point(IMAGE_WIDTH / 2, IMAGE_HEIGHT * 1.05), FONT_HERSHEY_PLAIN, 1, Scalar(255, 255, 255));
+      return image_with_padding;
+    };
+      
+
+    for (auto thread_id = 0; thread_id < option.num_threads - FLAGS_use_monitor_thread; ++thread_id) {
+      map<int, Solution> time_solution_map;
+      for (vector<Solution>::iterator solution_it = thread_solutions[thread_id].begin(); solution_it != thread_solutions[thread_id].end(); solution_it++)
+	time_solution_map[solution_it->time] = *solution_it;
+      
+      VideoWriter video_writer("Test/solution_video_" + to_string(thread_id) + ".avi", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
+      if (video_writer.isOpened()) {
+        Mat previous_image = drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT);
+	previous_image = addText(previous_image(flow_ROI), "");
+        for (int frame = 0; frame < max_time; frame++) {
+          int time = frame;
+	  if (time_solution_map.count(time) > 0) {
+	    Mat image = imread("Test/solution_image_" + to_string(thread_id) + "_" + to_string(time) + ".png");
+	    string text = to_string(time_solution_map[time].thread_id) + " " + to_string(time_solution_map[time].energy);
+	    for (std::vector<int>::const_iterator thread_it = time_solution_map[time].selected_threads.begin(); thread_it != time_solution_map[time].selected_threads.end(); thread_it++)
+              text += " " + *thread_it;
+      
+	    image = addText(image(flow_ROI), text);
+	    previous_image = image;
+	  }
+          // Mat test = previous_image(flow_ROI);
+          // cout << test.size() << '\t' << previous_image.size() << endl;
+          // exit(1);
+	  //cout << previous_image.cols << '\t' << previous_image.rows << endl;
+          video_writer << previous_image;
+        }
+      } else {
+        cout << "Cannot open video file." << endl;
+      }
+    }
+
+    {
+      VideoWriter video_writer("Test/solution_video_global.avi", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
+      if (video_writer.isOpened()) {
+        Mat previous_image = drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT);
+        previous_image = addText(previous_image(flow_ROI), "");
+        for (int frame = 0; frame < max_time; frame++) {
+          int time = frame;
+          if (time_global_solution_map.count(time) > 0) {
+            Mat image = imread("Test/solution_image_" + to_string(time_global_solution_map[time].thread_id) + "_" + to_string(time) + ".png");
+            string text = to_string(time_global_solution_map[time].thread_id) + " " + to_string(time_global_solution_map[time].energy);
+	    
+            image = addText(image(flow_ROI), text);
+            previous_image = image;
+          }
+          // Mat test = previous_image(flow_ROI);
+          // cout << test.size() << '\t' << previous_image.size() << endl;
+          // exit(1);
+          video_writer << previous_image;
+        }
+      } else {
+        cout << "Cannot open video file." << endl;
+      }
+    }
+    return 0;
+  }
+    
+    
+    
   ParallelFusion::ParallelFusionPipeline<LABELSPACE> parallelFusionPipeline(option);
   
   float t = cv::getTickCount();
@@ -162,6 +277,39 @@ int main(int argc, char *argv[])
 
   imwrite("Results/flow_image_" + to_string(FLAGS_result_index) + ".png", drawFlows(solution_labels, IMAGE_WIDTH, IMAGE_HEIGHT)); 
   writeFlows(solution_labels, IMAGE_WIDTH, IMAGE_HEIGHT, "Results/flow_" + to_string(FLAGS_result_index) + ".flo");
+
+  const int BORDER_WIDTH = 10;
+  Rect flow_ROI(BORDER_WIDTH, BORDER_WIDTH, IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2);
+
+  for (auto thread_id = 0; thread_id < option.num_threads - FLAGS_use_monitor_thread; ++thread_id) {
+    vector<Solution> solutions = dynamic_pointer_cast<OpticalFlowProposalGenerator>(generators[thread_id])->getSolutions();
+
+    ofstream out_str("Test/solutions_" + to_string(thread_id));
+    out_str << solutions.size() << endl << endl;
+    for (vector<Solution>::iterator solution_it = solutions.begin(); solution_it != solutions.end(); solution_it++) {
+      solution_it->time -= start_time;
+      out_str << *solution_it << endl;
+      imwrite("Test/solution_image_" + to_string(solution_it->thread_id) + "_" + to_string(solution_it->time) + ".png", drawFlows(solution_it->solution_labels, IMAGE_WIDTH, IMAGE_HEIGHT));
+    }
+    
+    // int fps = 4;
+    // VideoWriter video_writer("Test/solution_video_" + to_string(thread_id) + ".avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
+    // Mat previous_image = drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT);
+    
+    // int num_written_solutions = 0;
+    // for (int time_diff = 0; ; time_diff++) {
+    //   int time = start_time + time_diff;
+    //   if (time_solution_map.count(time) > 0) {
+    //     previous_image = drawFlows(time_solution_map[time], IMAGE_WIDTH, IMAGE_HEIGHT);
+    //     //imwrite("Test/solution_image_" + to_string(thread_index) + "_" + to_string(time_diff) + ".png", solution_image);
+    //     num_written_solutions++;
+    //   }
+    //   video_writer << previous_image(flow_ROI);
+    //   if (num_written_solutions == time_solution_map.size())
+    //     break;
+    // }
+  }
+  
 
   // {
   //   vector<pair<double, double> > flows = readFlows(FLAGS_dataset_name + "/flow10.flo");
