@@ -74,7 +74,7 @@ namespace flow_fusion {
 	std::vector<std::pair<double, double> > current_solution_;
 
 	std::vector<Solution> solutions_;
-
+	
 
 	void setCurrentSolution(const LABELSPACE &current_solution_label_space);
         

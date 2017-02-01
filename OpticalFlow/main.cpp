@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 {
   google::ParseCommandLineFlags(&argc, &argv, true);
   FLAGS_log_dir = "Log";
-  FLAGS_logtostderr = false;
+  //FLAGS_logtostderr = false;
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << FLAGS_dataset_name;
   LOG(INFO) << FLAGS_num_threads << '\t' << FLAGS_num_iterations << '\t' << FLAGS_num_proposals_in_total << '\t' << FLAGS_num_proposals_from_others << '\t' << FLAGS_solution_exchange_interval << '\t' << FLAGS_use_monitor_thread << endl;
@@ -150,13 +150,14 @@ int main(int argc, char *argv[])
   //   imwrite("Test/solution_image_" + to_string(i) + "_0.png", drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT));
   // }
 
-  if (true) {
+  if (false) {
+    const string solution_path = "Test/Victor/";
     const int BORDER_WIDTH = 10;
-    const int FPS = 5;
+    const int FPS = 24;
     Rect flow_ROI(BORDER_WIDTH, BORDER_WIDTH, IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2);
     vector<vector<Solution> > thread_solutions(option.num_threads - FLAGS_use_monitor_thread);
     for (auto thread_id = 0; thread_id < option.num_threads - FLAGS_use_monitor_thread; ++thread_id) {
-      ifstream in_str("Test/solutions_" + to_string(thread_id));
+      ifstream in_str(solution_path + "solutions_" + to_string(thread_id));
       int num_solutions = 0;
       in_str >> num_solutions;
       thread_solutions[thread_id].resize(num_solutions);
@@ -179,20 +180,19 @@ int main(int argc, char *argv[])
 	max_time = time_solution_it->first;
       }
     }
-
+    time_global_solution_map = new_time_global_solution_map;
+    
     max_time += 10;
-    cout << max_time << endl;
 
     auto addText = [](const Mat &image, const string &text) {
       const int IMAGE_WIDTH = image.cols;
       const int IMAGE_HEIGHT = image.rows;
-      Mat image_with_padding;
-      
-      vconcat(image, Mat::zeros(IMAGE_HEIGHT * 0.1, IMAGE_WIDTH, CV_8UC3), image_with_padding);
+      Mat image_with_padding = image;
+      //vconcat(image, Mat::zeros(100, IMAGE_WIDTH, CV_8UC3), image_with_padding);
       //      copyMakeBorder(image, image_with_padding, 0, IMAGE_HEIGHT * 0.1, 0, 0, BORDER_CONSTANT, Scalar(0, 0, 0));
       
       if (text.size() > 0)
-	putText(image_with_padding, text, Point(IMAGE_WIDTH / 2, IMAGE_HEIGHT * 1.05), FONT_HERSHEY_PLAIN, 1, Scalar(255, 255, 255));
+	putText(image_with_padding, text, Point(IMAGE_WIDTH / 10, IMAGE_HEIGHT / 2), FONT_HERSHEY_PLAIN, 3, Scalar(0, 0, 255));
       return image_with_padding;
     };
       
@@ -202,19 +202,21 @@ int main(int argc, char *argv[])
       for (vector<Solution>::iterator solution_it = thread_solutions[thread_id].begin(); solution_it != thread_solutions[thread_id].end(); solution_it++)
 	time_solution_map[solution_it->time] = *solution_it;
       
-      VideoWriter video_writer("Test/solution_video_" + to_string(thread_id) + ".avi", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
+      VideoWriter video_writer(solution_path + "solution_video_" + to_string(thread_id) + ".mp4", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
       if (video_writer.isOpened()) {
         Mat previous_image = drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT);
-	previous_image = addText(previous_image(flow_ROI), "");
-        for (int frame = 0; frame < max_time; frame++) {
-          int time = frame;
+	previous_image = previous_image(flow_ROI);
+	//previous_image = addText(previous_image, "");
+        for (int frame = 0; frame < max_time * FPS; frame++) {
+          int time = frame / FPS;
 	  if (time_solution_map.count(time) > 0) {
-	    Mat image = imread("Test/solution_image_" + to_string(thread_id) + "_" + to_string(time) + ".png");
-	    string text = to_string(time_solution_map[time].thread_id) + " " + to_string(time_solution_map[time].energy);
+	    Mat image = imread(solution_path + "solution_image_" + to_string(thread_id) + "_" + to_string(time) + ".png");
+	    string text = to_string(time_solution_map[time].thread_id) + "  " + to_string(static_cast<int>(time_solution_map[time].energy));
 	    for (std::vector<int>::const_iterator thread_it = time_solution_map[time].selected_threads.begin(); thread_it != time_solution_map[time].selected_threads.end(); thread_it++)
-              text += " " + *thread_it;
-      
-	    image = addText(image(flow_ROI), text);
+              text += "  " + to_string(*thread_it);
+
+	    image = image(flow_ROI);
+	    //image = addText(image, text);
 	    previous_image = image;
 	  }
           // Mat test = previous_image(flow_ROI);
@@ -229,15 +231,15 @@ int main(int argc, char *argv[])
     }
 
     {
-      VideoWriter video_writer("Test/solution_video_global.avi", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
+      VideoWriter video_writer(solution_path + "solution_video_global.mp4", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH - BORDER_WIDTH * 2, IMAGE_HEIGHT - BORDER_WIDTH * 2));
       if (video_writer.isOpened()) {
         Mat previous_image = drawFlows(vector<pair<double, double> >(IMAGE_WIDTH * IMAGE_HEIGHT), IMAGE_WIDTH, IMAGE_HEIGHT);
         previous_image = addText(previous_image(flow_ROI), "");
-        for (int frame = 0; frame < max_time; frame++) {
-          int time = frame;
+        for (int frame = 0; frame < max_time * FPS; frame++) {
+          int time = frame / FPS;
           if (time_global_solution_map.count(time) > 0) {
-            Mat image = imread("Test/solution_image_" + to_string(time_global_solution_map[time].thread_id) + "_" + to_string(time) + ".png");
-            string text = to_string(time_global_solution_map[time].thread_id) + " " + to_string(time_global_solution_map[time].energy);
+            Mat image = imread(solution_path + "solution_image_" + to_string(time_global_solution_map[time].thread_id) + "_" + to_string(time) + ".png");
+            string text = to_string(time_global_solution_map[time].thread_id) + "  " + to_string(static_cast<int>(time_global_solution_map[time].energy));
 	    
             image = addText(image(flow_ROI), text);
             previous_image = image;

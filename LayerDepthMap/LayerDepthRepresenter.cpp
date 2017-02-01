@@ -119,6 +119,15 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
   // exit(1);
 
 
+  time_t timer;
+  time(&timer);
+  struct tm today = {0};
+  today.tm_hour = today.tm_min = today.tm_sec = 0;
+  today.tm_mon = 2;
+  today.tm_mday = 9;
+  today.tm_year = 116;
+  int start_time = difftime(timer, mktime(&today));
+
   Segment::static_id = 0;
   
   normals_ = calcNormals(point_cloud_, IMAGE_WIDTH_, IMAGE_HEIGHT_);
@@ -172,6 +181,20 @@ void LayerDepthRepresenter::optimizeLayerRepresentation()
   parallelFusionPipeline.getBestLabeling(solution);
   printf("Done! Final energy: %.5f\n", solution.first);
   LayerLabelSpace solution_label_space = solution.second;
+
+  
+  for (auto thread_id = 0; thread_id < option.num_threads; ++thread_id) {
+    vector<Solution> solutions = dynamic_pointer_cast<ProposalDesigner>(generators[thread_id])->getSolutions();
+
+    ofstream out_str("Test/solution_images/binary_fusion/solutions_" + to_string(thread_id));
+    out_str << solutions.size() << endl << endl;
+    for (vector<Solution>::iterator solution_it = solutions.begin(); solution_it != solutions.end(); solution_it++) {
+      solution_it->time -= start_time;
+      out_str << *solution_it << endl;
+      imwrite("Test/solution_images/binary_fusion/solution_image_" + to_string(solution_it->time) + "_" + to_string(solution_it->thread_id) + ".png", solution_it->drawSolutionImage(image_));
+    }
+  }
+  
   
   // map<int, vector<double> > iteration_statistics_map;
   // map<int, string> iteration_proposal_type_map;

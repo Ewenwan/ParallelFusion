@@ -114,7 +114,7 @@ namespace flow_fusion {
     today.tm_mday = 9;
     today.tm_year = 116;
     int time = difftime(timer, mktime(&today));
-    //LOG(INFO) << time << '\t' << iteration << '\t' << thread_index << '\t' << solution.first << '\t' << error << endl;
+    LOG(INFO) << time << '\t' << iteration << '\t' << thread_index << '\t' << solution.first << '\t' << error << endl;
     //time_solution_map_[time] = solution_labels;
 
     solutions_.push_back(Solution(thread_index, time, solution.first, error, selected_threads, solution_labels));

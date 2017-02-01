@@ -15,6 +15,7 @@
 #include "LayerDepthRepresenter.h"
 #include "utils.h"
 #include "TRW_S/MRFEnergy.h"
+#include "ProposalDesigner.h"
 //#include "SRMP.h"
 //#include "GeometryCalculation.h"
 //#include "SurfaceMaskCalculator.h"
@@ -63,7 +64,7 @@ int main(int argc, char* argv[]) {
     today.tm_year = 116;
     LOG(INFO) << difftime(timer, mktime(&today)) << '\t' << -1 << '\t' << -1 << '\t' << 0;
   }
-
+  
 
   //srand(0);
   
@@ -289,6 +290,68 @@ int main(int argc, char* argv[]) {
     imwrite(large_image_filename.str(), ori_image);
   }
 
+
+  if (false) {
+    const string solution_path = "Test/solution_images/";
+    const int FPS = 24;
+    int max_time = 0;
+    vector<vector<Solution> > thread_solutions(4);
+    for (auto thread_id = 0; thread_id < 1; ++thread_id) {
+      ifstream in_str(solution_path + "solutions_" + to_string(thread_id));
+      int num_solutions = 0;
+      in_str >> num_solutions;
+      for (int i = 0; i < num_solutions; i++) {
+        Solution solution;
+        in_str >> solution;
+        thread_solutions[solution.thread_id].push_back(solution);
+        max_time = max(solution.time, max_time);
+      }
+    }
+    
+    max_time += 10;
+
+    for (auto thread_id = 0; thread_id < 4; ++thread_id) {
+      Mat multi_layer_image = imread("Test/solution_images/solution_image.png");
+      const int IMAGE_WIDTH = multi_layer_image.cols;
+      const int IMAGE_HEIGHT = multi_layer_image.rows;
+      map<int, Solution> time_solution_map;
+      for (vector<Solution>::iterator solution_it = thread_solutions[thread_id].begin(); solution_it != thread_solutions[thread_id].end(); solution_it++)
+        time_solution_map[solution_it->time] = *solution_it;
+      
+      VideoWriter video_writer(solution_path + "solution_video_" + to_string(thread_id) + ".mp4", VideoWriter::fourcc('X', '2', '6', '4'), FPS, Size(IMAGE_WIDTH, IMAGE_HEIGHT));
+      if (video_writer.isOpened()) {
+        Mat previous_image = Mat::zeros(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
+	imwrite("Test/solution_images/multi_way/solution_image_0_0.png", previous_image);
+	//exit(1);
+        //previous_image = addText(previous_image, "");
+        for (int frame = 0; frame < max_time * FPS; frame++) {
+          int time = frame / FPS;
+          if (time_solution_map.count(time) > 0) {
+            Mat image = imread(solution_path + "solution_image_" + to_string(thread_id) + "_" + to_string(time) + ".png");
+	    imwrite("Test/solution_images/multi_way/solution_image_" + to_string(time) + "_" + to_string(thread_id) + ".png", image);
+	    continue;
+            string text = to_string(time_solution_map[time].thread_id) + "  " + to_string(static_cast<int>(time_solution_map[time].energy));
+            for (std::vector<int>::const_iterator thread_it = time_solution_map[time].selected_threads.begin(); thread_it != time_solution_map[time].selected_threads.end(); thread_it++)
+              text += "  " + to_string(*thread_it);
+
+            //image = addText(image, text);
+            previous_image = image;
+
+          }
+          // Mat test = previous_image(flow_ROI);
+          // cout << test.size() << '\t' << previous_image.size() << endl;
+          // exit(1);
+          //cout << previous_image.cols << '\t' << previous_image.rows << endl;
+          video_writer << previous_image;
+        }
+      } else {
+        cout << "Cannot open video file." << endl;
+      }
+    }
+
+    return 0;
+  }
+  
   bool check_energy_diff = false;
   if (check_energy_diff) {
     Mat test_image = Mat::zeros(image.rows, image.cols, CV_8UC1);

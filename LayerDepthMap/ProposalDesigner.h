@@ -28,6 +28,41 @@ using Eigen::Vector3d;
 const std::string EDISON_PATH = "edison";
 const std::string EDISON_EXE = "edison/edison edison/config.txt";
 
+struct Solution
+{
+Solution() : thread_id(-1), time(-1), energy(-1), error(-1) {};
+Solution(const int _thread_id, const int _time, const double _energy, const double _error, const std::vector<int> &_selected_threads, LayerLabelSpace _solution_space) : thread_id(_thread_id), time(_time), energy(_energy), error(_error), selected_threads(_selected_threads), solution_space(_solution_space) {};
+
+  int thread_id;
+  int time;
+  double energy;
+  double error;
+  std::vector<int> selected_threads;
+  LayerLabelSpace solution_space;
+
+  friend std::ostream &operator <<(std::ostream &out_str, Solution &solution)
+  {
+    out_str << solution.thread_id << '\t' << solution.time << '\t' << solution.energy << '\t' << solution.error << std::endl;
+    out_str << solution.selected_threads.size() << std::endl;
+    for (std::vector<int>::const_iterator thread_it = solution.selected_threads.begin(); thread_it != solution.selected_threads.end(); thread_it++)
+      out_str << *thread_it << '\t';
+    out_str << std::endl;
+    return out_str;
+  }
+  friend std::istream &operator >>(std::istream &in_str, Solution &solution)
+  {
+    in_str >> solution.thread_id >> solution.time >> solution.energy >> solution.error;
+    int num_selected_threads = 0;
+    in_str >> num_selected_threads;
+    solution.selected_threads.assign(num_selected_threads, 0);
+    for (int i = 0; i < num_selected_threads; i++)
+      in_str >> solution.selected_threads[i];
+    return in_str;
+  }
+
+  cv::Mat drawSolutionImage(const cv::Mat &image);
+};
+  
 class ProposalDesigner : public ParallelFusion::ProposalGenerator<LayerLabelSpace> {
 
  public:
@@ -45,8 +80,10 @@ class ProposalDesigner : public ParallelFusion::ProposalGenerator<LayerLabelSpac
   std::vector<int> getCurrentSolutionIndices();
   void getUpsamplingProposal(const cv::Mat &ori_image, const std::vector<double> &ori_point_cloud, const std::vector<double> &ori_normals, const std::vector<double> &ori_camera_parameters, std::vector<std::vector<int> > &proposal_labels, int &proposal_num_surfaces, std::map<int, Segment> &proposal_segments, const int num_dilation_iterations);  
 
+
+  std::vector<Solution> getSolutions() { return solutions_; };
+  void writeSolution(const std::pair<double, LayerLabelSpace> &solution, const int thread_index, const int iteration, const std::vector<int> &selected_threads);
   
-  void writeSolution(const std::pair<double, LayerLabelSpace> &solution, const int thread_index, const int iteration) const;
   
  private:
   const cv::Mat image_;
@@ -96,6 +133,9 @@ class ProposalDesigner : public ParallelFusion::ProposalGenerator<LayerLabelSpac
 
   std::unique_ptr<BinaryProposalDesigner> binary_proposal_designer_;
   const bool use_concave_hull_proposal_first_;
+
+  std::vector<Solution> solutions_;
+  std::vector<LayerLabelSpace> proposal_spaces_;
   
   
   bool generateSegmentRefittingProposal();
