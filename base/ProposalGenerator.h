@@ -21,8 +21,7 @@ namespace ParallelFusion {
         //proposal to generate (e.g. by a internal counter). Again, be careful of synchronization
         virtual void getProposals(LABELSPACE& proposals, const LABELSPACE& current_solution, const int N) = 0;
 
-        virtual void writeSolution(const std::pair<double, LABELSPACE> &solution, const int thread_index,
-                                   const int iteration, const std::vector<int> &selected_threads) { }; //write temporary solution for visualization purpose
+	virtual void writeSolution(const std::pair<double, LABELSPACE> &solution, const int thread_index, const int iteration, const std::vector<int> &selected_threads) { }; //write temporary solution for visualization purpose
         //virtual void setGroundTruthSolution(const std::vector<LabelType> &solution) {}; //Set ground truth solution for debugging purpose. Better to be set in child classes' constructors.
     };
 }

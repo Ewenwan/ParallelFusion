@@ -224,6 +224,8 @@ void ProposalDesigner::getProposals(LayerLabelSpace &proposal_label_space, const
       //cout << label_space.getNumSegments() << endl;
       ///exit(1);
       proposal_label_space.appendSpace(label_space);
+
+      proposal_spaces_.push_back(label_space);
       proposal_iteration_++;
       if (proposal_iteration_ == 1)
         break;
@@ -3656,7 +3658,7 @@ void ProposalDesigner::getUpsamplingProposal(const Mat &ori_image, const vector<
   //     proposal_labels.push_back(vector<int>(1, 0));
 }
 
-void ProposalDesigner::writeSolution(const std::pair<double, LayerLabelSpace> &solution, const int thread_index, const int iteration) const
+void ProposalDesigner::writeSolution(const std::pair<double, LayerLabelSpace> &solution, const int thread_index, const int iteration, const std::vector<int> &selected_threads)
 {
   time_t timer;
   time(&timer);
@@ -3665,5 +3667,78 @@ void ProposalDesigner::writeSolution(const std::pair<double, LayerLabelSpace> &s
   today.tm_mon = 2;
   today.tm_mday = 9;
   today.tm_year = 116;
-  LOG(INFO) << difftime(timer, mktime(&today)) << '\t' << iteration << '\t' << thread_index << '\t' << solution.first << endl;
+  int time = difftime(timer, mktime(&today));
+  LOG(INFO) << time << '\t' << iteration << '\t' << thread_index << '\t' << solution.first << endl;
+
+  solutions_.push_back(Solution(0, time, solution.first, -1, selected_threads, solution.second));
+  for (vector<LayerLabelSpace>::const_iterator proposal_space_it = proposal_spaces_.begin(); proposal_space_it != proposal_spaces_.end(); proposal_space_it++)
+    solutions_.push_back(Solution(proposal_space_it - proposal_spaces_.begin() + 1, time, -1, -1, vector<int>(), *proposal_space_it));
+  proposal_spaces_.clear();
+}
+
+
+Mat Solution::drawSolutionImage(const Mat &image)
+{
+  //cout << "write layers" << endl;
+  const int IMAGE_WIDTH = image.cols;
+  const int IMAGE_HEIGHT = image.rows;
+  const int SOLUTION_NUM_SURFACES = solution_space.getNumSegments();
+  const int NUM_LAYERS = solution_space.getNumLayers();
+  //const int depth_map_sub_sampling_ratio = 4;
+  const int NUM_PIXELS = IMAGE_WIDTH * IMAGE_HEIGHT;
+  
+  const double BLENDING_ALPHA = 0.5;
+  map<int, Vec3b> color_table;  
+  
+  vector<Mat> layer_mask_images;
+  for (int layer_index = 0; layer_index < NUM_LAYERS; layer_index++) {
+    Mat layer_mask_image = image.clone();
+
+    vector<int> surface_ids(NUM_PIXELS);
+    for (int pixel = 0; pixel < NUM_PIXELS; pixel++)
+      surface_ids[pixel] = solution_space.getLabelOfNode(pixel)[0] / static_cast<int>(pow(SOLUTION_NUM_SURFACES + 1, NUM_LAYERS - 1 - layer_index)) % (SOLUTION_NUM_SURFACES + 1);
+      
+    for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
+      int x = pixel % IMAGE_WIDTH;
+      int y = pixel / IMAGE_WIDTH;
+      int surface_id = surface_ids[pixel];
+      if (surface_id != SOLUTION_NUM_SURFACES) {
+        Vec3b image_color = image.at<Vec3b>(y, x);
+        if (color_table.count(surface_id) == 0)
+          color_table[surface_id] = Vec3b(rand() % 256, rand() % 256, rand() % 256);
+        Vec3b segment_color = color_table[surface_id];
+        Vec3b blended_color;
+        for (int c = 0; c < 3; c++)
+          blended_color[c] = min(image_color[c] * BLENDING_ALPHA + segment_color[c] * (1 - BLENDING_ALPHA), 255.0);
+        layer_mask_image.at<Vec3b>(y, x) = blended_color;
+      }
+
+      vector<int> neighbor_pixels = findNeighbors(pixel, IMAGE_WIDTH, IMAGE_HEIGHT);
+      bool on_border = false;
+      for (vector<int>::const_iterator neighbor_pixel_it = neighbor_pixels.begin(); neighbor_pixel_it != neighbor_pixels.end(); neighbor_pixel_it++) {
+        if (surface_ids[*neighbor_pixel_it] != surface_id) {
+          on_border = true;
+          break;
+        }
+      }
+      if (on_border)
+        layer_mask_image.at<Vec3b>(y, x) = Vec3b(0, 0, 0);
+    }
+    
+    layer_mask_images.push_back(layer_mask_image);
+  }
+  
+  
+  const int IMAGE_PADDING = 0;
+  const int BORDER_WIDTH = 4;
+  Mat multi_layer_image(image.rows + BORDER_WIDTH * 2, (image.cols + BORDER_WIDTH * 2 + IMAGE_PADDING) * (NUM_LAYERS), CV_8UC3);
+  multi_layer_image.setTo(Scalar(255, 255, 255));
+  for (int layer_index = 0; layer_index < NUM_LAYERS; layer_index++) {
+    Mat layer_image_with_border = Mat::zeros(image.rows + BORDER_WIDTH * 2, image.cols + BORDER_WIDTH * 2, CV_8UC3);
+    Mat layer_image_region(layer_image_with_border, Rect(BORDER_WIDTH, BORDER_WIDTH, image.cols, image.rows));
+    layer_mask_images[layer_index].copyTo(layer_image_region);
+    Mat region(multi_layer_image, Rect((layer_image_with_border.cols + IMAGE_PADDING) * layer_index, 0, layer_image_with_border.cols, layer_image_with_border.rows));
+    layer_image_with_border.copyTo(region);
+  }
+  return multi_layer_image;
 }

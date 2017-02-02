@@ -4,4 +4,9 @@
 #./OpticalFlow --num_threads=5 --num_iterations=50 --num_proposals_in_total=3 --num_proposals_from_others=0 --solution_exchange_interval=5 --use_monitor_thread=true --result_index=8
 #./OpticalFlow --num_threads=5 --num_iterations=50 --num_proposals_in_total=3 --num_proposals_from_others=3 --solution_exchange_interval=5 --use_monitor_thread=true --result_index=9
 #./OpticalFlow --num_threads=5 --num_iterations=30 --num_proposals_in_total=2 --num_proposals_from_others=0 --solution_exchange_interval=5 --use_monitor_thread=true --result_index=10
-./OpticalFlow --num_threads=5 --num_iterations=10 --num_proposals_in_total=1 --num_proposals_from_others=1 --solution_exchange_interval=5 --use_monitor_thread=true --result_index=11
+#./OpticalFlow --num_threads=5 --num_iterations=80 --num_proposals_in_total=1 --num_proposals_from_others=0 --solution_exchange_interval=5 --use_monitor_thread=true --result_index=11
+./OpticalFlow --num_threads=1 --num_iterations=80 --num_proposals_in_total=1 --num_proposals_from_others=0 --solution_exchange_interval=5 --use_monitor_thread=false
+./OpticalFlow --num_threads=8 --num_iterations=80 --num_proposals_in_total=1 --num_proposals_from_others=0 --solution_exchange_interval=5 --use_monitor_thread=false
+./OpticalFlow --num_threads=8 --num_iterations=80 --num_proposals_in_total=1 --num_proposals_from_others=1 --solution_exchange_interval=5 --use_monitor_thread=false
+./OpticalFlow --num_threads=8 --num_iterations=50 --num_proposals_in_total=3 --num_proposals_from_others=0 --solution_exchange_interval=5 --use_monitor_thread=false
+./OpticalFlow --num_threads=8 --num_iterations=50 --num_proposals_in_total=3 --num_proposals_from_others=3 --solution_exchange_interval=5 --use_monitor_thread=false
