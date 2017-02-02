@@ -2,3 +2,5 @@
 *#
 *.o
 *.cmake
+build
+*virtenv

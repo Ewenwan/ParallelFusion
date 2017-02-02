@@ -6,109 +6,107 @@
 #define PARALLELFUSION_PIPELINE_UTIL_H
 
 #include "FusionSolver.h"
-#include "thread_guard.h"
 #include "LabelSpace.h"
 #include "ProposalGenerator.h"
+#include "thread_guard.h"
 #include <list>
 #include <mutex>
 #include <opencv2/opencv.hpp>
 
-namespace ParallelFusion{
+namespace ParallelFusion {
 
-    //type for energy observation: <time, energy>
-    using Observation = std::pair<double, double>;
+// type for energy observation: <time, energy>
+using Observation = std::pair<double, double>;
 
-    //synchronized solution type
-    template<class LABELSPACE>
-    class SynSolution {
-    public:
-        SynSolution(): solution(SolutionType<LABELSPACE>(-1, LABELSPACE())){}
-        void set(const SolutionType<LABELSPACE> &l) {
-            std::lock_guard<std::mutex> lock(mt);
-            solution = l;
-        }
+// synchronized solution type
+template <class LABELSPACE> class SynSolution {
+public:
+  SynSolution() : solution(SolutionType<LABELSPACE>(-1, LABELSPACE())) {}
+  void set(const SolutionType<LABELSPACE> &l) {
+    std::lock_guard<std::mutex> lock(mt);
+    solution = l;
+  }
 
-        void get(SolutionType<LABELSPACE> &v) const {
-            std::lock_guard<std::mutex> lock(mt);
-            v = solution;
-        }
+  void get(SolutionType<LABELSPACE> &v) const {
+    std::lock_guard<std::mutex> lock(mt);
+    v = solution;
+  }
 
-        double getEnergy() const{
-            std::lock_guard<std::mutex> lock(mt);
-            return solution.first;
-        }
+  double getEnergy() const {
+    std::lock_guard<std::mutex> lock(mt);
+    return solution.first;
+  }
 
-        //the following two method can only be called from single thread!!!
-        inline SolutionType<LABELSPACE>& getSolution(){
-            return solution;
-        }
-        inline const SolutionType<LABELSPACE>& getSolution() const{
-            return solution;
-        }
+  // the following two method can only be called from single thread!!!
+  inline SolutionType<LABELSPACE> &getSolution() { return solution; }
+  inline const SolutionType<LABELSPACE> &getSolution() const {
+    return solution;
+  }
 
-        SynSolution &operator=(const SynSolution &) = delete;
+  SynSolution &operator=(const SynSolution &) = delete;
 
-        SynSolution(SynSolution & rhs) = delete;
+  SynSolution(SynSolution &rhs) = delete;
 
-    private:
-        SolutionType<LABELSPACE> solution;
-        mutable std::mutex mt;
-    };
+private:
+  SolutionType<LABELSPACE> solution;
+  mutable std::mutex mt;
+};
 
-    class GlobalTimeEnergyProfile{
-    public:
-        GlobalTimeEnergyProfile(const bool keep_minimum_ = true): keep_minimum(keep_minimum_){}
-        inline void addObservation(const Observation& ob){
-            add(ob);
-        }
+class GlobalTimeEnergyProfile {
+public:
+  GlobalTimeEnergyProfile(const bool keep_minimum_ = true)
+      : keep_minimum(keep_minimum_) {}
+  inline void addObservation(const Observation &ob) { add(ob); }
 
-        inline void addObservation(const double time, const double energy){
-            Observation ob(time, energy);
-            addObservation(ob);
-        }
+  inline void addObservation(const double time, const double energy) {
+    Observation ob(time, energy);
+    addObservation(ob);
+  }
 
-        //the following method can only be called from single thread!
-        inline const std::vector<Observation>& getProfile() const{
-            return profile;
-        }
+  // the following method can only be called from single thread!
+  inline const std::vector<Observation> &getProfile() const { return profile; }
 
-        inline std::vector<Observation>& getProfile(){
-            return profile;
-        }
-    private:
-        void add(const Observation& ob){
-            std::lock_guard<std::mutex> lock(mt);
-            if(profile.empty())
-                profile.push_back(ob);
-            else
-            if(ob.second <= profile.back().second)
-                profile.push_back(ob);
-        }
-        mutable std::mutex mt;
-        const bool keep_minimum;
-        std::vector<Observation> profile;
-    };
+  inline std::vector<Observation> &getProfile() { return profile; }
 
-    struct ParallelFusionOption {
-        ParallelFusionOption() : convergeThreshold(0.01), max_iteration(10), num_threads(6), synchronize(false), selectionMethod(RANDOM){ }
-        //Addition method: how add two proposals. APPEND: simply append; UNION: take union, remove duplicate labels
-        double convergeThreshold;
-        int max_iteration;
-        int num_threads;
-        bool synchronize;
+private:
+  void add(const Observation &ob) {
+    std::lock_guard<std::mutex> lock(mt);
+    if (profile.empty())
+      profile.push_back(ob);
+    else if (ob.second <= profile.back().second)
+      profile.push_back(ob);
+  }
+  mutable std::mutex mt;
+  const bool keep_minimum;
+  std::vector<Observation> profile;
+};
 
+struct ParallelFusionOption {
+  ParallelFusionOption()
+      : convergeThreshold(0.01), max_iteration(10), num_threads(6),
+        synchronize(false), selectionMethod(RANDOM),
+        timeout{std::numeric_limits<double>::max()} {}
+  // Addition method: how add two proposals. APPEND: simply append; UNION: take
+  // union, remove duplicate labels
+  double convergeThreshold;
+  int max_iteration;
+  int num_threads;
+  bool synchronize;
+  double timeout;
 
-      enum SolutionSelection{RANDOM, BEST, ALL};
-        SolutionSelection selectionMethod;
-    };
+  enum SolutionSelection { RANDOM, BEST, ALL };
+  SolutionSelection selectionMethod;
+};
 
-    struct ThreadOption {
-        ThreadOption() : kTotal(1), kOtherThread(0), solution_exchange_interval(1), is_monitor(false) { }
-        int kTotal;
-        int kOtherThread;
-        int solution_exchange_interval;
-        bool is_monitor;
-    };
+struct ThreadOption {
+  ThreadOption()
+      : kTotal(1), kOtherThread(0), solution_exchange_interval(1),
+        is_monitor(false) {}
+  int kTotal;                     // # of proposals per thread
+  int kOtherThread;               // # of solutions to share - [0, # proposals]
+  int solution_exchange_interval; // # [1, max_iter]
+  bool is_monitor;
+};
 
-}//namespace ParallelFusion
-#endif //PARALLELFUSION_PIPELINE_UTIL_H
+} // namespace ParallelFusion
+#endif // PARALLELFUSION_PIPELINE_UTIL_H

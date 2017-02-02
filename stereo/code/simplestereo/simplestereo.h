@@ -5,55 +5,54 @@
 #ifndef PARALLELFUSION_SIMPLESTEREO_H
 #define PARALLELFUSION_SIMPLESTEREO_H
 
+#include <Eigen/Eigen>
 #include <glog/logging.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
-#include <Eigen/Eigen>
 
-#include "../stereo_base/file_io.h"
 #include "../stereo_base/depth.h"
+#include "../stereo_base/file_io.h"
 #include "optimization.h"
 
-
 namespace simple_stereo {
-    class SimpleStereo {
-    public:
-        SimpleStereo(const stereo_base::FileIO &file_io_, const int anchor_, const int dispResolution_,
-                     const int downsample_, const double weight_smooth_, const int num_threads_);
+class SimpleStereo {
+public:
+  SimpleStereo(const stereo_base::FileIO &file_io_, const int anchor_,
+               const int dispResolution_, const int downsample_,
+               const double weight_smooth_, const int num_threads_,
+               const int num_proposal_, const int exchange_interval_,
+               const int exchange_amount_);
 
-        ~SimpleStereo() {
-            model->clear();
-        }
+  ~SimpleStereo() { model->clear(); }
 
-        void initMRF();
+  void initMRF();
 
-        void computeMatchingCost();
+  void computeMatchingCost();
 
-        void assignSmoothWeight();
+  void assignSmoothWeight();
 
-        void runStereo();
+  void runStereo();
 
-        inline int getWidth() const { return width; }
+  inline int getWidth() const { return width; }
 
-        inline int getHeight() const { return height; }
+  inline int getHeight() const { return height; }
 
-    private:
-        typedef int EnergyType;
+private:
+  typedef int EnergyType;
 
-        const stereo_base::FileIO &file_io;
-        const int anchor;
-        const int downsample;
-        const int num_threads;
+  const stereo_base::FileIO &file_io;
+  const int anchor;
+  const int downsample;
+  const int num_threads;
+  const int num_proposals, exchange_interval, exchange_amount;
 
-        std::vector<cv::Mat> images;
-        MRFModel<int> *model;
-        stereo_base::Depth unaryDisp;
-        int width;
-        int height;
+  std::vector<cv::Mat> images;
+  MRFModel<int> *model;
+  stereo_base::Depth unaryDisp;
+  int width;
+  int height;
+};
 
-    };
+} // namespace simple_stereo
 
-
-}//namespace simple_stereo
-
-#endif //PARALLELFUSION_SIMPLESTEREO_H
+#endif // PARALLELFUSION_SIMPLESTEREO_H

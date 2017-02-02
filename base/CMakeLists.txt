@@ -11,4 +11,5 @@ include_directories(/usr/local/include/eigen3)
 add_executable(ParallelFusion_base ${BASE_HEADER} ${BASE_SOURCE})
 target_link_libraries(ParallelFusion_base gflags glog)
 
+
 #add third party dependencies when needed

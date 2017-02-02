@@ -5,11 +5,10 @@
 
 #include "LabelSpace.h"
 
-class FusionSolver
-{
- public:
-  virtual std::vector<int> solve(const LabelSpace &label_space, double &energy) const = 0;
-  
+class FusionSolver {
+public:
+  virtual std::vector<int> solve(const LabelSpace &label_space,
+                                 double &energy) const = 0;
 };
-  
+
 #endif

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(OpticalFlow)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 #set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
 set(CMAKE_BUILD_TYPE Release)
 
