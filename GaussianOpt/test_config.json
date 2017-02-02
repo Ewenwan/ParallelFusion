@@ -1,0 +1,32 @@
+{
+    "language"        : "PYTHON",
+    "main-file"       : "test.py",
+    "experiment-name" : "simple-example",
+    "likelihood"      : "gaussian",
+    "resources": {
+        "maximum-iterations" :  50,
+        "max-run-time": "NA"
+    },
+    "space" : [
+        {
+            "name" : "x",
+            "type" : "continuous",
+            "domain": "(0, 5)",
+             "dimensionality":1
+        },
+        {   "name" : "y",
+            "type" : "discrete",
+            "domain": "(-5, 5)",
+            "dimensionality":1
+        }
+    ],
+    "constraints": [
+      {
+      "name": "cont_1",
+      "constrain": "x[:, 1] - x[:, 0]"
+      }
+    ],
+    "output":{
+        "verbosity": true
+    }
+}

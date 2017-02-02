@@ -1,0 +1,38 @@
+{
+    "language"        : "PYTHON",
+    "main-file"       : "simple_stereo.py",
+    "experiment-name" : "simple-stereo",
+    "likelihood"      : "gaussian",
+    "resources": {
+        "maximum-iterations" : 25,
+        "max-run-time": "NA"
+    },
+    "space" : [
+        {
+            "name" : "exchange_amount",
+            "type" : "continuous",
+            "domain": "(1, 100)",
+            "dimensionality": "1"
+        },
+        {   "name" : "num_proposals",
+            "type" : "discrete",
+            "domain": "(1, 2, 3, 4, 5)",
+            "dimensionality": "1"
+        },
+        {
+            "name" : "exchange_interval",
+            "type" : "discrete",
+            "domain": "(1, 2, 3, 4, 5, 4, 5)",
+            "dimensionality": "1"
+        }
+    ],
+    "constraints": [
+      {
+        "name": "cont_1",
+        "constrain": "x[:, 0] - x[:, 1] + 1"
+      }
+    ],
+    "output":{
+        "verbosity": true
+    }
+}
