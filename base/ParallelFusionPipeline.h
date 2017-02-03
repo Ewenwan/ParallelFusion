@@ -2,6 +2,7 @@
 #define PARALLEL_FUSION_PIPELINE_H__
 
 #include <atomic>
+#include <chrono>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -221,11 +222,13 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
     threadProfile[slaveThreadIds[id]].push_back(
         Observation(initTime, current_solution.first));
 
+    std::chrono::nanoseconds run_time(0);
     for (int iter = 0; iter < option.max_iteration; ++iter) {
       if (terminate.load()) {
         printf("Thread %d quited\n", id);
         return;
       }
+      auto start = std::chrono::system_clock::now();
       LABELSPACE proposals;
       // generate proposal by own generator
       LABELSPACE proposals_self;
@@ -396,6 +399,13 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       write_flag[id].store(false);
 
       // double diffE =  lastEnergy - curSolution.first;
+
+      auto end = std::chrono::system_clock::now();
+      std::chrono::nanoseconds current_run = end - start;
+      run_time += current_run;
+
+      if (run_time + current_run >= option.timeout)
+        terminate.store(true);
     }
   } catch (const std::exception &e) {
     terminate.store(true);
@@ -412,11 +422,13 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
     printf("Monitor thread launched\n");
     solver->initSolver(LABELSPACE());
     int iter = 0;
+
     while (true) {
       if (terminate.load()) {
         printf("Monitor thread quited\n");
         break;
       }
+
       std::this_thread::yield();
       LABELSPACE proposals;
       SolutionType<LABELSPACE> current_solution;
@@ -457,9 +469,6 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
       generator->writeSolution(current_solution, monitorThreadIds[id], iter,
                                std::vector<int>());
       iter++;
-
-      if (dt + dt / iter >= option.timeout)
-        terminate.store(true);
     }
   } catch (const std::exception &e) {
     terminate.store(true);

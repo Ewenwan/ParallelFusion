@@ -4,25 +4,25 @@
     "experiment-name" : "simple-stereo",
     "likelihood"      : "gaussian",
     "resources": {
-        "maximum-iterations" : 25,
+        "maximum-iterations" : 250,
         "max-run-time": "NA"
     },
     "space" : [
         {
             "name" : "exchange_amount",
             "type" : "continuous",
-            "domain": "(1, 100)",
+            "domain": "(0, 100)",
             "dimensionality": "1"
         },
         {   "name" : "num_proposals",
             "type" : "discrete",
-            "domain": "(1, 2, 3, 4, 5)",
+            "domain": "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)",
             "dimensionality": "1"
         },
         {
             "name" : "exchange_interval",
             "type" : "discrete",
-            "domain": "(1, 2, 3, 4, 5, 4, 5)",
+            "domain": "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)",
             "dimensionality": "1"
         }
     ],

@@ -186,7 +186,7 @@ void SimpleStereo::runStereo() {
                                      labelList, num_proposals,
                                      exchange_interval, exchange_amount);
   Depth result_parallel;
-  optimize_parallel.optimize(result_parallel, 1);
+  optimize_parallel.optimize(result_parallel, 100);
   sprintf(buffer, "%s/temp/result_parallel.jpg",
           file_io.getDirectory().c_str());
   result_parallel.saveImage(buffer);

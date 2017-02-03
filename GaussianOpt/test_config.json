@@ -4,20 +4,18 @@
     "experiment-name" : "simple-example",
     "likelihood"      : "gaussian",
     "resources": {
-        "maximum-iterations" :  50,
+        "maximum-iterations" :  1,
         "max-run-time": "NA"
     },
     "space" : [
         {
             "name" : "x",
-            "type" : "continuous",
-            "domain": "(0, 5)",
-             "dimensionality":1
+            "type" : "discrete",
+            "domain": "(0, 1, 2, 4, 5, 6, 7)"
         },
         {   "name" : "y",
             "type" : "discrete",
-            "domain": "(-5, 5)",
-            "dimensionality":1
+            "domain": "(-5, -4, 3, 4, 5)"
         }
     ],
     "constraints": [

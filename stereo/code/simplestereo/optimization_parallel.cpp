@@ -23,7 +23,7 @@ double ParallelOptimize::optimize(stereo_base::Depth &result,
   pipelineOption.num_threads = num_threads + 1;
   pipelineOption.max_iteration =
       model->nLabel / num_threads / kFusionSize * max_iter;
-  pipelineOption.timeout = 5;
+  pipelineOption.timeout = 5s;
   std::cout << "Number of iterations: " << pipelineOption.max_iteration
             << std::endl;
   const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;

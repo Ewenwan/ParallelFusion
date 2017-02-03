@@ -9,6 +9,7 @@
 #include "LabelSpace.h"
 #include "ProposalGenerator.h"
 #include "thread_guard.h"
+#include <chrono>
 #include <list>
 #include <mutex>
 #include <opencv2/opencv.hpp>
@@ -85,14 +86,14 @@ struct ParallelFusionOption {
   ParallelFusionOption()
       : convergeThreshold(0.01), max_iteration(10), num_threads(6),
         synchronize(false), selectionMethod(RANDOM),
-        timeout{std::numeric_limits<double>::max()} {}
+        timeout(std::chrono::hours(24)) {}
   // Addition method: how add two proposals. APPEND: simply append; UNION: take
   // union, remove duplicate labels
   double convergeThreshold;
   int max_iteration;
   int num_threads;
   bool synchronize;
-  double timeout;
+  std::chrono::nanoseconds timeout;
 
   enum SolutionSelection { RANDOM, BEST, ALL };
   SolutionSelection selectionMethod;

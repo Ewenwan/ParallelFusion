@@ -11,10 +11,16 @@ class Result:
     return "id: {:<4}  score: {}  # to Share: {:<4}  # of Proposals: {:<4}  Exchange Interval: {:<4}".format(self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval)
 
   def __hash__(self):
-    return hash(self.exchange_amount) + hash(self.num_proposals) + hash(self.exchange_interval)
+    return hash((self.exchange_amount, self.num_proposals, self.exchange_interval))
 
   def __eq__(self, other):
-    return self.exchange_amount == other.exchange_amount and self.num_proposals == other.num_proposals and self.exchange_interval == other.exchange_interval
+    return self.exchange_amount, self.num_proposals, self.exchange_interval == other.exchange_amount, other.num_proposals, other.exchange_interval
+  def __format__(self, code):
+    return format(str(self), code)
+
+  def __getitem__(self, code):
+    return [self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval][code]
+
 
 def parse_gpyopt(csv_name, reverse=False, key_idx=1):
   with open(csv_name) as f:
@@ -29,12 +35,9 @@ def parse_gpyopt(csv_name, reverse=False, key_idx=1):
 
   converted = sorted(converted, key=lambda x: x[key_idx], reverse=reverse)
 
-  top = [a for a in converted if isclose(a[key_idx], converted[0][key_idx])]
-
-
-  return set(Result(*t) for t in top)
+  return sorted(list(set(Result(*a) for a in converted if isclose(a[key_idx], converted[0][key_idx]))),  key=lambda x: x[key_idx], reverse=reverse)
 
 
 
 if __name__ == '__main__':
-  print "\n".join([str(e) for e in parse_gpyopt(argv[1])])
+  print "\n".join(["{}".format(e) for e in parse_gpyopt(argv[1])])
