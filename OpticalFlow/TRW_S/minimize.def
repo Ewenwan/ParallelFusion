@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "MRFEnergy.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 //#include "instances.inc"
 
@@ -10,368 +10,372 @@
 
 using namespace std;
 
-template <class T> int MRFEnergy<T>::Minimize_TRW_S(Options& options, REAL& lowerBound, REAL& energy, REAL* min_marginals)
-{
-	Node* i;
-	Node* j;
-	MRFEdge* e;
-	REAL vMin;
-	int iter;
-	REAL lowerBoundPrev;
+template <class T>
+int MRFEnergy<T>::Minimize_TRW_S(Options &options, REAL &lowerBound,
+                                 REAL &energy, REAL *min_marginals) {
+  Node *i;
+  Node *j;
+  MRFEdge *e;
+  REAL vMin;
+  int iter;
+  REAL lowerBoundPrev;
 
-	if (!m_isEnergyConstructionCompleted)
-	{
-		CompleteGraphConstruction();
-	}
+  if (!m_isEnergyConstructionCompleted) {
+    CompleteGraphConstruction();
+  }
 
-	printf("TRW_S algorithm\n");
+  printf("TRW_S algorithm\n");
 
-	SetMonotonicTrees();
+  SetMonotonicTrees();
 
-	Vector* Di = (Vector*) m_buf;
-	void* buf = (void*) (m_buf + m_vectorMaxSizeInBytes);
+  Vector *Di = (Vector *)m_buf;
+  void *buf = (void *)(m_buf + m_vectorMaxSizeInBytes);
 
-	iter = 0;
-	bool lastIter = false;
+  iter = 0;
+  bool lastIter = false;
 
-	// main loop
-	for (iter=1; ; iter++)
-	{
-		if (iter >= options.m_iterMax) lastIter = true;
+  std::chrono::nanoseconds total_run_time = 0s, prev_run_time = 0s;
+  // main loop
+  for (iter = 1;; iter++) {
+    auto start_time = std::chrono::system_clock::now();
+    if (iter >= options.m_iterMax ||
+        (total_run_time + prev_run_time) >= options.timeout)
+      lastIter = true;
 
-		////////////////////////////////////////////////
-		//                forward pass                //
-		////////////////////////////////////////////////
-		REAL* min_marginals_ptr = min_marginals;
+    ////////////////////////////////////////////////
+    //                forward pass                //
+    ////////////////////////////////////////////////
+    REAL *min_marginals_ptr = min_marginals;
 
-		for (i=m_nodeFirst; i; i=i->m_next)
-		{
-			Di->Copy(m_Kglobal, i->m_K, &i->m_D);
-			for (e=i->m_firstForward; e; e=e->m_nextForward)
-			{
-				Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
-			for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-			{
-				Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
+    for (i = m_nodeFirst; i; i = i->m_next) {
+      Di->Copy(m_Kglobal, i->m_K, &i->m_D);
+      for (e = i->m_firstForward; e; e = e->m_nextForward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
+      for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
 
-			// normalize Di, update lower bound
-			// vMin = Di->ComputeAndSubtractMin(m_Kglobal, i->m_K); // do not compute lower bound
-			// lowerBound += vMin;                                  // during the forward pass
+      // normalize Di, update lower bound
+      // vMin = Di->ComputeAndSubtractMin(m_Kglobal, i->m_K); // do not compute
+      // lower bound
+      // lowerBound += vMin;                                  // during the
+      // forward pass
 
-			// pass messages from i to nodes with higher m_ordering
-			for (e=i->m_firstForward; e; e=e->m_nextForward)
-			{
-				assert(e->m_tail == i);
-				j = e->m_head;
-				
-				vMin = e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di, e->m_gammaForward, 0, buf);
+      // pass messages from i to nodes with higher m_ordering
+      for (e = i->m_firstForward; e; e = e->m_nextForward) {
+        assert(e->m_tail == i);
+        j = e->m_head;
 
-                		// lowerBound += vMin; // do not compute lower bound during the forward pass
-			}
+        vMin = e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di,
+                                          e->m_gammaForward, 0, buf);
 
-			if (lastIter && min_marginals)
-			{
-				min_marginals_ptr += Di->GetArraySize(m_Kglobal, i->m_K);
-			}
-		}
+        // lowerBound += vMin; // do not compute lower bound during the forward
+        // pass
+      }
 
-		////////////////////////////////////////////////
-		//               backward pass                //
-		////////////////////////////////////////////////
-		lowerBound = 0;
+      if (lastIter && min_marginals) {
+        min_marginals_ptr += Di->GetArraySize(m_Kglobal, i->m_K);
+      }
+    }
 
-		for (i=m_nodeLast; i; i=i->m_prev)
-		{
-			Di->Copy(m_Kglobal, i->m_K, &i->m_D);
-			for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-			{
-			  Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
-			for (e=i->m_firstForward; e; e=e->m_nextForward)
-			{
-			  Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
+    ////////////////////////////////////////////////
+    //               backward pass                //
+    ////////////////////////////////////////////////
+    lowerBound = 0;
 
-			// normalize Di, update lower bound
-			vMin = Di->ComputeAndSubtractMin(m_Kglobal, i->m_K);
-			lowerBound += vMin;
+    for (i = m_nodeLast; i; i = i->m_prev) {
+      Di->Copy(m_Kglobal, i->m_K, &i->m_D);
+      for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
+      for (e = i->m_firstForward; e; e = e->m_nextForward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
 
-			if (false) {
-			  if (i->m_ordering == 0 || i->m_ordering == 9 || i->m_ordering == 90 || i->m_ordering == 99)
-			    cout << iter << '\t' << i->m_ordering << '\t' << Di->GetArrayValue(m_Kglobal, i->m_K, TypeGeneral::Label(0)) << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(1)) << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(2)) << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(3)) << endl;
-			  if (i->m_ordering >= 100)
-			    cout << iter << '\t' << i->m_ordering << '\t' << Di->GetArrayValue(m_Kglobal, i->m_K, TypeGeneral::Label(0)) << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(1)) << endl;
-			}
-			
-                	// pass messages from i to nodes with smaller m_ordering
-			for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-			{
-				assert(e->m_head == i);
-				j = e->m_tail;
+      // normalize Di, update lower bound
+      vMin = Di->ComputeAndSubtractMin(m_Kglobal, i->m_K);
+      lowerBound += vMin;
 
-				vMin = e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di, e->m_gammaBackward, 1, buf);
+      if (false) {
+        if (i->m_ordering == 0 || i->m_ordering == 9 || i->m_ordering == 90 ||
+            i->m_ordering == 99)
+          cout << iter << '\t' << i->m_ordering << '\t'
+               << Di->GetArrayValue(m_Kglobal, i->m_K, TypeGeneral::Label(0))
+               << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(1))
+               << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(2))
+               << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(3))
+               << endl;
+        if (i->m_ordering >= 100)
+          cout << iter << '\t' << i->m_ordering << '\t'
+               << Di->GetArrayValue(m_Kglobal, i->m_K, TypeGeneral::Label(0))
+               << '\t' << Di->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(1))
+               << endl;
+      }
 
-				lowerBound += vMin;
-			}
+      // pass messages from i to nodes with smaller m_ordering
+      for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+        assert(e->m_head == i);
+        j = e->m_tail;
 
-			if (lastIter && min_marginals)
-			{
-				min_marginals_ptr -= Di->GetArraySize(m_Kglobal, i->m_K);
-				for (int k=0; k<Di->GetArraySize(m_Kglobal, i->m_K); k++) 
-				{
-					min_marginals_ptr[k] = Di->GetArrayValue(m_Kglobal, i->m_K, k);
-				}
-			}
-		}
+        vMin = e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di,
+                                          e->m_gammaBackward, 1, buf);
 
-		////////////////////////////////////////////////
-		//          check stopping criterion          //
-		////////////////////////////////////////////////
+        lowerBound += vMin;
+      }
 
-		// print lower bound and energy, if necessary
-		if (  lastIter || 
-			( iter>=options.m_printMinIter && 
-			(options.m_printIter<1 || iter%options.m_printIter==0) )
-		)
-		{
-			energy = ComputeSolutionAndEnergy();
-			printf("iter %d: lower bound = %f, energy = %f\n", iter, lowerBound, energy);
-		}
+      if (lastIter && min_marginals) {
+        min_marginals_ptr -= Di->GetArraySize(m_Kglobal, i->m_K);
+        for (int k = 0; k < Di->GetArraySize(m_Kglobal, i->m_K); k++) {
+          min_marginals_ptr[k] = Di->GetArrayValue(m_Kglobal, i->m_K, k);
+        }
+      }
+    }
 
-		if (lastIter) break;
+    ////////////////////////////////////////////////
+    //          check stopping criterion          //
+    ////////////////////////////////////////////////
 
-		// check convergence of lower bound
-		if (options.m_eps >= 0)
-		{
-			if (iter > 1 && lowerBound - lowerBoundPrev <= options.m_eps)
-			{
-				lastIter = true;
-			}
-			lowerBoundPrev = lowerBound;
-		}
-	}
+    // print lower bound and energy, if necessary
+    if (lastIter ||
+        (iter >= options.m_printMinIter &&
+         (options.m_printIter < 1 || iter % options.m_printIter == 0))) {
+      energy = ComputeSolutionAndEnergy();
+      printf("iter %d: lower bound = %f, energy = %f\n", iter, lowerBound,
+             energy);
+    }
 
-	return iter;
+    if (lastIter)
+      break;
+
+    // check convergence of lower bound
+    if (options.m_eps >= 0) {
+      if (iter > 1 && lowerBound - lowerBoundPrev <= options.m_eps) {
+        lastIter = true;
+      }
+      lowerBoundPrev = lowerBound;
+    }
+
+    auto end_time = std::chrono::system_clock::now();
+    prev_run_time = end_time - start_time;
+    total_run_time += prev_run_time;
+  }
+
+  return iter;
 }
 
-template <class T> int MRFEnergy<T>::Minimize_BP(Options& options, REAL& energy, REAL* min_marginals)
-{
-	Node* i;
-	Node* j;
-	MRFEdge* e;
-	REAL vMin;
-	int iter;
+template <class T>
+int MRFEnergy<T>::Minimize_BP(Options &options, REAL &energy,
+                              REAL *min_marginals) {
+  Node *i;
+  Node *j;
+  MRFEdge *e;
+  REAL vMin;
+  int iter;
 
-	if (!m_isEnergyConstructionCompleted)
-	{
-	  CompleteGraphConstruction();
-	}
+  if (!m_isEnergyConstructionCompleted) {
+    CompleteGraphConstruction();
+  }
 
-	printf("BP algorithm\n");
+  printf("BP algorithm\n");
 
-	Vector* Di = (Vector*) m_buf;
-	void* buf = (void*) (m_buf + m_vectorMaxSizeInBytes);
+  Vector *Di = (Vector *)m_buf;
+  void *buf = (void *)(m_buf + m_vectorMaxSizeInBytes);
 
-	iter = 0;
-	bool lastIter = false;
+  iter = 0;
+  bool lastIter = false;
 
-	// main loop
-	for (iter=1; ; iter++)
-	{
-		if (iter >= options.m_iterMax) lastIter = true;
+  // main loop
+  for (iter = 1;; iter++) {
+    if (iter >= options.m_iterMax)
+      lastIter = true;
 
-		////////////////////////////////////////////////
-		//                forward pass                //
-		////////////////////////////////////////////////
-		REAL* min_marginals_ptr = min_marginals;
+    ////////////////////////////////////////////////
+    //                forward pass                //
+    ////////////////////////////////////////////////
+    REAL *min_marginals_ptr = min_marginals;
 
-		for (i=m_nodeFirst; i; i=i->m_next)
-		{
-			Di->Copy(m_Kglobal, i->m_K, &i->m_D);
-			for (e=i->m_firstForward; e; e=e->m_nextForward)
-			{
-			  Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
-			for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-			{
-				Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
+    for (i = m_nodeFirst; i; i = i->m_next) {
+      Di->Copy(m_Kglobal, i->m_K, &i->m_D);
+      for (e = i->m_firstForward; e; e = e->m_nextForward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
+      for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
 
-			// pass messages from i to nodes with higher m_ordering
-			for (e=i->m_firstForward; e; e=e->m_nextForward)
-			{
-				assert(i == e->m_tail);
-				j = e->m_head;
+      // pass messages from i to nodes with higher m_ordering
+      for (e = i->m_firstForward; e; e = e->m_nextForward) {
+        assert(i == e->m_tail);
+        j = e->m_head;
 
-				const REAL gamma = 1;
+        const REAL gamma = 1;
 
-				e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di, gamma, 0, buf);
-			}
+        e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di, gamma, 0,
+                                   buf);
+      }
 
-			if (lastIter && min_marginals)
-			{
-				min_marginals_ptr += Di->GetArraySize(m_Kglobal, i->m_K);
-			}
-		}
+      if (lastIter && min_marginals) {
+        min_marginals_ptr += Di->GetArraySize(m_Kglobal, i->m_K);
+      }
+    }
 
-		////////////////////////////////////////////////
-		//               backward pass                //
-		////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    //               backward pass                //
+    ////////////////////////////////////////////////
 
-		for (i=m_nodeLast; i; i=i->m_prev)
-		{
-			Di->Copy(m_Kglobal, i->m_K, &i->m_D);
-			for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-			{
-				Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
-			for (e=i->m_firstForward; e; e=e->m_nextForward)
-			{
-				Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-			}
+    for (i = m_nodeLast; i; i = i->m_prev) {
+      Di->Copy(m_Kglobal, i->m_K, &i->m_D);
+      for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
+      for (e = i->m_firstForward; e; e = e->m_nextForward) {
+        Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      }
 
-			// pass messages from i to nodes with smaller m_ordering
-			for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-			{
-				assert(i == e->m_head);
-				j = e->m_tail;
+      // pass messages from i to nodes with smaller m_ordering
+      for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+        assert(i == e->m_head);
+        j = e->m_tail;
 
-				const REAL gamma = 1;
+        const REAL gamma = 1;
 
-				vMin = e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di, gamma, 1, buf);
-			}
+        vMin = e->m_message.UpdateMessage(m_Kglobal, i->m_K, j->m_K, Di, gamma,
+                                          1, buf);
+      }
 
-			if (lastIter && min_marginals)
-			{
-				min_marginals_ptr -= Di->GetArraySize(m_Kglobal, i->m_K);
-				for (int k=0; k<Di->GetArraySize(m_Kglobal, i->m_K); k++) 
-				{
-					min_marginals_ptr[k] = Di->GetArrayValue(m_Kglobal, i->m_K, k);
-				}
-			}
-		}
+      if (lastIter && min_marginals) {
+        min_marginals_ptr -= Di->GetArraySize(m_Kglobal, i->m_K);
+        for (int k = 0; k < Di->GetArraySize(m_Kglobal, i->m_K); k++) {
+          min_marginals_ptr[k] = Di->GetArrayValue(m_Kglobal, i->m_K, k);
+        }
+      }
+    }
 
-		////////////////////////////////////////////////
-		//          check stopping criterion          //
-		////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    //          check stopping criterion          //
+    ////////////////////////////////////////////////
 
-		// print energy, if necessary
-		if ( lastIter || 
-			( iter>=options.m_printMinIter && 
-			(options.m_printIter<1 || iter%options.m_printIter==0) )
-		)
-		{
-		  energy = ComputeSolutionAndEnergy();
-			printf("iter %d: energy = %f\n", iter, energy);
-		}
+    // print energy, if necessary
+    if (lastIter ||
+        (iter >= options.m_printMinIter &&
+         (options.m_printIter < 1 || iter % options.m_printIter == 0))) {
+      energy = ComputeSolutionAndEnergy();
+      printf("iter %d: energy = %f\n", iter, energy);
+    }
 
-		// if finishFlag==true terminate
-		if (lastIter) break;
-	}
+    // if finishFlag==true terminate
+    if (lastIter)
+      break;
+  }
 
-	return iter;
+  return iter;
 }
 
-template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy()
-{
-	Node* i;
-	Node* j;
-	MRFEdge* e;
-	REAL E = 0;
+template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy() {
+  Node *i;
+  Node *j;
+  MRFEdge *e;
+  REAL E = 0;
 
-	Vector* DiBackward = (Vector*) m_buf; // cost of backward edges plus Di at the node
-	Vector* Di = (Vector*) (m_buf + m_vectorMaxSizeInBytes); // all edges plus Di at the node
+  Vector *DiBackward =
+      (Vector *)m_buf; // cost of backward edges plus Di at the node
+  Vector *Di =
+      (Vector *)(m_buf +
+                 m_vectorMaxSizeInBytes); // all edges plus Di at the node
 
-	// for (i=m_nodeLast; i; i=i->m_prev)
-        //   {
-        //     // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward edges (i,j).
-        //     // Set Di[ki] to be the value of the energy corresponding to
-        //     // part of the graph considered so far, assuming that nodes u
-        //     // in this subgraph are fixed to u->m_solution
+  // for (i=m_nodeLast; i; i=i->m_prev)
+  //   {
+  //     // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward
+  //     edges (i,j).
+  //     // Set Di[ki] to be the value of the energy corresponding to
+  //     // part of the graph considered so far, assuming that nodes u
+  //     // in this subgraph are fixed to u->m_solution
 
-        //     //cout << "ordering: " << i->m_ordering << endl;
-        //     DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
-	//     for (e=i->m_firstForward; e; e=e->m_nextForward)
-        //       {
-        //         assert(i == e->m_tail);
-        //         j = e->m_head;
+  //     //cout << "ordering: " << i->m_ordering << endl;
+  //     DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
+  //     for (e=i->m_firstForward; e; e=e->m_nextForward)
+  //       {
+  //         assert(i == e->m_tail);
+  //         j = e->m_head;
 
-	// 	//cout << j->m_ordering << '\t' << j->m_solution << endl;
-        //         //DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-        //         e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution, DiBackward, 0);
-        //       }
+  //  //cout << j->m_ordering << '\t' << j->m_solution << endl;
+  //         //DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+  //         e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution,
+  //         DiBackward, 0);
+  //       }
 
-        //     // add forward edges
-        //     Di->Copy(m_Kglobal, i->m_K, DiBackward);
-                
-	//     for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-        //       {
-        //         Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-        //       }
+  //     // add forward edges
+  //     Di->Copy(m_Kglobal, i->m_K, DiBackward);
 
-        //     Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
+  //     for (e=i->m_firstBackward; e; e=e->m_nextBackward)
+  //       {
+  //         Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+  //       }
 
-        //     // update energy
-        //     E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
-        //   }
-	// return E;
-	
-	for (i=m_nodeFirst; i; i=i->m_next)
-	{
-		// Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward edges (i,j).
-		// Set Di[ki] to be the value of the energy corresponding to
-		// part of the graph considered so far, assuming that nodes u
-		// in this subgraph are fixed to u->m_solution
+  //     Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
 
-	  //cout << "ordering: " << i->m_ordering << endl;
-	  DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
-	  for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-                {
-                        assert(i == e->m_head);
-			j = e->m_tail;
+  //     // update energy
+  //     E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
+  //   }
+  // return E;
 
-			//		cout << j->m_ordering << endl;
-			//DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-                	e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution, DiBackward, 0);
-                }
+  for (i = m_nodeFirst; i; i = i->m_next) {
+    // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward edges
+    // (i,j).
+    // Set Di[ki] to be the value of the energy corresponding to
+    // part of the graph considered so far, assuming that nodes u
+    // in this subgraph are fixed to u->m_solution
 
-		// add forward edges
-		Di->Copy(m_Kglobal, i->m_K, DiBackward);
-		
-                for (e=i->m_firstForward; e; e=e->m_nextForward)
-		{
-		  Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-                }
+    // cout << "ordering: " << i->m_ordering << endl;
+    DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
+    for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+      assert(i == e->m_head);
+      j = e->m_tail;
 
-                Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
-		
-		// update energy
-		E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
-	}
+      //    cout << j->m_ordering << endl;
+      // DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution,
+                             DiBackward, 0);
+    }
 
-	return E;
+    // add forward edges
+    Di->Copy(m_Kglobal, i->m_K, DiBackward);
+
+    for (e = i->m_firstForward; e; e = e->m_nextForward) {
+      Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+    }
+
+    Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
+
+    // update energy
+    E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
+  }
+
+  return E;
 }
 
-
-// template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergyOptimally()
+// template <class T> typename T::REAL
+// MRFEnergy<T>::ComputeSolutionAndEnergyOptimally()
 // {
 //   Node* i;
 //   Node* j;
 //   MRFEdge* e;
 //   REAL E = 0;
 
-//   Vector* DiBackward = (Vector*) m_buf; // cost of backward edges plus Di at the node
-//   Vector* Di = (Vector*) (m_buf + m_vectorMaxSizeInBytes); // all edges plus Di at the node
+//   Vector* DiBackward = (Vector*) m_buf; // cost of backward edges plus Di at
+//   the node
+//   Vector* Di = (Vector*) (m_buf + m_vectorMaxSizeInBytes); // all edges plus
+//   Di at the node
 //   Vector* DiConfidence = (Vector*) (m_buf + m_vectorMaxSizeInBytes * 2);
-  
+
 //   m_confidences.assign(m_nodeNum, 0);
 //   double max_confidence = 0;
 //   Node *max_confidence_node = NULL;
 //   for (i=m_nodeFirst; i; i=i->m_next)
 //     {
-//       // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward edges (i,j).
+//       // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward
+//       edges (i,j).
 //       // Set Di[ki] to be the value of the energy corresponding to
 //       // part of the graph considered so far, assuming that nodes u
 //       // in this subgraph are fixed to u->m_solution
@@ -380,48 +384,49 @@ template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy()
 //       DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
 //       DiConfidence->Copy(m_Kglobal, i->m_K, &i->m_D);
 //       for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-// 	{
-// 	  assert(i == e->m_head);
-// 	  j = e->m_tail;
+//  {
+//    assert(i == e->m_head);
+//    j = e->m_tail;
 
-// 	  //		cout << j->m_ordering << endl;
-// 	  //DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-// 	  e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution, DiBackward, 0);
-// 	  DiConfidence->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-// 	}
+//    //    cout << j->m_ordering << endl;
+//    //DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+//    e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution,
+// DiBackward, 0);
+//    DiConfidence->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+//  }
 
 //       // add forward edges
 //       Di->Copy(m_Kglobal, i->m_K, DiBackward);
-		
+
 //       for (e=i->m_firstForward; e; e=e->m_nextForward)
-// 	{
-// 	  Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-// 	  DiConfidence->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-// 	}
+//  {
+//    Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+//    DiConfidence->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+//  }
 
 //       Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
 //       //DiConfidence->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
-		
+
 //       // update energy
 //       E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
 
-		
 //       double min_1 = 1000000, min_2 = 1000000;
 //       for (int index = 0; index < i->m_K.m_K; index++) {
-// 	double value = DiConfidence->GetValue(m_Kglobal, i->m_K, TypeGeneral::Label(index));
-// 	if (value < min_1) {
-// 	  min_2 = min_1;
-// 	  min_1 = value;
-// 	} else if (value < min_2)
-// 	  min_2 = value;
+//  double value = DiConfidence->GetValue(m_Kglobal, i->m_K,
+// TypeGeneral::Label(index));
+//  if (value < min_1) {
+//    min_2 = min_1;
+//    min_1 = value;
+//  } else if (value < min_2)
+//    min_2 = value;
 //       }
 //       double confidence = min_1 == 0 ? 1 : (min_2 - min_1) / min_1;
 //       if (confidence < 0)
-// 	confidence *= -1;
-      
+//  confidence *= -1;
+
 //       if (confidence > max_confidence) {
-// 	max_confidence = confidence;
-// 	max_confidence_node = i;
+//  max_confidence = confidence;
+//  max_confidence_node = i;
 //       }
 //     }
 
@@ -432,7 +437,7 @@ template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy()
 //     vector<Node *> new_border_nodes;
 //     for (int i = 0; i < border_nodes.size(); i++) {
 //       Node *node = border_nodes[i];
-      
+
 //       DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
 //       for (e=i->m_firstBackward; e; e=e->m_nextBackward)
 //         {
@@ -441,12 +446,13 @@ template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy()
 
 //           //            cout << j->m_ordering << endl;
 //           //DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-//           e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution, DiBackward, 0);
+//           e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution,
+//           DiBackward, 0);
 //         }
 
 //       // add forward edges
 //       Di->Copy(m_Kglobal, i->m_K, DiBackward);
-                
+
 //       for (e=i->m_firstForward; e; e=e->m_nextForward)
 //         {
 //           Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
@@ -456,62 +462,61 @@ template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy()
 //       // update energy
 //       E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
 
-
-      
 //     }
 //   return E;
 // }
 
-
-template <class T> typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy(const int start_index)
-{
-  Node* i;
-  Node* j;
-  MRFEdge* e;
+template <class T>
+typename T::REAL MRFEnergy<T>::ComputeSolutionAndEnergy(const int start_index) {
+  Node *i;
+  Node *j;
+  MRFEdge *e;
   REAL E = 0;
 
-  Vector* DiBackward = (Vector*) m_buf; // cost of backward edges plus Di at the node
-  Vector* Di = (Vector*) (m_buf + m_vectorMaxSizeInBytes); // all edges plus Di at the node
-  for (i=m_nodeFirst; i; i=i->m_next)
-    {
-      // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward edges (i,j).
-      // Set Di[ki] to be the value of the energy corresponding to
-      // part of the graph considered so far, assuming that nodes u
-      // in this subgraph are fixed to u->m_solution
+  Vector *DiBackward =
+      (Vector *)m_buf; // cost of backward edges plus Di at the node
+  Vector *Di =
+      (Vector *)(m_buf +
+                 m_vectorMaxSizeInBytes); // all edges plus Di at the node
+  for (i = m_nodeFirst; i; i = i->m_next) {
+    // Set Ebackward[ki] to be the sum of V(ki,j->m_solution) for backward edges
+    // (i,j).
+    // Set Di[ki] to be the value of the energy corresponding to
+    // part of the graph considered so far, assuming that nodes u
+    // in this subgraph are fixed to u->m_solution
 
-      //cout << "ordering: " << i->m_ordering << endl;
-      DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
-      for (e=i->m_firstBackward; e; e=e->m_nextBackward)
-        {
-          assert(i == e->m_head);
-          j = e->m_tail;
+    // cout << "ordering: " << i->m_ordering << endl;
+    DiBackward->Copy(m_Kglobal, i->m_K, &i->m_D);
+    for (e = i->m_firstBackward; e; e = e->m_nextBackward) {
+      assert(i == e->m_head);
+      j = e->m_tail;
 
-          //            cout << j->m_ordering << endl;
-          //DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-          e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution, DiBackward, 0);
-	}
-      
-      // add forward edges
-      Di->Copy(m_Kglobal, i->m_K, DiBackward);
-                
-      for (e=i->m_firstForward; e; e=e->m_nextForward)
-        {
-          Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
-        }
-
-      Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
-                
-      // update energy
-      E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
+      //            cout << j->m_ordering << endl;
+      // DiBackward->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+      e->m_message.AddColumn(m_Kglobal, j->m_K, i->m_K, j->m_solution,
+                             DiBackward, 0);
     }
+
+    // add forward edges
+    Di->Copy(m_Kglobal, i->m_K, DiBackward);
+
+    for (e = i->m_firstForward; e; e = e->m_nextForward) {
+      Di->Add(m_Kglobal, i->m_K, e->m_message.GetMessagePtr());
+    }
+
+    Di->ComputeMin(m_Kglobal, i->m_K, i->m_solution);
+
+    // update energy
+    E += DiBackward->GetValue(m_Kglobal, i->m_K, i->m_solution);
+  }
 
   return E;
 }
 
-template <class T> int MRFEnergy<T>::changeOrdering(const vector<int> &ordering)
-{
+template <class T>
+int MRFEnergy<T>::changeOrdering(const vector<int> &ordering) {
   int index = 0;
-  for (Node *i=m_nodeFirst; i; i=i->m_next) {
+  for (Node *i = m_nodeFirst; i; i = i->m_next) {
     i->m_ordering = ordering[index];
     index++;
   }
