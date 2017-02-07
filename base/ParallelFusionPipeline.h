@@ -462,8 +462,8 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
         }
       }
 
-      float dt =
-          ((float)cv::getTickCount() - start_time)(float)cv::getTickFrequency();
+      float dt = ((float)cv::getTickCount() - start_time) /
+                 static_cast<float>(cv::getTickFrequency());
       threadProfile[monitorThreadIds[id]].push_back(
           Observation(dt, current_solution.first));
       globalProfile.addObservation(dt, current_solution.first);
