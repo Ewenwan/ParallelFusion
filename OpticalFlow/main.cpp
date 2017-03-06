@@ -77,6 +77,9 @@ int main(int argc, char *argv[]) {
   Mat image_1 = imread(FLAGS_dataset_name + "/frame10.png");
   Mat image_2 = imread(FLAGS_dataset_name + "/frame11.png");
 
+  CHECK_NOTNULL(image_1.data);
+  CHECK_NOTNULL(image_2.data);
+
   const int IMAGE_WIDTH = image_1.cols;
   const int IMAGE_HEIGHT = image_1.rows;
 
@@ -139,7 +142,7 @@ int main(int argc, char *argv[]) {
   option.num_threads = FLAGS_num_threads;
   option.max_iteration = FLAGS_num_iterations;
   option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
-  option.timeout = 10s;
+  option.timeout = std::chrono::minutes(5);
   // option.synchronize = true;
 
   vector<shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE>>> generators(
@@ -154,7 +157,7 @@ int main(int argc, char *argv[]) {
     generators[i] = shared_ptr<ParallelFusion::ProposalGenerator<LABELSPACE>>(
         new OpticalFlowProposalGenerator(image_1, image_2, ground_truth_flows));
     solvers[i] = shared_ptr<ParallelFusion::FusionSolver<LABELSPACE>>(
-        new OpticalFlowFusionSolver(image_1, image_2));
+        new OpticalFlowFusionSolver(image_1, image_2, option.timeout));
     initials[i].setSingleLabels(
         vector<pair<double, double>>(IMAGE_WIDTH * IMAGE_HEIGHT));
 
