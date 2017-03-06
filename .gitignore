@@ -1,8 +1,11 @@
-*~
-*#
 *.o
 *.cmake
 build
 nohup.out
 *virtenv
+nohup.out
 Log
+stereo_data
+*evals*.txt
+*model*.txt
+*.png
