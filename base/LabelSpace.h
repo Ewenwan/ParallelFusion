@@ -1,7 +1,6 @@
 #ifndef LABEL_SPACE_H__
 #define LABEL_SPACE_H__
 
-#include "LabelSpaceBase.h"
 #include <algorithm>
 #include <glog/logging.h>
 #include <memory>
@@ -9,13 +8,8 @@
 
 namespace ParallelFusion {
 // Label space management
-template <typename LabelType>
-class LabelSpace : public LabelSpaceBase<std::vector<std::vector<LabelType>>,
-                                         std::vector<LabelType>, LabelType> {
+template <typename LabelType> class LabelSpace {
 public:
-  typedef LabelSpaceBase<std::vector<std::vector<LabelType>>,
-                         std::vector<LabelType>, LabelType>
-      BASE;
   LabelSpace() : num_nodes_(0){};
 
   LabelSpace(const int NUM_NODES)
@@ -30,63 +24,59 @@ public:
     num_nodes_ = 0;
   }
 
-  inline virtual void
-  init(const int NUM_NODE,
-       std::vector<LabelType> v = std::vector<LabelType>()) {
+  inline void init(const int NUM_NODE,
+                   std::vector<LabelType> v = std::vector<LabelType>()) {
     num_nodes_ = NUM_NODE;
     label_space_.resize((size_t)NUM_NODE, v);
   }
 
-  inline virtual int getNumNode() const { return num_nodes_; }
+  inline int getNumNode() const { return num_nodes_; }
 
-  inline virtual std::vector<std::vector<LabelType>> &getLabelSpace() {
+  inline std::vector<std::vector<LabelType>> &getLabelSpace() {
     return label_space_;
   }
-  inline virtual const std::vector<std::vector<LabelType>> &
-  getLabelSpace() const {
+  inline const std::vector<std::vector<LabelType>> &getLabelSpace() const {
     return label_space_;
   }
 
   inline virtual bool empty() const { return label_space_.empty(); }
 
-  inline virtual const std::vector<LabelType> &
-  getLabelOfNode(const int nid) const {
+  inline const std::vector<LabelType> &getLabelOfNode(const int nid) const {
     CHECK_GE(nid, 0);
     CHECK_LT(nid, label_space_.size());
     return label_space_[nid];
   }
 
-  inline virtual std::vector<LabelType> &getLabelOfNode(const int nid) {
+  inline std::vector<LabelType> &getLabelOfNode(const int nid) {
     CHECK_GE(nid, 0);
     CHECK_LT(nid, label_space_.size());
     return label_space_[nid];
   }
 
-  virtual void
+  void
   assign(const int NUM_NODES,
          const std::vector<LabelType> &node_labels = std::vector<LabelType>()) {
     num_nodes_ = NUM_NODES;
     label_space_.assign(NUM_NODES, node_labels);
   };
 
-  virtual void appendSpace(const BASE &rhs);
-  virtual void unionSpace(const BASE &rhs);
+  void appendSpace(const LabelSpace<LabelType> &rhs);
+  void unionSpace(const LabelSpace<LabelType> &rhs);
 
-  virtual void setSingleLabels(const std::vector<LabelType> &single_labels);
+  void setSingleLabels(const std::vector<LabelType> &single_labels);
 
-  virtual void
-  setLabelSpace(const std::vector<std::vector<LabelType>> &label_space) {
+  void setLabelSpace(const std::vector<std::vector<LabelType>> &label_space) {
     num_nodes_ = (int)label_space.size();
     label_space_ = label_space;
   };
 
-  virtual const LabelType &operator()(const int nodeid, const int sid) const {
+  LabelType operator()(const int nodeid, const int sid) const {
     CHECK_LT(nodeid, label_space_.size());
     CHECK_LT(sid, label_space_[nodeid].size());
     return label_space_[nodeid][sid];
   }
 
-  virtual LabelType &operator()(const int nodeid, const int sid) {
+  LabelType &operator()(const int nodeid, const int sid) {
     CHECK_LT(nodeid, label_space_.size());
     CHECK_LT(sid, label_space_[nodeid].size());
     return label_space_[nodeid][sid];
@@ -122,7 +112,7 @@ void LabelSpace<LabelType>::setSingleLabels(
 }
 
 template <typename LabelType>
-void LabelSpace<LabelType>::appendSpace(const BASE &rhs) {
+void LabelSpace<LabelType>::appendSpace(const LabelSpace<LabelType> &rhs) {
   if (num_nodes_ == 0) {
     init(rhs.getNumNode());
   }
@@ -133,7 +123,7 @@ void LabelSpace<LabelType>::appendSpace(const BASE &rhs) {
 }
 
 template <typename LabelType>
-void LabelSpace<LabelType>::unionSpace(const BASE &rhs) {
+void LabelSpace<LabelType>::unionSpace(const LabelSpace<LabelType> &rhs) {
   const std::vector<std::vector<LabelType>> &rhs_label_space =
       rhs.getLabelSpace();
   CHECK_EQ(label_space_.size(), rhs_label_space.size());

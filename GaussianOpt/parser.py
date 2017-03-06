@@ -3,11 +3,12 @@ from fastnumbers import fast_real, isreal, fast_int
 from sys import argv
 
 class Result:
-  def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval = 2):
+  def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval):
     self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval = id, score, fast_int(round(exchange_amount)), num_proposals, exchange_interval
 
+
   def __str__(self):
-    return "id: {:<4}  score: {:.4f}  # to Share: {:<4}  # of Proposals: {:<4}  Exchange Interval: {:<4}".format(self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval)
+    return "id: {:<4}  score: {}  # to Share: {:<4}  # of Proposals: {:<4}  Exchange Interval: {:<4}".format(self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval)
 
   def __hash__(self):
     return hash((self.exchange_amount, self.num_proposals, self.exchange_interval))
@@ -34,7 +35,7 @@ def parse_gpyopt(csv_name, reverse=False, key_idx=1):
 
   converted = sorted(converted, key=lambda x: x[key_idx], reverse=reverse)
 
-  return sorted(list(set(Result(*a) for a in converted if isclose(a[key_idx], converted[0][key_idx], rtol=1e-4))),  key=lambda x: x[key_idx], reverse=reverse)
+  return sorted(list(set(Result(*a) for a in converted if isclose(a[key_idx], converted[0][key_idx]))),  key=lambda x: x[key_idx], reverse=reverse)
 
 
 

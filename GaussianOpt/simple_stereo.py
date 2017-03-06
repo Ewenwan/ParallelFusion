@@ -1,80 +1,47 @@
-import subprocess, shlex, math, random
+import subprocess, shlex
 from fastnumbers import fast_real, fast_int
 import numpy as np
-from GPyOpt.methods import BayesianOptimization
-import re
-from bopt_utils import Runner
+import math
 
 exe = "/home/erik/Projects/ParallelFusion/build/stereo/code/simplestereo/SimpleStereo"
 
-data_base = "/home/erik/Projects/ParallelFusion/stereo/stereo_data"
-data_sets = "data_teddy2 data_teddy data_cones data_book data_book2".split(" ")
+data_base = "/home/erik/Projects/ParallelFusion/build/stereo/code/stereo_data"
+data_sets = ["data_teddy2", "data_teddy", "data_book", "data_book2", "data_cones"]
 
-searcher = re.compile(".*Final energy:\s*(\d*\.\d*).*")
-runner = Runner(exe, searcher, data_base, "{} {}/{} -num_proposals={} -exchange_interval={} -exchange_amount={} -num_threads=4")
+def run_command(command):
+  num_tries = 5
+  while num_tries != 0:
+    try:
+      process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
 
-def simple_stereo(exchange_amount, num_proposals, exchange_interval = 2):
+      data = process.communicate()
+      print data[0]
+
+      res = np.array([math.log(fast_real(data[0].strip().split("\n")[-2].split(",")[0].split(":")[1]))])
+      return res
+    except:
+      num_tries -= 1
+
+  raise RuntimeError
+
+def simple_stereo(exchange_amount, num_proposals, exchange_interval):
   print num_proposals, exchange_interval, exchange_amount
-  return runner.run(data_sets, fast_int(num_proposals), fast_int(exchange_interval), fast_int(exchange_amount))
+  res = np.array([0.0])
 
-def wrapper(evals):
-  print evals
-  res = np.array([simple_stereo(*e) for e in evals])
+  num_successful = len(data_sets)
+  for data in data_sets:
+    command = "{} {}/{} -num_proposals={} -exchange_interval={} -exchange_amount={} -num_threads=8".format(exe, data_base, data, fast_int(round(num_proposals[0])), fast_int(round(exchange_interval[0])), fast_int(round(exchange_amount[0])))
+    print command
+
+    try:
+      res += run_command(command)
+    except:
+      num_successful -= 1
+
+  res /= num_successful
   print res
   return res
 
-def main():
-  num_threads = 1
-  while num_threads <= 8:
-    global runner
-    runner = Runner(exe, searcher, data_base, "{} {}/{} -num_proposals={} -exchange_interval={} -exchange_amount={} -num_threads=" + str(num_threads))
-
-    max_num_proposals = 10
-    space = [
-      {
-        "name" : "exchange_amount",
-        "type" : "discrete",
-        "domain": tuple(range(0, num_threads + 1)),
-        "dimensionality": 1
-      },
-      {
-        "name" : "num_proposals",
-        "type" : "discrete",
-        "domain": tuple(range(1, max_num_proposals + 1)),
-        "dimensionality": 1
-      },
-      {
-        "name" : "exchange_interval",
-        "type" : "discrete",
-        "domain": tuple(range(1, max_num_proposals + 1)),
-        "dimensionality": 1
-      }
-    ]
-
-    constrains = [
-      {
-        "name": "cont_1",
-        "constrain": "x[:, 0] - x[:, 1] + 0.5"
-      }
-    ]
-
-
-    # --- Solve your problem
-    opt = BayesianOptimization(f=wrapper,
-                                  domain=space,
-                                  constrains=constrains)
-
-    opt.run_optimization(max_iter=35,
-                            evaluations_file="simple-stereo-evals-{}.txt".format(num_threads),
-                            models_file="simple-stereo-model-{}.txt".format(num_threads),
-                            batch_size=5,
-                            evaluator_type="local_penalization")
-
-
-    opt.plot_acquisition("stereo_plot")
-
-    num_threads *= 2
-
 
 if __name__ == '__main__':
-  main()
+  print simple_stereo([0], [1], [1])

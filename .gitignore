@@ -1,7 +1,8 @@
+*~
+*#
 *.o
 *.cmake
 build
-*virtenv*
 nohup.out
+*virtenv
 Log
-stereo_data

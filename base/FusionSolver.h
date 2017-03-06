@@ -24,7 +24,5 @@ public:
   // given a solution, evaluate energy
   virtual double evaluateEnergy(const LABELSPACE &solution) const = 0;
 };
-
 } // namespace ParallelFusion
-
 #endif

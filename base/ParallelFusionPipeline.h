@@ -241,8 +241,6 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       bool grabbed_solution_from_self = false;
       std::vector<int> selected_threads;
       if (num_proposals_from_others > 0) {
-        LOG(INFO) << "Thread: " << id << "\tGetting "
-                  << num_proposals_from_others << " from other threads";
         if (option.selectionMethod == ParallelFusionOption::RANDOM) {
 
           for (auto pid = 0; pid < num_proposals_from_others; ++pid) {
@@ -343,19 +341,13 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       proposals.appendSpace(proposals_self);
 
       // printf("In iteration %d, thread %d generates %d proposals and grab %d
-      //        solutions\n ", iter, id, num_proposals_from_self,
-      //        num_proposals_from_others);
-
-      // std::cout << "Thread " << id << " generates " <<
-      // num_proposals_from_self
-      //           << " proposals and grabs " << num_proposals_from_others
-      //           << " solutions from others" << std::endl;
+      // solutions\n", iter, id, num_proposals_from_self,
+      // num_proposals_from_others);
 
       // printf("Solving...\n");
       SolutionType<LABELSPACE> curSolution;
       solver->solve(proposals, current_solution, curSolution);
-      LOG(INFO) << "Thread: " << id
-                << "\tcurrent energy: " << curSolution.first;
+      // printf("Done. Energy: %.5f\n", curSolution.first);
 
       // write thread profile, update global profile
       float dt = ((float)cv::getTickCount() - start_time) /
@@ -462,7 +454,6 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
 
         num_proposals_to_fuse++;
         if (num_proposals_to_fuse == thread_option.kTotal + 1) {
-          std::cout << "Monitor fusing" << std::endl;
           SolutionType<LABELSPACE> curSolution;
           solver->solve(proposals, current_solution, curSolution);
           current_solution = curSolution;
