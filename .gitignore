@@ -9,3 +9,4 @@ stereo_data
 *evals*.txt
 *model*.txt
 *.png
+*.pyc
