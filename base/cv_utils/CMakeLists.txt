@@ -1,19 +1,22 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 project (cv_utils)
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS "-std=c++0x")
-#add_definitions(-std=c++11)
-#set(CMAKE_CXX_STANDARD 11)
+
 find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED COMPONENTS features kdtree)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-include_directories("../../stereo/code/external")
-
 file(GLOB SOURCES "*.cpp")
-add_library(cv_utils SHARED ${SOURCES} ../../stereo/code/external/TRW_S/errorFn.cpp)
-target_link_libraries(cv_utils ${OpenCV_LIBS})
+set(CV_UTILS_DIRS ${TRW_DIRS}
+    "${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_library(cv_utils SHARED ${SOURCES})
+target_link_libraries(cv_utils ${OpenCV_LIBS} ${TRW_LIBS})
 target_link_libraries(cv_utils ${PCL_FEATURES_LIBRARIES} ${PCL_KDTREE_LIBRARIES})
-set(CV_UTILS cv_utils PARENT_SCOPE)
+target_include_directories(cv_utils PUBLIC
+                           ${CV_UTILS_DIRS}
+                           ${BASE_DIRS})
+set(CV_UTILS_LIBS cv_utils PARENT_SCOPE)
+set(CV_UTILS_DIRS ${CV_UTILS_DIRS} PARENT_SCOPE)

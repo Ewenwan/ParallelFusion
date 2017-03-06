@@ -102,11 +102,12 @@ struct ParallelFusionOption {
 struct ThreadOption {
   ThreadOption()
       : kTotal(1), kOtherThread(0), solution_exchange_interval(1),
-        is_monitor(false) {}
+        is_monitor(false), eps{1e-6} {}
   int kTotal;                     // # of proposals per thread
   int kOtherThread;               // # of solutions to share - [0, # proposals]
   int solution_exchange_interval; // # [1, max_iter]
   bool is_monitor;
+  double eps;
 };
 
 } // namespace ParallelFusion
