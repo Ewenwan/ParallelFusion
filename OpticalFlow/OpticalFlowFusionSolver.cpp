@@ -18,16 +18,13 @@ using namespace cv_utils;
 using namespace ParallelFusion;
 
 namespace flow_fusion {
-OpticalFlowFusionSolver::OpticalFlowFusionSolver(
-    const cv::Mat &image_1, const cv::Mat &image_2,
-    const std::chrono::nanoseconds &timeout)
+OpticalFlowFusionSolver::OpticalFlowFusionSolver(const cv::Mat &image_1,
+                                                 const cv::Mat &image_2)
     : image_1_(image_1.clone()), image_2_(image_2.clone()),
-      IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows),
-      timeout{timeout} {
+      IMAGE_WIDTH_(image_1.cols), IMAGE_HEIGHT_(image_1.rows) {
   calcNeighborInfo();
 
   Mat blurred_image_1, blurred_image_2;
-
   GaussianBlur(image_1, blurred_image_1, cv::Size(5, 5), 0, 0);
   GaussianBlur(image_2, blurred_image_2, cv::Size(5, 5), 0, 0);
   subtract(image_1, blurred_image_1, image_1_high_freq_);
@@ -317,7 +314,7 @@ void OpticalFlowFusionSolver::solve(
   options.m_printIter = 200;
   options.m_printMinIter = 100;
   options.m_eps = 0.001;
-  options.timeout = this->timeout;
+  options.timeout = 10s;
 
   // energy->SetAutomaticOrdering();
   // energy->ZeroMessages();

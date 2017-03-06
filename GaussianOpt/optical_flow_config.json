@@ -4,7 +4,7 @@
     "experiment-name" : "optical-flow",
     "likelihood"      : "gaussian",
     "resources": {
-        "maximum-iterations" : 100,
+        "maximum-iterations" : 5,
         "max-run-time": "NA"
     },
     "space" : [

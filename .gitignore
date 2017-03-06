@@ -1,9 +1,12 @@
 *.o
 *.cmake
 build
-*virtenv*
+nohup.out
+*virtenv
 nohup.out
 Log
 stereo_data
-*evals*
-*model*
+*evals*.txt
+*model*.txt
+*.png
+*.pyc
