@@ -3,11 +3,15 @@ from fastnumbers import fast_real, fast_int
 import numpy as np
 import math
 from GPyOpt.methods import BayesianOptimization
+import re
+from bopt_utils import Runner
 
 exe = "/home/vision/erikwijmans/ParallelFusion/build/OpticalFlow/OpticalFlow"
 
 data_base = "/home/vision/erikwijmans/ParallelFusion/OpticalFlow/other-data"
-data_sets = "Beanbags DogDance Grove3 MiniCooper Urban2 Venus Dimetrodon Grove2 Hydrangea RubberWhale Urban3 Walking".strip().split(" ")[6:7]
+data_sets = "Beanbags DogDance Grove3 MiniCooper Urban2 Venus Dimetrodon Grove2 Hydrangea RubberWhale Urban3 Walking".strip().split(" ")
+searcher = re.compile(".*Final energy:\s*(\d*\.\d*).*")
+runner = Runner(exe, searcher, data_base, "{} -scene_name={}/{} -num_proposals_in_total={} -solution_exchange_interval={} -num_proposals_from_others={} -num_threads=")
 num_threads = 4
 
 class bcolors:
