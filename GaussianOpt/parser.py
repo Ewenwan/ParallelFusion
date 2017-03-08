@@ -4,21 +4,23 @@ from sys import argv
 
 class Result:
   def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval = 2):
-    self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval = id, score, fast_int(round(exchange_amount)), num_proposals, exchange_interval
+    self.id, self.score, self.gamma = id, score, fast_int(exchange_interval)
+    self.alpha = fast_int(num_proposals) - fast_int(exchange_amount)
+    self.beta = fast_int(num_proposals)
 
   def __str__(self):
-    return "id: {:<4}  score: {:.4f}  # to Share: {:<4}  # of Proposals: {:<4}  Exchange Interval: {:<4}".format(self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval)
+    return "id: {:<4}  score: {:.4f}  alpha: {:<4}  beta: {:<4}  gamma: {:<4}".format(self.id, self.score, self.alpha, self.beta, self.gamma)
 
   def __hash__(self):
-    return hash((self.exchange_amount, self.num_proposals, self.exchange_interval))
+    return hash((self.alpha, self.beta, self.gamma))
 
   def __eq__(self, other):
-    return self.exchange_amount, self.num_proposals, self.exchange_interval == other.exchange_amount, other.num_proposals, other.exchange_interval
+    return self.alpha, self.beta, self.gamma == other.exchange_amount, other.num_proposals, other.exchange_interval
   def __format__(self, code):
     return format(str(self), code)
 
   def __getitem__(self, code):
-    return [self.id, self.score, self.exchange_amount, self.num_proposals, self.exchange_interval][code]
+    return [self.id, self.score, self.alpha, self.beta, self.gamma][code]
 
 
 def parse_gpyopt(csv_name, reverse=False, key_idx=1):

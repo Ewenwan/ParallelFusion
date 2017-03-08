@@ -26,7 +26,7 @@ def wrapper(evals):
   return np.atleast_2d(res)
 
 def main():
-  max_num_proposals = 8
+  max_num_proposals = 11
   num_threads = 1
   while num_threads <= 8:
     global runner
@@ -55,7 +55,11 @@ def main():
     constrains = [
       {
         "name": "cont_1",
-        "constrain": "x[:, 0] - x[:, 1] + 0.5"
+        "constrain": "x[:, 0] - x[:, 1] - 0.5"
+      },
+      {
+        "name": "cont_2",
+        "constrain": "-1*(np.logical_or(x[:, 0] == x[:, 1], x[:, 2] == 1))"
       }
     ]
 

@@ -55,7 +55,11 @@ def main():
     constrains = [
       {
         "name": "cont_1",
-        "constrain": "x[:, 0] - x[:, 1] + 0.5"
+        "constrain": "x[:, 0] - x[:, 1] - 0.5"
+      },
+      {
+        "name": "cont_2",
+        "constrain": "-1*(np.logical_or(x[:, 0] == x[:, 1], x[:, 2] == 1))"
       }
     ]
 
@@ -65,7 +69,7 @@ def main():
                                   domain=space,
                                   constrains=constrains)
 
-    opt.run_optimization(max_iter=35,
+    opt.run_optimization(max_iter=25,
                             evaluations_file="layer-depth-evals-{}.txt".format(num_threads),
                             models_file="layer-depth-model-{}.txt".format(num_threads),
                             batch_size=5,

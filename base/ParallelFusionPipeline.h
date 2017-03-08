@@ -11,10 +11,13 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <random>
 #include <vector>
+#include <fmt/format.h>
 
 //#include "FusionThread.h"
 //#include "cv_utils/cv_utils.h"
 #include "pipeline_util.h"
+
+using namespace fmt::literals;
 
 namespace ParallelFusion {
 
