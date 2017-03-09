@@ -1,0 +1,3 @@
+[submodule "AlphaMatting"]
+  path = AlphaMatting
+  url = git@github.com:art-programmer/AlphaMatting.git
