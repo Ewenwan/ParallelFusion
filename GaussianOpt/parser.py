@@ -5,8 +5,12 @@ from sys import argv
 class Result:
   def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval = 2):
     self.id, self.score, self.gamma = id, score, fast_int(exchange_interval)
-    self.alpha = fast_int(num_proposals) - fast_int(exchange_amount)
+
     self.beta = fast_int(num_proposals)
+    if self.gamma != 1:
+      self.alpha = fast_int(num_proposals)
+    else:
+      self.alpha = self.beta - fast_int(exchange_amount)
 
   def __str__(self):
     return "id: {:<4}  score: {:.4f}  alpha: {:<4}  beta: {:<4}  gamma: {:<4}".format(self.id, self.score, self.alpha, self.beta, self.gamma)
