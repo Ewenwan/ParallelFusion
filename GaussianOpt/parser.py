@@ -3,7 +3,7 @@ from fastnumbers import fast_real, isreal, fast_int
 from sys import argv
 
 class Result:
-  def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval = 2):
+  def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval = 1):
     self.id, self.score, self.gamma = id, score, fast_int(exchange_interval)
 
     self.beta = fast_int(num_proposals)
@@ -19,7 +19,8 @@ class Result:
     return hash((self.alpha, self.beta, self.gamma))
 
   def __eq__(self, other):
-    return self.alpha, self.beta, self.gamma == other.exchange_amount, other.num_proposals, other.exchange_interval
+    return self.alpha, self.beta, self.gamma == other.alpha, other.beta, other.gamma
+
   def __format__(self, code):
     return format(str(self), code)
 
