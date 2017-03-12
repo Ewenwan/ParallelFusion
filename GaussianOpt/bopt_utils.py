@@ -49,7 +49,7 @@ class Runner:
         print data[0]
 
         res = self.searcher.search(data[0])
-        return math.log(fast_real(res.groups(0)[0]))
+        return math.log(fast_real(res.group(1)))
       except:
         num_tries -= 1
 

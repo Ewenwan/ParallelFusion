@@ -9,6 +9,7 @@ set(CMAKE_BUILD_TYPE Release)
 find_package(OpenCV REQUIRED)
 #find_package(GLOG REQUIRED)
 find_package(gflags REQUIRED)
+find_package(fmt REQUIRED)
 
 
 file(GLOB SOURCES "*.cpp")
@@ -18,8 +19,9 @@ target_link_libraries(LayerDepthMap ${OpenCV_LIBS}
                       ${GFlags_LIBS}
                       glog gflags
                       ${TRW_LIBS}
-                      ${CV_UTILS_LIBS})
+                      ${CV_UTILS_LIBS}
+                      fmt)
 target_include_directories(LayerDepthMap PUBLIC
                            ${TRW_DIRS}
-                           ${CV_UTILS_LIBS})
+                           ${CV_UTILS_DIRS})
 

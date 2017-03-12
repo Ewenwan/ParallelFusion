@@ -8,10 +8,10 @@ from bopt_utils import Runner
 exe = "/home/erik/Projects/ParallelFusion/build/LayerDepthMap/LayerDepthMap"
 
 data_base = "/home/erik/Projects/ParallelFusion/LayerDepthMap/Inputs"
-data_sets = "cse013".split(" ")
+data_sets = "cse013"
 
 
-searcher = re.compile(".*Final energy:\s*(\d*\.\d*).*")
+searcher = re.compile(".*Final energy:\s*(\d+\.\d+(e\d+)?).*")
 runner = Runner(exe, searcher, data_base, "{} -scene_name={}/{} -num_proposals_in_total={} -solution_exchange_interval={} -num_proposals_from_others={} -num_threads=")
 
 
@@ -30,7 +30,7 @@ def main():
   num_threads = 1
   while num_threads <= 8:
     global runner
-    runner = Runner(exe, searcher, data_base, "{} -scene_name={}/{} -num_proposals_in_total={} -solution_exchange_interval={} -num_proposals_from_others={} -num_threads=" + str(num_threads))
+    runner = Runner(exe, searcher, data_base, "{} -scene_name={}/{} -num_proposals_in_total={} -solution_exchange_interval={} -num_proposals_from_others={} -num_threads=" + str(num_threads) + " -use_monitor_thread")
     space = [
       {
         "name" : "exchange_amount",

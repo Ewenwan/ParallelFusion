@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include <Eigen/Sparse>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 //#include "GeometryCalculation.h"
 #include "../base/cv_utils/cv_utils.h"
@@ -34,6 +36,7 @@
 using namespace cv;
 using namespace cv_utils;
 using namespace Eigen;
+using namespace fmt::literals;
 
 LayerDepthRepresenter::LayerDepthRepresenter(
     const Mat &image, const vector<double> &point_cloud,
@@ -152,7 +155,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
   option.num_threads = PIPELINE_PARAMS_.num_threads;
   option.max_iteration = PIPELINE_PARAMS_.num_iterations;
   option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
-  option.timeout = std::chrono::minutes(3);
+  option.timeout = std::chrono::minutes(5);
   // option.synchronize = true;
 
   vector<shared_ptr<ParallelFusion::ProposalGenerator<LayerLabelSpace>>>
@@ -203,7 +206,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
 
   ParallelFusion::SolutionType<LayerLabelSpace> solution;
   parallelFusionPipeline.getBestLabeling(solution);
-  printf("Done! Final energy: %.5f\n", solution.first);
+  fmt::print("Done! Final energy: {:.5f}\n", solution.first);
   LayerLabelSpace solution_label_space = solution.second;
 
   for (auto thread_id = 0; thread_id < option.num_threads; ++thread_id) {
@@ -224,6 +227,42 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
               solution_it->drawSolutionImage(image_));
     }
   }
+
+  auto &thread_obs = parallelFusionPipeline.getAllThreadProfiles();
+  std::vector<std::pair<double, double>> best_obs;
+  std::vector<std::tuple<double, double, int>> all_obs;
+
+  double previous_energy = 1e100;
+  int tid = 0;
+  for (auto &t_profile : thread_obs) {
+    for (auto &obs : t_profile) {
+      if (obs.second < previous_energy) {
+        best_obs.emplace_back(obs);
+        previous_energy = obs.second;
+      }
+      all_obs.emplace_back(obs.first, obs.second, tid);
+    }
+    ++tid;
+  }
+
+  std::sort(all_obs.begin(), all_obs.end(),
+            [](std::tuple<double, double, int> &a,
+               std::tuple<double, double, int> &b) {
+              return std::get<0>(a) < std::get<0>(b);
+            });
+
+  std::ofstream energy_csv(
+      "time-v-energy-{}.csv"_format(option.num_threads), std::ios::out);
+  for (auto &obs : best_obs)
+    fmt::print(energy_csv, "{}, {}\n", obs.first, obs.second);
+  energy_csv.close();
+
+  std::ofstream raw("raw-time-v-energy-{}.csv"_format(option.num_threads),
+                    std::ios::out);
+  for (auto &obs : all_obs)
+    fmt::print(raw, "{}, {}, {}\n", std::get<0>(obs), std::get<1>(obs),
+               std::get<2>(obs));
+  raw.close();
 
   // map<int, vector<double> > iteration_statistics_map;
   // map<int, string> iteration_proposal_type_map;
@@ -492,6 +531,8 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
   // bool read_success = readLayers(solution_labels, solution_num_surfaces,
   // solution_segments, best_solution_iteration);
   // assert(read_success);
+
+  return;
 
   vector<int> solution_labels(NUM_PIXELS_);
   for (int pixel = 0; pixel < NUM_PIXELS_; pixel++)
@@ -1792,7 +1833,8 @@ void LayerDepthRepresenter::writeRenderingInfo(
     if (imread(completed_image_filename.str()).empty() || true) {
       if (segment_pixels_vec[segment_id].size() == 0)
         continue;
-      cout << "inpaint segment: " << segment_id << endl;
+
+      fmt::print("inpaint segment: {}\n", segment_id);
       Mat mask_image =
           Mat::ones(ori_image_.rows, ori_image_.cols, CV_8UC1) * 255;
       for (vector<int>::const_iterator pixel_it =

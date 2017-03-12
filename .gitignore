@@ -10,3 +10,4 @@ stereo_data
 *model*.txt
 *.png
 *.pyc
+*time-v-*

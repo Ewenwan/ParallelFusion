@@ -38,7 +38,7 @@ DEFINE_string(scene_name, "cse013", "Scene name.");
 DEFINE_int32(scene_rotation_angle, 0, "The rotation angle of the scene.");
 
 DEFINE_int32(num_threads, 2, "The number of threads.");
-DEFINE_int32(num_iterations, 30, "The number of iterations.");
+DEFINE_int32(num_iterations, 1000, "The number of iterations.");
 
 DEFINE_int32(num_proposals_in_total, 1, "The number of proposals in total.");
 DEFINE_int32(num_proposals_from_others, 0,
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
     imwrite(large_image_filename.str(), ori_image);
   }
 
-  if (false) {
+#if 0
     const string solution_path = "Test/solution_images/";
     const int FPS = 24;
     int max_time = 0;
@@ -423,10 +423,9 @@ int main(int argc, char *argv[]) {
     }
 
     return 0;
-  }
+#endif
 
-  bool check_energy_diff = false;
-  if (check_energy_diff) {
+#if 0
     Mat test_image = Mat::zeros(image.rows, image.cols, CV_8UC1);
     ifstream energy_in_str_1("Test/energy_0");
     ifstream energy_in_str_2("Test/energy_1");
@@ -446,29 +445,29 @@ int main(int argc, char *argv[]) {
     }
     imwrite("Test/energy_diff_image.bmp", test_image);
     exit(1);
-  }
+#endif
 
-  bool check_blending = false;
-  if (check_blending) {
-    Mat texture_image = imread("Results/scene_10001/texture_image_3.bmp");
-    Mat mask = Mat::ones(texture_image.rows, texture_image.cols,
-                         texture_image.depth()) *
-               255;
-    // for (int y = 0; y < mask.rows / 2; y++)
-    //   for (int x = 0; x < mask.cols; x++)
-    //  mask.at<Vec3b>(y, x) = Vec3b(0, 0, 0);
+#define CHECK_BLENDING 0
+#if CHECK_BLENDING
+  Mat texture_image = imread("Results/scene_10001/texture_image_3.bmp");
+  Mat mask =
+      Mat::ones(texture_image.rows, texture_image.cols, texture_image.depth()) *
+      255;
+  // for (int y = 0; y < mask.rows / 2; y++)
+  //   for (int x = 0; x < mask.cols; x++)
+  //  mask.at<Vec3b>(y, x) = Vec3b(0, 0, 0);
 
-    Mat result;
-    // seamlessClone(texture_image, texture_image, mask,
-    // Point(texture_image.cols / 2, texture_image.rows / 2), result,
-    // MIXED_CLONE);
-    GaussianBlur(texture_image, result, Size(5, 5), 0, 0);
-    GaussianBlur(result, result, Size(5, 5), 0, 0);
-    GaussianBlur(result, result, Size(5, 5), 0, 0);
-    imshow("texture_image", result);
-    waitKey();
-    exit(1);
-  }
+  Mat result;
+  // seamlessClone(texture_image, texture_image, mask,
+  // Point(texture_image.cols / 2, texture_image.rows / 2), result,
+  // MIXED_CLONE);
+  GaussianBlur(texture_image, result, Size(5, 5), 0, 0);
+  GaussianBlur(result, result, Size(5, 5), 0, 0);
+  GaussianBlur(result, result, Size(5, 5), 0, 0);
+  imshow("texture_image", result);
+  waitKey();
+  exit(1);
+#endif
 
   if (true) {
     stringstream texture_ori_filename;
@@ -692,7 +691,7 @@ int main(int argc, char *argv[]) {
   }
 
   PipelineParams pipeline_params;
-  pipeline_params.num_threads = FLAGS_num_threads;
+  pipeline_params.num_threads = FLAGS_num_threads + (FLAGS_use_monitor_thread ? 1 : 0);
   pipeline_params.num_iterations = FLAGS_num_iterations;
   pipeline_params.num_proposals_in_total = FLAGS_num_proposals_in_total;
   pipeline_params.num_proposals_from_others = FLAGS_num_proposals_from_others;

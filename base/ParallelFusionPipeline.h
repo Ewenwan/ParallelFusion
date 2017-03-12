@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <fmt/format.h>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -11,7 +12,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <random>
 #include <vector>
-#include <fmt/format.h>
 
 //#include "FusionThread.h"
 //#include "cv_utils/cv_utils.h"
@@ -85,7 +85,7 @@ protected:
 
   ParallelFusionOption option;
   // if one thread throws exception, notify all threads
-  std::atomic<bool> terminate;
+  std::atomic<bool> terminate, monitor_terminate;
   // In the presence of monitor thread, all threads might need to be
   // synchronized.
   std::vector<std::atomic<bool>> write_flag;
@@ -120,6 +120,7 @@ double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(
   monitorThreadIds.clear();
   slaveThreadIds.clear();
   terminate.store(false);
+  monitor_terminate.store(false);
 
   // sanity checks
   for (auto i = 0; i < option.num_threads; ++i) {
@@ -180,7 +181,7 @@ double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(
     slaves[i].join();
 
   // quit monitor thread
-  terminate.store(true);
+  monitor_terminate.store(true);
 }
 
 template <class LABELSPACE>
@@ -204,11 +205,9 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
     SolverPtr solver, const ThreadOption &thread_option) {
 
   try {
-    srand(id);
-    printf("Thread %d lauched\n", id);
-    std::default_random_engine seed;
-    std::uniform_int_distribution<int> distribution(
-        1, (int)slaveThreadIds.size() - 1);
+    fmt::print("Thread {} launched\n", id);
+    std::seed_seq seed{id, 1, 2, 4, id, 5, 6, id, 7, 8, id};
+    std::mt19937_64 rng(seed);
     bool converge = false;
 
     solver->initSolver(initial);
@@ -228,7 +227,7 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
     std::chrono::nanoseconds run_time(0);
     for (int iter = 0; iter < option.max_iteration; ++iter) {
       if (terminate.load()) {
-        printf("Thread %d quited\n", id);
+        fmt::print("Thread {} quited\n", id);
         return;
       }
       auto start = std::chrono::system_clock::now();
@@ -244,13 +243,19 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       bool grabbed_solution_from_self = false;
       std::vector<int> selected_threads;
       if (num_proposals_from_others > 0) {
-        LOG(INFO) << "Thread: " << id << "\tGetting "
-                  << num_proposals_from_others << " from other threads";
+        LOG(INFO) << "Thread: {}\tGetting {} from other threads"_format(
+            id, num_proposals_from_others);
         if (option.selectionMethod == ParallelFusionOption::RANDOM) {
+          std::vector<int> all_other_worker_threads;
+          for (auto tid = 0; tid < slaveThreadIds.size(); ++tid)
+            if (tid != id)
+              all_other_worker_threads.push_back(tid);
+
+          std::shuffle(all_other_worker_threads.begin(),
+                       all_other_worker_threads.end(), rng);
 
           for (auto pid = 0; pid < num_proposals_from_others; ++pid) {
-            int idshift = distribution(seed);
-            int tid = (id + idshift) % (int)slaveThreadIds.size();
+            int tid = all_other_worker_threads[pid];
             SolutionType<LABELSPACE> s;
             bestSolutions[tid].get(s);
             proposals.appendSpace(s.second);
@@ -357,8 +362,8 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       // printf("Solving...\n");
       SolutionType<LABELSPACE> curSolution;
       solver->solve(proposals, current_solution, curSolution);
-      LOG(INFO) << "Thread: " << id
-                << "\tcurrent energy: " << curSolution.first;
+      LOG(INFO) << "Thread: {}\tcurrent energy: {}"_format(id,
+                                                           curSolution.first);
 
       // write thread profile, update global profile
       float dt = ((float)cv::getTickCount() - start_time) /
@@ -416,12 +421,13 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       run_time += current_run;
 
       if (run_time + current_run >= option.timeout) {
-        std::cout << "Ran for: " << run_time.count() / 1e9 << std::endl;
+        fmt::print("Thread: {}\tRan for: {}\n", id, run_time.count() / 1e9);
         terminate.store(true);
       }
     }
   } catch (const std::exception &e) {
     terminate.store(true);
+    monitor_terminate.store(true);
     printf("Thread %d throws and exception: %s\n", id, e.what());
     return;
   }
@@ -437,7 +443,7 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
     int iter = 0;
 
     while (true) {
-      if (terminate.load()) {
+      if (monitor_terminate.load()) {
         printf("Monitor thread quited\n");
         break;
       }
@@ -454,7 +460,7 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
       for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
         // if (option.synchronize) No matter synchronize or not, monitor thread
         // has to wait util results are available.
-        while (write_flag[tid].load())
+        while (write_flag[tid].load() && !terminate.load())
           std::this_thread::yield();
 
         SolutionType<LABELSPACE> s;
@@ -486,6 +492,7 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
     }
   } catch (const std::exception &e) {
     terminate.store(true);
+    monitor_terminate.store(true);
     printf("Thread %d throws and exception: %s\n", id, e.what());
     return;
   }
