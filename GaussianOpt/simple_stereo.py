@@ -3,7 +3,7 @@ from fastnumbers import fast_real, fast_int
 import numpy as np
 from GPyOpt.methods import BayesianOptimization
 import re
-from bopt_utils import Runner
+from bopt_utils import Runner, constrains
 
 exe = "/home/erik/Projects/ParallelFusion/build/stereo/code/simplestereo/SimpleStereo"
 
@@ -50,22 +50,6 @@ def main():
         "dimensionality": 1
       }
     ]
-
-    constrains = [
-      {
-        "name": "cont_1",
-        "constrain": "x[:, 0] - x[:, 1] + 0.5"
-      },
-      {
-        "name": "cont_2",
-        "constrain": "-1*(np.logical_or(x[:, 0] == x[:, 1], x[:, 2] == 1))"
-      },
-      {
-        "name": "cont_3",
-        "constrain": "-1*((x[:, :] != 1).any(1))"
-      }
-    ]
-
 
     # --- Solve your problem
     opt = BayesianOptimization(f=wrapper,

@@ -4,7 +4,7 @@ import numpy as np
 import math
 from GPyOpt.methods import BayesianOptimization
 import re
-from bopt_utils import Runner
+from bopt_utils import Runner, constrains
 
 
 exe = "/home/vision/erikwijmans/ParallelFusion/build/OpticalFlow/OpticalFlow"
@@ -49,21 +49,6 @@ def main():
         "type" : "discrete",
         "domain": tuple(range(1, max_num_proposals + 1)),
         "dimensionality": 1
-      }
-    ]
-
-    constrains = [
-      {
-        "name": "cont_1",
-        "constrain": "x[:, 0] - x[:, 1] - 0.5"
-      },
-      {
-        "name": "cont_2",
-        "constrain": "-1*(np.logical_or(x[:, 0] == x[:, 1], x[:, 2] == 1))"
-      },
-      {
-        "name": "cont_3",
-        "constrain": "-1*((x[:, :] != 1).any(1))"
       }
     ]
 

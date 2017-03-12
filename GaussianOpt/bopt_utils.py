@@ -54,3 +54,18 @@ class Runner:
         num_tries -= 1
 
     raise RuntimeError("Failure to run: \"{}\"".format(command))
+
+constrains = [
+  {
+    "name": "cont_1",
+    "constrain": "x[:, 0] - x[:, 1] + 0.5"
+  },
+  {
+    "name": "cont_2",
+    "constrain": "-1*(np.logical_or(x[:, 0] == x[:, 1], x[:, 2] == 1))"
+  },
+  {
+    "name": "cont_3",
+    "constrain": "-1*((x[:, :] != 1).any(1))"
+  }
+]
