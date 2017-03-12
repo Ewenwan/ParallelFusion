@@ -62,7 +62,7 @@ def main():
       },
       {
         "name": "cont_3",
-        "constrain": "-1*((x == 1).all(1))"
+        "constrain": "-1*((x[:, :] != 1).any(1))"
       }
     ]
 

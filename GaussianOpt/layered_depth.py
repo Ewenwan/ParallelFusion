@@ -19,6 +19,7 @@ def layer(exchange_amount, num_proposals, exchange_interval = 2):
   print num_proposals, exchange_interval, exchange_amount
   return runner.run(data_sets, fast_int(num_proposals), fast_int(exchange_interval), fast_int(exchange_amount))
 
+
 def wrapper(evals):
   print evals
   res = np.array([layer(*e) for e in evals])
@@ -30,7 +31,7 @@ def main():
   num_threads = 1
   while num_threads <= 8:
     global runner
-    runner = Runner(exe, searcher, data_base, "{} -scene_name={}/{} -num_proposals_in_total={} -solution_exchange_interval={} -num_proposals_from_others={} -num_threads=" + str(num_threads) + " -use_monitor_thread")
+    runner = Runner(exe, searcher, data_base, "{} -scene_name={}/{} -num_proposals_in_total={} -solution_exchange_interval={} -num_proposals_from_others={} -num_threads=" + str(num_threads))
     space = [
       {
         "name" : "exchange_amount",
@@ -63,7 +64,7 @@ def main():
       },
       {
         "name": "cont_3",
-        "constrain": "-1*((x == 1).all(1))"
+        "constrain": "-1*((x[:, :] != 1).any(1))"
       }
     ]
 
