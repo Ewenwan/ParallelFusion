@@ -58,7 +58,7 @@ class Runner:
 constrains = [
   {
     "name": "cont_1",
-    "constrain": "x[:, 0] - x[:, 1] + 0.5"
+    "constrain": "x[:, 0] - x[:, 1] - 0.5"
   },
   {
     "name": "cont_2",

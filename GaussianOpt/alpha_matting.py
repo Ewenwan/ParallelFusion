@@ -35,7 +35,7 @@ def main():
       {
         "name" : "exchange_amount",
         "type" : "discrete",
-        "domain": tuple(range(0, num_threads + 1)),
+        "domain": tuple(range(0, num_threads)),
         "dimensionality": 1
       },
       {

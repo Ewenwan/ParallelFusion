@@ -25,16 +25,16 @@ def wrapper(evals):
 
 def main():
   num_threads = 1
+  max_num_proposals = 10
   while num_threads <= 8:
     global runner
     runner = Runner(exe, searcher, data_base, "{} {}/{} -num_proposals={} -exchange_interval={} -exchange_amount={} -num_threads=" + str(num_threads))
 
-    max_num_proposals = 10
     space = [
       {
         "name" : "exchange_amount",
         "type" : "discrete",
-        "domain": tuple(range(0, num_threads + 1)),
+        "domain": tuple(range(0, num_threads)),
         "dimensionality": 1
       },
       {
