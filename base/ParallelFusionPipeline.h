@@ -29,6 +29,7 @@ public:
         terminate(false), write_flag((size_t)option_.num_threads),
         threadProfile((size_t)option_.num_threads) {
     start_time = (float)cv::getTickCount();
+    final_fused.first = std::numeric_limits<double>::max();
   }
 
   typedef std::shared_ptr<ProposalGenerator<LABELSPACE>> GeneratorPtr;
@@ -60,6 +61,7 @@ public:
   getAllThreadProfiles() const {
     return threadProfile;
   }
+  void final_fusion(SolverPtr solver);
 
   // slave threads
   virtual void workerThread(const int id, const LABELSPACE &initial,
@@ -85,7 +87,7 @@ protected:
 
   ParallelFusionOption option;
   // if one thread throws exception, notify all threads
-  std::atomic<bool> terminate, monitor_terminate;
+  std::atomic<bool> terminate;
   // In the presence of monitor thread, all threads might need to be
   // synchronized.
   std::vector<std::atomic<bool>> write_flag;
@@ -100,6 +102,7 @@ protected:
   GlobalTimeEnergyProfile globalProfile;
 
   float start_time;
+  SolutionType<LABELSPACE> final_fused;
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -120,7 +123,6 @@ double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(
   monitorThreadIds.clear();
   slaveThreadIds.clear();
   terminate.store(false);
-  monitor_terminate.store(false);
 
   // sanity checks
   for (auto i = 0; i < option.num_threads; ++i) {
@@ -181,7 +183,10 @@ double ParallelFusionPipeline<LABELSPACE>::runParallelFusion(
     slaves[i].join();
 
   // quit monitor thread
-  monitor_terminate.store(true);
+  terminate.store(true);
+
+  if (thread_options[slaveThreadIds[0]].kOtherThread == 0)
+    final_fusion(solvers[0]);
 }
 
 template <class LABELSPACE>
@@ -196,6 +201,14 @@ double ParallelFusionPipeline<LABELSPACE>::getBestLabeling(
       minE = solution.first;
     }
   }
+
+  if (final_fused.first < minE) {
+    solution.second.clear();
+    solution.second.appendSpace(final_fused.second);
+    solution.first = final_fused.first;
+    minE = solution.first;
+  }
+
   return minE;
 }
 
@@ -427,7 +440,6 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
     }
   } catch (const std::exception &e) {
     terminate.store(true);
-    monitor_terminate.store(true);
     printf("Thread %d throws and exception: %s\n", id, e.what());
     return;
   }
@@ -443,7 +455,7 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
     int iter = 0;
 
     while (true) {
-      if (monitor_terminate.load()) {
+      if (terminate.load()) {
         printf("Monitor thread quited\n");
         break;
       }
@@ -460,7 +472,7 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
       for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
         // if (option.synchronize) No matter synchronize or not, monitor thread
         // has to wait util results are available.
-        while (write_flag[tid].load() && !terminate.load())
+        while (write_flag[tid].load())
           std::this_thread::yield();
 
         SolutionType<LABELSPACE> s;
@@ -492,7 +504,6 @@ void ParallelFusionPipeline<LABELSPACE>::monitorThread(
     }
   } catch (const std::exception &e) {
     terminate.store(true);
-    monitor_terminate.store(true);
     printf("Thread %d throws and exception: %s\n", id, e.what());
     return;
   }
@@ -505,6 +516,34 @@ void ParallelFusionPipeline<LABELSPACE>::getAllResult(
     SolutionType<LABELSPACE> s;
     bestSolutions[i].get(s);
     solutions.appendSpace(s.second);
+  }
+}
+
+template <class LABELSPACE>
+void ParallelFusionPipeline<LABELSPACE>::final_fusion(SolverPtr solver) {
+  fmt::print("Performing final fusion!\n");
+  LABELSPACE proposals;
+
+  final_fused.first = std::numeric_limits<double>::max();
+
+  int num_proposals_to_fuse = 0;
+  for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
+    // if (option.synchronize) No matter synchronize or not, monitor thread
+    // has to wait util results are available.
+
+    SolutionType<LABELSPACE> s;
+    bestSolutions[tid].get(s);
+    proposals.appendSpace(s.second);
+
+    num_proposals_to_fuse++;
+    if (num_proposals_to_fuse == 2) {
+      fmt::print("Fusing!\n");
+      SolutionType<LABELSPACE> curSolution;
+      solver->solve(proposals, final_fused, curSolution);
+      final_fused = curSolution;
+      proposals = curSolution.second;
+      num_proposals_to_fuse = 1;
+    }
   }
 }
 
