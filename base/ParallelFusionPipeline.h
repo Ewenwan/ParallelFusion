@@ -545,6 +545,13 @@ void ParallelFusionPipeline<LABELSPACE>::final_fusion(SolverPtr solver) {
       num_proposals_to_fuse = 1;
     }
   }
+
+  float dt = ((float)cv::getTickCount() - start_time) /
+             static_cast<float>(cv::getTickFrequency());
+  for (auto tid = 0; tid < slaveThreadIds.size(); ++tid) {
+    threadProfile[slaveThreadIds[tid]].push_back(
+        Observation(dt, final_fused.first));
+  }
 }
 
 } // namespace ParallelFusion

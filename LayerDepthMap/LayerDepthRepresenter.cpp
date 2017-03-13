@@ -155,7 +155,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
   option.num_threads = PIPELINE_PARAMS_.num_threads;
   option.max_iteration = PIPELINE_PARAMS_.num_iterations;
   option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
-  option.timeout = std::chrono::minutes(5);
+  option.timeout = std::chrono::minutes(4);
   // option.synchronize = true;
 
   vector<shared_ptr<ParallelFusion::ProposalGenerator<LayerLabelSpace>>>
@@ -206,7 +206,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
 
   ParallelFusion::SolutionType<LayerLabelSpace> solution;
   parallelFusionPipeline.getBestLabeling(solution);
-  fmt::print("Done! Final energy: {:.5f}\n", solution.first);
+  fmt::print("Done! Final energy: {:.5f}\t log: {:.5f}\n", solution.first, std::log(solution.first));
   LayerLabelSpace solution_label_space = solution.second;
 
   for (auto thread_id = 0; thread_id < option.num_threads; ++thread_id) {

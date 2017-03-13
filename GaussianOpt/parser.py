@@ -3,17 +3,11 @@ from fastnumbers import fast_real, isreal, fast_int
 from sys import argv
 
 class Result:
-  def __init__(self, id, score, exchange_amount, num_proposals, exchange_interval = 1):
-    self.id, self.score, self.gamma = id, score, fast_int(exchange_interval)
-
-    self.beta = fast_int(num_proposals)
-    if self.gamma != 1:
-      self.alpha = fast_int(num_proposals)
-    else:
-      self.alpha = self.beta - fast_int(exchange_amount)
+  def __init__(self, id, score, alpha, beta, gamma = 2):
+    self.id, self.score, self.alpha, self.beta, self.gamma = id, score, fast_int(alpha), fast_int(beta), fast_int(gamma)
 
   def __str__(self):
-    return "id: {:<4}  score: {:.4f}  alpha: {:<4}  beta: {:<4}  gamma: {:<4}".format(self.id, self.score, self.alpha, self.beta, self.gamma)
+    return "id: {:<4}  score: {:.4f}  alpha = {:<4}  beta = {:<4}  gamma = {:<4}".format(self.id, self.score, self.alpha, self.beta, self.gamma)
 
   def __hash__(self):
     return hash((self.alpha, self.beta, self.gamma))
