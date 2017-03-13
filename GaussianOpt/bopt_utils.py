@@ -13,7 +13,7 @@ class bcolors:
   BOLD = '\033[1m'
   UNDERLINE = '\033[4m'
 
-def utils:
+class utils:
   BATCH_SIZE = 3
   MAX_ITERS = 30
 
@@ -71,6 +71,10 @@ def get_contrains():
           {
             "name": "cont_2",
             "constrain": "-1*(np.logical_or(x[:, 0] > x[:, 1], x[:, 2] != 1))"
+          },
+          {
+            "name": "cont_3",
+            "constrain": "-1*(np.logical_or(x[:, 1] > 0, x[:, 2] == 1))"
           }
         ]
 

@@ -433,7 +433,12 @@ void ParallelFusionPipeline<LABELSPACE>::workerThread(
       std::chrono::nanoseconds current_run = end - start;
       run_time += current_run;
 
-      if (run_time + current_run >= option.timeout) {
+      double factor = thread_option.kOtherThread == 0
+                          ? 1.0 +
+                                static_cast<double>(slaveThreadIds.size() - 1) /
+                                    thread_option.kTotal
+                          : 1.0;
+      if (run_time + factor * current_run >= option.timeout) {
         fmt::print("Thread: {}\tRan for: {}\n", id, run_time.count() / 1e9);
         terminate.store(true);
       }

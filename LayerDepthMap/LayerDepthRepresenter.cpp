@@ -155,7 +155,7 @@ void LayerDepthRepresenter::optimizeLayerRepresentation() {
   option.num_threads = PIPELINE_PARAMS_.num_threads;
   option.max_iteration = PIPELINE_PARAMS_.num_iterations;
   option.selectionMethod = ParallelFusion::ParallelFusionOption::RANDOM;
-  option.timeout = std::chrono::minutes(4);
+  option.timeout = std::chrono::minutes(15);
   // option.synchronize = true;
 
   vector<shared_ptr<ParallelFusion::ProposalGenerator<LayerLabelSpace>>>

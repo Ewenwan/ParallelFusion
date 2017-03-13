@@ -20,10 +20,10 @@ double ParallelOptimize::optimize(stereo_base::Depth &result,
   const int kFusionSize = 4;
 
   ParallelFusionOption pipelineOption;
-  pipelineOption.num_threads = num_threads + 1;
+  pipelineOption.num_threads = num_threads;
   pipelineOption.max_iteration =
       model->nLabel / num_threads / kFusionSize * max_iter;
-  pipelineOption.timeout = 8s;
+  pipelineOption.timeout = std::chrono::seconds(5);
   std::cout << "Number of iterations: " << pipelineOption.max_iteration
             << std::endl;
   const int kLabelPerThread = model->nLabel / pipelineOption.num_threads;
@@ -39,7 +39,7 @@ double ParallelOptimize::optimize(stereo_base::Depth &result,
   const int kPix = model->width * model->height;
 
   // slave threads
-  for (auto i = 0; i < pipelineOption.num_threads - 1; ++i) {
+  for (auto i = 0; i < pipelineOption.num_threads; ++i) {
     const int startid = labelSubSpace[i].front();
     initials[i].init(kPix, vector<int>(1, startid));
     threadOptions[i].kTotal = num_proposals;
@@ -62,11 +62,11 @@ double ParallelOptimize::optimize(stereo_base::Depth &result,
   }
 
   // monitor thread
-  threadOptions.back().is_monitor = true;
+  /* threadOptions.back().is_monitor = true;
   solvers.back() =
       shared_ptr<FusionSolver<Space>>(new SimpleStereoMonitor(model));
   generators.back() =
-      shared_ptr<ProposalGenerator<Space>>(new DummyGenerator());
+      shared_ptr<ProposalGenerator<Space>>(new DummyGenerator()); */
 
   StereoPipeline parallelFusionPipeline(pipelineOption);
   float t = (float)getTickCount();
@@ -79,7 +79,7 @@ double ParallelOptimize::optimize(stereo_base::Depth &result,
   parallelFusionPipeline.getBestLabeling(solution);
 
   printf("Done! Final energy: %.5f, running time: %.3fs\n", solution.first, t);
-
+  return solution.first;
   std::dynamic_pointer_cast<SimpleStereoMonitor>(solvers.back())
       ->dumpData(file_io.getDirectory() + "/temp");
 

@@ -19,7 +19,7 @@ def simple_stereo(num_proposals, exchange_amount, exchange_interval = 2):
 
 def main():
   num_threads = 1
-  max_num_proposals = 10
+  max_num_proposals = 11
   while num_threads <= 8:
     global runner
     runner = Runner(exe, searcher, data_base, "{} {}/{} -num_proposals={} -exchange_interval={} -exchange_amount={} -num_threads=" + str(num_threads))
@@ -27,7 +27,7 @@ def main():
     # --- Solve your problem
     opt = BayesianOptimization(f=build_wrapper(simple_stereo),
                                   domain=get_space(num_threads, max_num_proposals),
-                                  constrains=get_contrains)
+                                  constrains=get_contrains())
 
     opt.run_optimization(max_iter=utils.MAX_ITERS,
                             evaluations_file="simple-stereo-evals-{}.txt".format(num_threads),
